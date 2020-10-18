@@ -1,4 +1,4 @@
-from zmq_broker import ZmqBroker
+from goldo_main.zmq_broker import ZmqBroker
 import asyncio
 
 if __name__ == '__main__':
