@@ -1,0 +1,15 @@
+syntax = "proto3";
+package goldo.nucleo.odrive;
+  
+message RequestPacket {
+  int32 sequence_number = 1;
+  int32 endpoint_id = 2;
+  int32 expected_response_size = 3;
+  bytes payload = 4;
+  int32 protocol_version = 5;
+}
+
+message ResponsePacket {
+  int32 sequence_number = 1;
+  bytes payload = 4;
+}

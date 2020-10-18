@@ -1,0 +1,22 @@
+syntax = "proto3";
+package goldo.nucleo.robot;
+  
+message ConfigLoadBegin {
+  int32 size = 1;
+}
+
+message ConfigLoadChunk {
+  bytes data = 1;
+}
+
+message ConfigLoadEnd {
+  int32 crc = 1;
+}
+
+message ConfigLoadStatus {
+  enum Status {
+    OK = 0;
+    CRC_ERROR = 1;
+  }
+  Status status = 1;
+}

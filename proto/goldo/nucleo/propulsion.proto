@@ -1,0 +1,40 @@
+syntax = "proto3";
+package goldo.nucleo.propulsion;
+  
+message MotorsVelocitySetpoints {
+  float left_vel = 1;
+  float right_vel = 2;
+  float left_current_feedforward = 3;
+  float right_current_feedforward = 4;
+}
+
+message OdometryConfig {
+  int32 encoders_period = 1;
+  float dist_per_count_left = 2;
+  float dist_per_count_right = 3;
+  float wheels_spacing = 4;  
+  float speed_filter_frequency = 5;
+  float acceleration_filter_frequency = 6;
+}
+
+message Trajectory {
+  message Point {
+    float x = 1;
+    float y = 2;
+  }
+  repeated Point points = 1;
+}
+
+message ExecuteRotation {
+  float yaw_delta = 1;
+  float yaw_rate = 2;
+  float accel = 3;
+  float deccel = 4;
+}
+
+message ExecuteTranslation {
+  float distance = 1;
+  float speed = 2;
+  float accel = 3;
+  float deccel = 4;
+}

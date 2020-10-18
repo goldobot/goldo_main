@@ -1,0 +1,6 @@
+syntax = "proto3";
+package goldo.nucleo;
+  
+message Heartbeat {
+  fixed32 timestamp = 1;
+}
