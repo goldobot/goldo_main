@@ -1,0 +1,12 @@
+syntax = "proto3";
+package goldo.nucleo.odometry;
+
+message Config {
+  float dist_per_count_left = 1;
+  float dist_per_count_right = 2;
+  float wheel_distance_left = 3;
+  float wheel_distance_right = 4;
+  float speed_filter_frequency = 5;
+  float accel_filter_frequency = 6;
+  uint32 encoder_period = 7;
+}
