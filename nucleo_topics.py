@@ -1,6 +1,7 @@
 import goldo_main.pb2 as _goldo_pb
 import google.protobuf as _pb
 import struct
+import math
 
 _sym_db = _pb.symbol_database.Default()
 
@@ -54,30 +55,27 @@ def odometry_config_get(msg):
     
 @nucleo_out('odometry/config', 41)
 def odometry_config_get_status(payload):
-    msg = _sym_db.GetSymbol('goldo.nucleo.odometry.Config')()
-    vals = struct.unpack('<ffffffHH', payload) 
+    msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.OdometryConfig')()
+    vals = struct.unpack('<ffffff', payload) 
     msg.dist_per_count_left = vals[0]
     msg.dist_per_count_right = vals[1]
     msg.wheel_distance_left = vals[2]
     msg.wheel_distance_right = vals[3]
     msg.speed_filter_frequency = vals[4]
     msg.accel_filter_frequency = vals[5]
-    msg.encoder_period = vals[6]
-    return msg
-        
+    return msg   
+
 @nucleo_in('odometry/config/set', 42)
 def odometry_config_set(msg):
-    return struct.pack('<ffffffHH', 
+    return struct.pack('<ffffff', 
         msg.dist_per_count_left,
         msg.dist_per_count_right,
         msg.wheel_distance_left,
         msg.wheel_distance_right,
         msg.speed_filter_frequency,
-        msg.accel_filter_frequency,
-        msg.encoder_period,
-        0        
-        )
-    
+        msg.accel_filter_frequency   
+        )    
+
 @nucleo_in('propulsion/enable/set', 22)
 def propulsion_enable_set(msg):
     return struct.pack('<B', msg.value)
@@ -97,3 +95,22 @@ def propulsion_motors_velocity_setpoints_set(msg):
 @nucleo_in('propulsion/execute_translation', 31)
 def propulsion_motors_velocity_setpoints_set(msg):
     return struct.pack('<ffff', msg.distance, msg.speed, msg.accel, msg.deccel)
+    
+@nucleo_out('propulsion/telemetry', 25)
+def propulsion_telemetry(payload):
+    msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.Telemetry')()
+    vals = struct.unpack('<hhhhhhhHHbbBB', payload)
+    msg.pose.position.x = vals[0] * 0.25e-3
+    msg.pose.position.y = vals[1] * 0.25e-3
+    msg.pose.yaw = vals[2] * math.pi / 32767
+    msg.pose.speed = vals[3] * 1e-3
+    msg.pose.yaw_rate = vals[4] * 1e-3
+    msg.pose.acceleration = vals[5] * 1e-3
+    msg.pose.angular_acceleration = vals[6] * 1e-3
+    msg.left_encoder = vals[7]
+    msg.right_encoder = vals[8]
+    msg.left_pwm = vals[9] *1e-2
+    msg.right_pwm = vals[10] * 1e-2
+    msg.state = vals[11]
+    msg.error = vals[12]
+    return msg  
