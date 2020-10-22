@@ -1,6 +1,17 @@
 syntax = "proto3";
 package goldo.nucleo.propulsion;
-  
+import "goldo/common/geometry.proto";
+
+message Telemetry {
+  goldo.common.geometry.Pose pose = 1;
+  int32 left_encoder = 2;
+  int32 right_encoder = 3;
+  float left_pwm = 4;
+  float right_pwm = 5;
+  int32 state = 6;
+  int32 error = 7;
+};
+
 message MotorsVelocitySetpoints {
   float left_vel = 1;
   float right_vel = 2;
@@ -8,21 +19,28 @@ message MotorsVelocitySetpoints {
   float right_current_feedforward = 4;
 }
 
-message OdometryConfig {
-  int32 encoders_period = 1;
-  float dist_per_count_left = 2;
-  float dist_per_count_right = 3;
-  float wheels_spacing = 4;  
+message OdometryConfig {  
+  float dist_per_count_left = 1;
+  float dist_per_count_right = 2;
+  float wheel_distance_left = 3;
+  float wheel_distance_right = 4;  
   float speed_filter_frequency = 5;
-  float acceleration_filter_frequency = 6;
+  float accel_filter_frequency = 6;
+}
+
+message PIDConfig {
+  float kp = 1;
+  float ki = 2;
+  float kd = 3;
+  float lim_i = 4;
+  float lim_d = 5;
+  float d_filter_frequency = 6;
+  float out_min = 7;
+  float out_max = 8;
 }
 
 message Trajectory {
-  message Point {
-    float x = 1;
-    float y = 2;
-  }
-  repeated Point points = 1;
+  repeated goldo.common.geometry.Point points = 1;
 }
 
 message ExecuteRotation {
