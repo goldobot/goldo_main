@@ -1,8 +1,9 @@
 syntax = "proto3";
 package goldo.nucleo.robot;
+import "goldo/pb2_options.proto";
   
 message ConfigLoadBegin {
-  int32 size = 1;
+  int32 size = 1 [(goldo.pb2_options.cpp_type) = UINT16];
 }
 
 message ConfigLoadChunk {
@@ -10,7 +11,7 @@ message ConfigLoadChunk {
 }
 
 message ConfigLoadEnd {
-  int32 crc = 1;
+  int32 crc = 1 [(goldo.pb2_options.cpp_type) = UINT16];
 }
 
 message ConfigLoadStatus {
@@ -18,5 +19,11 @@ message ConfigLoadStatus {
     OK = 0;
     CRC_ERROR = 1;
   }
-  Status status = 1;
+  Status status = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
+message Config {
+  bytes data = 1;
+  int32 crc = 2;
+  repeated string sequence_names = 3;
 }

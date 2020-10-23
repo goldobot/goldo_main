@@ -1,6 +1,9 @@
 syntax = "proto3";
 package goldo.nucleo.propulsion;
 import "goldo/common/geometry.proto";
+import "goldo/pb2_options.proto";
+
+
 
 message Telemetry {
   goldo.common.geometry.Pose pose = 1;
@@ -39,6 +42,28 @@ message PIDConfig {
   float out_max = 8;
 }
 
+message PropulsionLowLevelPIDConfig {
+  PIDConfig speed = 1;
+  PIDConfig longi = 2;
+  PIDConfig yaw_rate = 3;
+  PIDConfig yaw = 4;
+}
+
+message PropulsionLowLevelControllerConfig {
+  float wheels_distance = 1;
+  float motors_speed_factor = 2;
+};
+
+message PropulsionControllerConfig {
+  PropulsionLowLevelControllerConfig low_level_config = 1;
+  repeated PropulsionLowLevelPIDConfig pid_configs = 2 [(goldo.pb2_options.max_count) = 4, (goldo.pb2_options.fixed_count) = true];
+  float lookahead_distance = 3;
+  float lookahead_time = 4;
+  float static_pwm_limit = 5;
+  float cruise_pwm_limit = 6;
+  float reposition_pwm_limit = 7;
+};
+
 message Trajectory {
   repeated goldo.common.geometry.Point points = 1;
 }
@@ -46,13 +71,9 @@ message Trajectory {
 message ExecuteRotation {
   float yaw_delta = 1;
   float yaw_rate = 2;
-  float accel = 3;
-  float deccel = 4;
 }
 
 message ExecuteTranslation {
   float distance = 1;
   float speed = 2;
-  float accel = 3;
-  float deccel = 4;
 }

@@ -1,8 +1,9 @@
+import asyncio
 import zmq
 from zmq.asyncio import Context, Poller
 import struct
+import re
 import nucleo_topics
-
 import google.protobuf.wrappers_pb2
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
@@ -20,6 +21,7 @@ class ZmqBroker():
         self._poller = Poller()
         self._sockets = {}
         self._socket_decoders = {}
+        self._callbacks = []
         ip = 'robot01'
         self.register_socket('nucleo:pub', 'tcp://{}:3002'.format(ip), 'connect')
         self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect')
@@ -31,6 +33,15 @@ class ZmqBroker():
         #self.register_socket('camera:req', 'tcp://{}:3001'.format(ip), 'connect')
         self.register_socket('debug:pub', 'tcp://*:3801', 'bind')
         self.register_socket('debug:sub', 'tcp://*:3802', 'bind')
+        
+    def registerCallback(self, pattern: str, callback):
+        pattern = (
+            pattern
+            .replace('*', r'([^/]+)')
+            .replace('/#', r'(/[^/]+)*')
+            .replace('#/', r'([^/]+/)*')
+            )
+        self._callbacks.append((re.compile(f"^{pattern}$"), callback))
         
     async def run(self):
         while True:
@@ -72,6 +83,9 @@ class ZmqBroker():
                                      msg.SerializeToString()])
                                
     async def publishTopic(self, topic, msg):
+        callback_matches = ((regexp.match(topic), callback) for regexp, callback in self._callbacks)
+        await asyncio.gather(*(callback(*match.groups(), msg) for match, callback in callback_matches if match))
+        
         # Forward nucleo topics to comm_uart socket while encoding message
         if topic.startswith('nucleo/in/'):
             msg_type, encoder = nucleo_topics._in.get(topic, (None, None))
