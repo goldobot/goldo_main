@@ -1,0 +1,17 @@
+syntax = "proto3";
+package goldo.nucleo.fpga;
+import "goldo/pb2_options.proto";
+
+message RegRead {
+  fixed32 apb_address = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+}
+
+message RegReadStatus {
+  fixed32 apb_address = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 apb_value = 2 [(goldo.pb2_options.cpp_type) = UINT32];
+}
+
+message RegWrite {
+  fixed32 apb_address = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 apb_value = 2 [(goldo.pb2_options.cpp_type) = UINT32];
+}

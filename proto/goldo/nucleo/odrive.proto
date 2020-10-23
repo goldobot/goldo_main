@@ -3,14 +3,14 @@ package goldo.nucleo.odrive;
 import "goldo/pb2_options.proto";
 
 message RequestPacket {
-  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
-  int32 endpoint_id = 2 [(goldo.pb2_options.cpp_type) = UINT16];
-  int32 expected_response_size = 3 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 endpoint_id = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 expected_response_size = 3 [(goldo.pb2_options.cpp_type) = UINT16];
   bytes payload = 4;
-  int32 protocol_version = 5 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 protocol_version = 5 [(goldo.pb2_options.cpp_type) = UINT16];
 }
 
 message ResponsePacket {
-  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   bytes payload = 4;
 }

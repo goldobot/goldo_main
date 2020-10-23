@@ -8,6 +8,7 @@ import google.protobuf.wrappers_pb2
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
 
+from datetime import datetime
 
 class ZmqBroker():
     socket_types = {
@@ -46,20 +47,24 @@ class ZmqBroker():
     async def run(self):
         while True:
             events = dict(await self._poller.poll())
-            if events.get(self._sockets['nucleo:sub'],0) & zmq.POLLIN:
-                msg_type, msg_body = await self._sockets['nucleo:sub'].recv_multipart()
-                msg_type = struct.unpack('<H', msg_type)[0]
-                topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
-                if topic is not None:
-                    msg = decoder(msg_body)
-                    await self.publishTopic(topic, msg)
+            if events.get(self._sockets['nucleo:sub'], 0) & zmq.POLLIN:
+                socket = self._sockets['nucleo:sub']
+                flags = socket.getsockopt(zmq.EVENTS)        
+                while flags & zmq.POLLIN:
+                    msg_type, msg_body = await socket.recv_multipart()
+                    msg_type = struct.unpack('<H', msg_type)[0]
+                    topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
+                    if topic is not None:
+                        msg = decoder(msg_body)
+                        await self.publishTopic(topic, msg)
+                    flags = socket.getsockopt(zmq.EVENTS)
             if events.get(self._sockets['debug:sub'],0) & zmq.POLLIN:
                 await self._readSocket(self._sockets['debug:sub'])
             if events.get(self._sockets['camera:sub'],0) & zmq.POLLIN:
                 await self._readSocket(self._sockets['camera:sub'])
             if events.get(self._sockets['gui:sub'],0) & zmq.POLLIN:
                 await self._readSocket(self._sockets['gui:sub'])
-                
+
     async def _readSocket(self, socket):
         flags = socket.getsockopt(zmq.EVENTS)        
         while flags & zmq.POLLIN:
@@ -72,6 +77,7 @@ class ZmqBroker():
                 msg.ParseFromString(payload)
             else:
                 msg = None
+            print(topic)
             await self.publishTopic(topic, msg)
             if topic == 'camera/out/image':
                 await self.publishTopic('gui/in/camera/image', msg)
@@ -81,7 +87,7 @@ class ZmqBroker():
         await socket.send_multipart([topic.encode('utf8'),
                                      msg.DESCRIPTOR.full_name.encode('utf8'),
                                      msg.SerializeToString()])
-                               
+
     async def publishTopic(self, topic, msg):
         callback_matches = ((regexp.match(topic), callback) for regexp, callback in self._callbacks)
         await asyncio.gather(*(callback(*match.groups(), msg) for match, callback in callback_matches if match))
@@ -103,14 +109,14 @@ class ZmqBroker():
             
         socket = self._context.socket(socket_type)
         if socket_type == zmq.SUB:
-            socket.setsockopt(zmq.SUBSCRIBE,b'')
+            socket.setsockopt(zmq.SUBSCRIBE, b'')
+            self._poller.register(socket, zmq.POLLIN)
         if connection_type == 'connect':
             socket.connect(url)
         if connection_type == 'bind':
-            socket.bind(url)
-       
+            socket.bind(url)       
         self._sockets[name] = socket
-        self._poller.register(socket, zmq.POLLIN)
+        
 
 
 

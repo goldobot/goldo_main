@@ -8,6 +8,10 @@ _sym_db = _pb.symbol_database.Default()
 _in = {}
 _out = {}
 
+_msg_propulsion_Telemetry =  _sym_db.GetSymbol('goldo.nucleo.propulsion.Telemetry')
+_unpack_propulsion_Telemetry = struct.Struct('<hhhhhhhHHbbBB').unpack
+_unpack_heartbeat = struct.Struct('<I').unpack
+
 def nucleo_out(topic, msg_type):
     def register_out(fn):
         _out[msg_type] = ('nucleo/out/' + topic, fn)
@@ -21,7 +25,7 @@ def nucleo_in(topic, msg_type):
 @nucleo_out('os/heartbeat', 2)
 def heartbeat(payload):
     msg = _sym_db.GetSymbol('goldo.nucleo.Heartbeat')()
-    msg.timestamp = struct.unpack('<I', payload)[0]
+    msg.timestamp = _unpack_heartbeat(payload)[0]
     return msg
     
 @nucleo_out('robot/config/load_status', 9)
@@ -48,7 +52,38 @@ def odrive_request(msg):
     buff += msg.payload
     buff += struct.pack('<H', msg.protocol_version)
     return buff
+    
+@nucleo_out('odrive/response', 11)
+def odrive_response(payload):
+    msg = _sym_db.GetSymbol('goldo.nucleo.odrive.ResponsePacket')()
+    msg.sequence_number = struct.unpack('<H', payload[0:2])[0] & 0x7fff
+    msg.payload = payload[2:]    
+    return msg
 
+@nucleo_in('dynamixels/request/read', 42)
+def dynamixels_request(msg):
+    return _pb2.serialize(msg)
+    
+@nucleo_out('dynamixels/response', 20)
+def dynamixels_response(payload):
+    return _pb2.deserialize('goldo.nucleo.fpga.RegReadStatus', payload)
+
+@nucleo_in('fpga/reg/read', 19)
+def fpga_reg_read(msg):
+    return _pb2.serialize(msg)
+    
+@nucleo_out('fpga/reg', 20)
+def fpga_reg_read_status(payload):
+    return _pb2.deserialize('goldo.nucleo.fpga.RegReadStatus', payload)
+    
+@nucleo_in('fpga/reg/write', 21)
+def fpga_reg_write(msg):
+    return _pb2.serialize(msg)
+
+@nucleo_in('fpga/reg/write', 21)
+def fpga_reg_read(msg):
+    return _pb2.serialize(msg)
+    
 @nucleo_in('odometry/config/get', 40)
 def odometry_config_get(msg):
     return b''
@@ -99,8 +134,8 @@ def propulsion_execute_translation(msg):
     
 @nucleo_out('propulsion/telemetry', 25)
 def propulsion_telemetry(payload):
-    msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.Telemetry')()
-    vals = struct.unpack('<hhhhhhhHHbbBB', payload)
+    msg = _msg_propulsion_Telemetry()
+    vals = _unpack_propulsion_Telemetry(payload)
     msg.pose.position.x = vals[0] * 0.25e-3
     msg.pose.position.y = vals[1] * 0.25e-3
     msg.pose.yaw = vals[2] * math.pi / 32767
@@ -110,8 +145,8 @@ def propulsion_telemetry(payload):
     msg.pose.angular_acceleration = vals[6] * 1e-3
     msg.left_encoder = vals[7]
     msg.right_encoder = vals[8]
-    msg.left_pwm = vals[9] *1e-2
+    msg.left_pwm = vals[9] * 1e-2
     msg.right_pwm = vals[10] * 1e-2
     msg.state = vals[11]
     msg.error = vals[12]
-    return msg  
+    return msg
