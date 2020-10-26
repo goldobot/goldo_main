@@ -1,0 +1,20 @@
+syntax = "proto3";
+package goldo.rplidar;
+
+
+message Zones {
+  bool front_near = 1;  
+  bool right_near = 2;
+  bool back_near = 3;
+  bool left_near = 4;
+  bool front_far = 5;
+  bool right_far = 6;   
+  bool back_far = 7;
+  bool left_far = 8;
+}
+
+message Tresholds {
+  float near = 1;
+  float mid = 2;
+  float far = 3;
+}

@@ -4,11 +4,80 @@ from zmq.asyncio import Context, Poller
 import struct
 import re
 import nucleo_topics
-import google.protobuf.wrappers_pb2
+
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
 
-from datetime import datetime
+_msg_type_struct = struct.Struct('<H')
+_lidar_point_struct = struct.Struct('<ff')
+
+import pb2 as _pb2
+
+class _NucleoCodec:
+    def serialize(self, topic, msg):
+        msg_type, encoder = nucleo_topics._in.get(topic, (None, None))
+        if encoder is None:
+             print('error', topic, msg_type)
+             return None
+        return  [_msg_type_struct.pack(msg_type), encoder(msg)]
+
+    def deserialize(self, payload):        
+        msg_type, msg_body = payload        
+        msg_type = _msg_type_struct.unpack(msg_type)[0]
+        topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
+        if topic is not None:
+            msg = decoder(msg_body)
+            if msg is None:
+                msg = _sym_db.GetSymbol('google.protobuf.Empty')()
+            return topic, msg
+        else:
+            return None, None
+
+class _ProtobufCodec:
+    def serialize(self, topic, msg):
+        return [topic.encode('utf8'),
+                msg.DESCRIPTOR.full_name.encode('utf8'),
+                msg.SerializeToString()
+                ]
+
+    def deserialize(self, payload):
+        topic, full_name, payload = payload
+        topic = topic.decode('utf8')
+        full_name = full_name.decode('utf8')
+        msg_class = _sym_db.GetSymbol(full_name)
+        if msg_class is not None:
+            msg = msg_class()
+            msg.ParseFromString(payload)
+            return topic, msg
+        else:
+            return None, None
+
+class _RPLidarCodec:
+    def serialize(self, topic, msg):
+        if topic == 'rplidar/in/start':
+            return [struct.pack('<b', 1), b'']
+        if topic == 'rplidar/in/stop':
+            return [struct.pack('<b', 2), b'']
+        if topic == 'rplidar/in/config/theta_offset':
+            return [struct.pack('<b', 3), struct.pack('<f', msg.value)]
+        if topic == 'rplidar/in/config/distance_tresholds':
+            return [struct.pack('<b', 5), struct.pack('<fff', msg.near,msg.mid,msg.far)]
+        if topic == 'rplidar/in/robot_pose':
+            return [struct.pack('<b', 4), struct.pack('<fff', msg.position.x, msg.position.y, msg.yaw)]
+        return None
+
+    def deserialize(self, payload):
+        msg_type = struct.unpack('<B', payload[0])[0]
+        if msg_type == 1:
+            msg = _sym_db.GetSymbol('goldo.common.geometry.PointCloud')()
+            for i in range(len(payload[2])//8):
+                pt = msg.points.add()
+                pt.x, pt.y = _lidar_point_struct.unpack(payload[2][i*8:(i+1)*8])
+            return 'rplidar/out/scan', msg
+        if msg_type == 42:
+            msg = _pb2.deserialize('goldo.rplidar.Zones', payload[1])
+            return 'rplidar/out/detections', msg
+        return None, None
 
 class ZmqBroker():
     socket_types = {
@@ -16,25 +85,24 @@ class ZmqBroker():
         'sub': zmq.SUB,
         'req': zmq.REQ
         }
-        
+
     def __init__(self):
         self._context = Context.instance()
         self._poller = Poller()
         self._sockets = {}
-        self._socket_decoders = {}
+        self._socket_codecs = {}
         self._callbacks = []
         ip = 'robot01'
-        self.register_socket('nucleo:pub', 'tcp://{}:3002'.format(ip), 'connect')
-        self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect')
-        #self.register_socket('rplidar:req', 'tcp://{}:3012'.format(ip), 'connect')
-        #self.register_socket('rplidar:sub', 'tcp://{}:3011'.format(ip), 'connect')
-        self.register_socket('camera:sub', 'tcp://{}:3201'.format(ip), 'connect')
-        self.register_socket('gui:pub', 'tcp://{}:3901'.format(ip), 'connect')
-        self.register_socket('gui:sub', 'tcp://{}:3902'.format(ip), 'connect')
-        #self.register_socket('camera:req', 'tcp://{}:3001'.format(ip), 'connect')
-        self.register_socket('debug:pub', 'tcp://*:3801', 'bind')
-        self.register_socket('debug:sub', 'tcp://*:3802', 'bind')
-        
+        self.register_socket('nucleo:pub', 'tcp://{}:3002'.format(ip), 'connect', _NucleoCodec())
+        self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect', _NucleoCodec())
+        self.register_socket('rplidar:pub', 'tcp://{}:3101'.format(ip), 'connect', _RPLidarCodec())
+        self.register_socket('rplidar:sub', 'tcp://{}:3102'.format(ip), 'connect', _RPLidarCodec())
+        self.register_socket('camera:sub', 'tcp://{}:3201'.format(ip), 'connect', _ProtobufCodec())
+        self.register_socket('gui:pub', 'tcp://{}:3901'.format(ip), 'connect', _ProtobufCodec())
+        self.register_socket('gui:sub', 'tcp://{}:3902'.format(ip), 'connect', _ProtobufCodec())
+        self.register_socket('debug:pub', 'tcp://*:3801', 'bind', _ProtobufCodec())
+        self.register_socket('debug:sub', 'tcp://*:3802', 'bind', _ProtobufCodec())
+
     def registerCallback(self, pattern: str, callback):
         pattern = (
             pattern
@@ -43,70 +111,44 @@ class ZmqBroker():
             .replace('#/', r'([^/]+/)*')
             )
         self._callbacks.append((re.compile(f"^{pattern}$"), callback))
-        
+
     async def run(self):
         while True:
-            events = dict(await self._poller.poll())
-            if events.get(self._sockets['nucleo:sub'], 0) & zmq.POLLIN:
-                socket = self._sockets['nucleo:sub']
-                flags = socket.getsockopt(zmq.EVENTS)        
-                while flags & zmq.POLLIN:
-                    msg_type, msg_body = await socket.recv_multipart()
-                    msg_type = struct.unpack('<H', msg_type)[0]
-                    topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
-                    if topic is not None:
-                        msg = decoder(msg_body)
-                        await self.publishTopic(topic, msg)
-                    flags = socket.getsockopt(zmq.EVENTS)
-            if events.get(self._sockets['debug:sub'],0) & zmq.POLLIN:
-                await self._readSocket(self._sockets['debug:sub'])
-            if events.get(self._sockets['camera:sub'],0) & zmq.POLLIN:
-                await self._readSocket(self._sockets['camera:sub'])
-            if events.get(self._sockets['gui:sub'],0) & zmq.POLLIN:
-                await self._readSocket(self._sockets['gui:sub'])
+            events = await self._poller.poll()
+            await asyncio.gather(*(self._readSocket(s, self._socket_codecs[s]) for s, e in events if e & zmq.POLLIN))
 
-    async def _readSocket(self, socket):
-        flags = socket.getsockopt(zmq.EVENTS)        
+    async def _readSocket(self, socket, codec):
+        flags = socket.getsockopt(zmq.EVENTS)
         while flags & zmq.POLLIN:
-            topic, full_name, payload = await socket.recv_multipart()
-            topic = topic.decode('utf8')
-            full_name = full_name.decode('utf8')
-            msg_class = _sym_db.GetSymbol(full_name)
-            if msg_class is not None:
-                msg = msg_class()
-                msg.ParseFromString(payload)
-            else:
-                msg = None
-            print(topic)
-            await self.publishTopic(topic, msg)
-            if topic == 'camera/out/image':
-                await self.publishTopic('gui/in/camera/image', msg)
+            payload = await socket.recv_multipart()
+            topic, msg = codec.deserialize(payload)
+            if topic is not None:
+                await self.publishTopic(topic, msg)
             flags = socket.getsockopt(zmq.EVENTS)
-        
-    async def _writeSocket(self, socket, topic, msg):
-        await socket.send_multipart([topic.encode('utf8'),
-                                     msg.DESCRIPTOR.full_name.encode('utf8'),
-                                     msg.SerializeToString()])
 
-    async def publishTopic(self, topic, msg):
+    async def _writeSocket(self, socket, topic, msg):
+        payload = self._socket_codecs[socket].serialize(topic, msg)
+        if payload is not None:
+            await socket.send_multipart(payload)
+
+    async def publishTopic(self, topic, msg = None):
+        if msg is None:
+            msg = _sym_db.GetSymbol('google.protobuf.Empty')()
         callback_matches = ((regexp.match(topic), callback) for regexp, callback in self._callbacks)
         await asyncio.gather(*(callback(*match.groups(), msg) for match, callback in callback_matches if match))
         
-        # Forward nucleo topics to comm_uart socket while encoding message
-        if topic.startswith('nucleo/in/'):
-            msg_type, encoder = nucleo_topics._in.get(topic, (None, None))
-            if encoder is None:
-                print('error', topic, msg_type)
-                return
-            payload = encoder(msg)
-            await self._sockets['nucleo:pub'].send_multipart([struct.pack('<H',msg_type), payload])     
+        if topic.startswith('camera/in/'):
+            await self._writeSocket(self._sockets['camera:pub'], topic, msg)
         if topic.startswith('gui/in/'):
             await self._writeSocket(self._sockets['gui:pub'], topic, msg)
+        if topic.startswith('nucleo/in/'):
+            await self._writeSocket(self._sockets['nucleo:pub'], topic, msg)
+        if topic.startswith('rplidar/in/'):
+            await self._writeSocket(self._sockets['rplidar:pub'], topic, msg)
         await self._writeSocket(self._sockets['debug:pub'], topic, msg)
-        
-    def register_socket(self, name, url, connection_type):
+
+    def register_socket(self, name, url, connection_type, codec):
         socket_type = self.__class__.socket_types.get(name.split(':')[-1])
-            
         socket = self._context.socket(socket_type)
         if socket_type == zmq.SUB:
             socket.setsockopt(zmq.SUBSCRIBE, b'')
@@ -114,9 +156,10 @@ class ZmqBroker():
         if connection_type == 'connect':
             socket.connect(url)
         if connection_type == 'bind':
-            socket.bind(url)       
+            socket.bind(url)
         self._sockets[name] = socket
-        
+        self._socket_codecs[socket] = codec
+
 
 
 

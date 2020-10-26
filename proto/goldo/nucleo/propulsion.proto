@@ -24,6 +24,15 @@ message Telemetry {
   uint32 error = 7;
 }
 
+message TelemetryEx {
+  goldo.common.geometry.Pose target_pose = 1;
+  float error_longi = 2;
+  float error_lateral = 3;
+  float error_yaw = 4;
+  float error_speed = 5;
+  float error_yaw_rate = 6;
+}
+
 message MotorsVelocitySetpoints {
   float left_vel = 1;
   float right_vel = 2;

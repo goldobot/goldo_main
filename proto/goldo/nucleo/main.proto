@@ -4,3 +4,8 @@ package goldo.nucleo;
 message Heartbeat {
   fixed32 timestamp = 1;
 }
+
+message SensorsState {
+  fixed32 gpio = 1;
+  fixed32 fpga = 2;
+}

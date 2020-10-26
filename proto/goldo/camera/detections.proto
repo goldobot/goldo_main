@@ -9,6 +9,8 @@ message Detections {
     }
     int32 tag_id = 1;
     repeated Corner corners = 2;
+    float ux = 3;
+    float uy = 4;
    }
   repeated Detection detections = 1;
 }

@@ -6,6 +6,10 @@ message Point {
   float y = 2;
 }
 
+message PointCloud {
+  repeated Point points = 1;
+}
+
 message Pose {
   Point position = 1;
   float yaw = 2;

@@ -14,3 +14,36 @@ message ResponsePacket {
   uint32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   bytes payload = 4;
 }
+
+enum AxisState {
+  UNDEFINED = 0;
+  IDLE = 1;
+  STARTUP_SEQUENCE = 2;
+  FULL_CALIBRATION_SEQUENCE = 3;
+  MOTOR_CALIBRATION = 4;
+  SENSORLESS_CONTROL = 5;
+  ENCODER_INDEX_SEARCH = 6;
+  ENCODER_OFFSET_CALIBRATION = 7;
+  CLOSED_LOOP_CONTROL = 8;
+  LOCKIN_SPIN = 9;
+  ENCODER_DIR_FIND = 10;
+  HOMING = 11;
+}
+
+enum ControlMode {
+  VOLTAGE_CONTROL = 0;
+  TORQUE_CONTROL = 1;
+  VELOCITY_CONTROL = 2;
+  POSITION_CONTROL = 3;
+}
+
+message Telemetry {
+  float axis0_vel_estimate = 1;
+  float axis1_vel_estimate = 2;
+  fixed32 axis0_error = 3 [(goldo.pb2_options.cpp_type) = UINT32];
+  fixed32 axis1_error = 4 [(goldo.pb2_options.cpp_type) = UINT32];
+  fixed32 axis0_motor_error = 5 [(goldo.pb2_options.cpp_type) = UINT32];
+  fixed32 axis1_motor_error = 6 [(goldo.pb2_options.cpp_type) = UINT32];
+  AxisState axis0_current_state = 7 [(goldo.pb2_options.cpp_type) = UINT8];
+  AxisState axis1_current_state = 8 [(goldo.pb2_options.cpp_type) = UINT8];
+}

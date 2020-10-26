@@ -15,6 +15,7 @@ enum CppType {
   UINT64 = 9;
   FLOAT = 10;
   DOUBLE = 11;
+  VOID = 12;
   }
   
     
@@ -22,5 +23,5 @@ enum CppType {
 extend google.protobuf.FieldOptions {
   CppType cpp_type = 50000;
   int32 max_count = 50001;
-  bool fixed_count = 50002;  
+  bool fixed_count = 50002;
 }
