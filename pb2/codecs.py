@@ -9,6 +9,7 @@ _types = {
     _fd.TYPE_BOOL: '?',
     _fd.TYPE_SINT32: 'i',
     _fd.TYPE_INT32: 'I',
+    _fd.TYPE_FIXED32: 'I',
     _fd.TYPE_SINT64: 'q',
     _fd.TYPE_INT64: 'Q',
     _fd.TYPE_FLOAT: 'f',
@@ -37,6 +38,11 @@ def get_message_codec(full_name):
     codec = _MessageCodec(msg_type)
     _message_codecs[full_name] = codec
     return codec
+    
+def _get_cpp_type(field):
+    options = field.GetOptions()
+    if options.HasExtension(_opts.cpp_type):
+        return options.Extensions[_opts.cpp_type]
 
 class _AttrFieldCodec:
     def __init__(self, name):
@@ -83,11 +89,13 @@ class _MessageCodec:
     def __init__(self, msg_type):
         self._msg_type = msg_type
         self._descriptor = msg_type.DESCRIPTOR
-        self._struct_fmt = ''
+        self._struct_fmt = '<'
         self._field_codecs = []
         self._is_fixed_size = True
 
         for field in self._descriptor.fields:
+            if _get_cpp_type(field) == _opts.CppType.VOID:
+                continue
             if field.label == _fd.LABEL_REPEATED:
                 self._add_repeated(field)
             elif field.type == _fd.TYPE_MESSAGE:
@@ -95,13 +103,15 @@ class _MessageCodec:
             else:
                 self._add_field(field)
         self._size = struct.calcsize(self._struct_fmt)
+        self._unpack = struct.Struct(self._struct_fmt).unpack
+        self._pack = struct.Struct(self._struct_fmt).pack
         
     def serialize(self, msg):
-        return struct.pack(self._struct_fmt, *(c.get(msg) for c in self._field_codecs))
+        return self._pack(*(c.get(msg) for c in self._field_codecs))
         
     def deserialize(self, payload):
         msg = self._msg_type()
-        vals = struct.unpack(self._struct_fmt, payload)
+        vals = self._unpack(payload)
         for i in range(len(self._field_codecs)):            
             self._field_codecs[i].set(msg, vals[i])
         return msg
@@ -118,19 +128,18 @@ class _MessageCodec:
             print('ERROR')
         
     def _add_message(self, field):
-        options = field.GetOptions()
         codec = get_message_codec(field.message_type.full_name)
         self._struct_fmt += '{}s'.format(codec._size)
         self._field_codecs.append(_MessageFieldCodec(field.name, codec))
         
     def _add_field(self, field):
-        options = field.GetOptions()
-        if options.HasExtension(_opts.cpp_type):
-            self._struct_fmt += _cpp_types[options.Extensions[_opts.cpp_type]]
+        cpp_type = _get_cpp_type(field)
+        if cpp_type is not None:
+            self._struct_fmt += _cpp_types[cpp_type]
         elif field.type in _types:
             self._struct_fmt += _types[field.type]
         else:
-            print('ERROR')
+            print('ERROR', field.type)
         self._field_codecs.append(_AttrFieldCodec(field.name))
     
 def serialize(msg):

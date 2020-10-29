@@ -9,3 +9,17 @@ message SensorsState {
   fixed32 gpio = 1;
   fixed32 fpga = 2;
 }
+
+message WatchdogState {
+  bool main = 1;
+  bool propulsion = 2;
+  bool fpga = 3;
+  bool odrive_comm = 4;
+  bool dynamixels_comm = 5;
+  bool servos = 6;
+};
+
+message FreeRTOSHeapStats {
+  fixed32 xAvailableHeapSpaceInBytes = 1;
+  fixed32 xSizeOfLargestFreeBlockInBytes = 2;
+};

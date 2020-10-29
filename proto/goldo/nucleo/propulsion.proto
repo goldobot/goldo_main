@@ -40,6 +40,13 @@ message MotorsVelocitySetpoints {
   float right_current_feedforward = 4;
 }
 
+message AccelerationLimits {
+  float accel = 1;
+  float deccel = 2;
+  float angular_accel = 3;
+  float angular_deccel = 4;
+}
+
 message OdometryConfig {
   float dist_per_count_left = 1;
   float dist_per_count_right = 2;
@@ -92,7 +99,22 @@ message ExecuteRotation {
   float yaw_rate = 2;
 }
 
+message ExecuteFaceDirection {
+  float yaw = 1;
+  float yaw_rate = 2;
+}
+
 message ExecuteTranslation {
   float distance = 1;
   float speed = 2;
+}
+
+message ExecutePointTo {
+  float yaw_rate = 1;
+  goldo.common.geometry.Point point = 2;
+}
+
+message ExecuteMoveTo {
+  float speed = 1;
+  goldo.common.geometry.Point point = 2;
 }
