@@ -27,6 +27,7 @@ class SensorsState:
 class RobotCommands:
     def __init__(self, robot):
         self._robot = robot
+        self._propulsion_seq = 1
         
     def _publish(self, topic, msg=None):
         return self._robot._broker.publishTopic(topic, msg)
@@ -58,52 +59,55 @@ class RobotCommands:
         msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteTranslation')(
             distance = distance,
             speed = speed)
-        fut = self._robot._startPropulsionCmd()
+        #fut = self._robot._startPropulsionCmd()
         await self._publish('nucleo/in/propulsion/cmd/translation', msg)
-        await fut
+        #await fut
         
     async def propulsionMoveTo(self, pt, speed):
         msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteMoveTo')()
         msg.speed = speed
         msg.point.x = pt[0]
         msg.point.y = pt[1]
-        fut = self._robot._startPropulsionCmd()
+        #fut = self._robot._startPropulsionCmd()
         await self._publish('nucleo/in/propulsion/cmd/move_to', msg)
-        await fut
+        #await fut
         
     async def propulsionRotation(self, angle, yaw_rate):
         msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteRotation')(
                 yaw_delta = angle * math.pi/180,
                 yaw_rate = yaw_rate)
-        fut = self._robot._startPropulsionCmd()
+        #fut = self._robot._startPropulsionCmd()
         await self._publish('nucleo/in/propulsion/cmd/rotation', msg)
-        await fut
+        #await fut
         
     async def propulsionPointTo(self, pt, yaw_rate):
+        seq = self._propulsion_seq
+        self._propulsion_seq += 1
         msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecutePointTo')()
         msg.yaw_rate = yaw_rate
         msg.point.x = pt[0]
         msg.point.y = pt[1]
-        fut = self._robot._startPropulsionCmd()
+        msg.sequence_number = seq
+        #fut = self._robot._startPropulsionCmd()
         await self._publish('nucleo/in/propulsion/cmd/point_to', msg)
-        await fut
+        #await fut
         
     async def propulsionFaceDirection(self, yaw, yaw_rate):
         msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteFaceDirection')()
         msg.yaw_rate = yaw_rate
         msg.yaw = yaw * math.pi/180
-        fut = self._robot._startPropulsionCmd()
+        #fut = self._robot._startPropulsionCmd()
         await self._publish('nucleo/in/propulsion/cmd/face_direction', msg)
-        await fut
+        #await fut
         
     async def propulsionTrajectory(self, points, speed):
         msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteTrajectory')()
         msg.speed = speed
         Point = _sym_db.GetSymbol('goldo.common.geometry.Point')
         msg.points.extend([Point(x=pt[0], y=pt[1])for pt in points])
-        fut = self._robot._startPropulsionCmd()
+        #fut = self._robot._startPropulsionCmd()
         await self._publish('nucleo/in/propulsion/cmd/trajectory', msg)
-        await fut
+        #await fut
         
     async def propulsionSetPose(self, pt, yaw):
         msg = _sym_db.GetSymbol('goldo.common.geometry.Pose')()
@@ -115,6 +119,11 @@ class RobotCommands:
     def propulsionWaitForStop(self):
         fut = asyncio.Future()
         self._robot._futures_propulsion_wait_stopped.append(fut)
+        return fut
+        
+    def waitForMatchTimer(self, t):
+        fut = asyncio.Future()
+        self._robot._futures_match_timer.append((t, fut))
         return fut
         
          
@@ -148,7 +157,9 @@ class RobotMain:
     def __init__(self):
         config_path = f'config/test/'
         self._tasks = []
+        self._simulation_mode = False
         self.side = 0        
+        self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
         self._sequences = {}
         self._match_state = MatchState.Idle
@@ -157,6 +168,7 @@ class RobotMain:
         self.girouette = None
         self._futures_propulsion_ack = []
         self._futures_propulsion_wait_stopped = []
+        self._futures_match_timer = []
         self.loadConfig(config_path)
         
     async def configNucleo(self, msg):
@@ -173,7 +185,8 @@ class RobotMain:
         await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)
         
         await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar_config.tresholds)
-        await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors') 
+        await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
+        await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
         for t in self._tasks:
             t.cancel()
         self._tasks = []
@@ -253,9 +266,20 @@ class RobotMain:
             
     async def onMatchTimer(self, msg):
         self.match_timer = msg.value
+        futs = []
+        for t, f in self._futures_match_timer:
+            if msg.value > 0 and msg.value < t:
+                try:
+                    f.set_result(None)
+                except:
+                    pass
+            else:
+                futs.append((t, f))
+        self._futures_match_timer = futs
+            
         
     async def onRPLidarDetections(self, msg):
-        if self._match_state == MatchState.Match:
+        if self._match_state == MatchState.Match and not self._simulation_mode:
             if msg.front_near or msg.left_near or msg.right_near or msg.front_far:
                 await self.commands.motorsSetEnable(False)
         

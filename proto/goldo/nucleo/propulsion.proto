@@ -94,27 +94,34 @@ message ExecuteTrajectory {
   repeated goldo.common.geometry.Point points = 2;
 }
 
-message ExecuteRotation {
-  float yaw_delta = 1;
-  float yaw_rate = 2;
-}
-
-message ExecuteFaceDirection {
-  float yaw = 1;
-  float yaw_rate = 2;
-}
-
 message ExecuteTranslation {
-  float distance = 1;
-  float speed = 2;
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float distance = 2;
+  float speed = 3;
 }
 
-message ExecutePointTo {
-  float yaw_rate = 1;
-  goldo.common.geometry.Point point = 2;
+message ExecuteRotation {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float angle = 2;
+  float yaw_rate = 3;
 }
 
 message ExecuteMoveTo {
-  float speed = 1;
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   goldo.common.geometry.Point point = 2;
+  float speed = 3;  
 }
+
+message ExecutePointTo {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  goldo.common.geometry.Point point = 2;
+  float yaw_rate = 3;  
+}
+
+message ExecuteFaceDirection {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float yaw = 2;
+  float yaw_rate = 3;
+}
+
+

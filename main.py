@@ -8,16 +8,20 @@ import os.path
 import goldo_main.commands
 from goldo_main import robot
 
+import sys
+
 async def foo(config_name, msg):
     config_path = f'config/{config_name}'
     if not os.path.isdir(config_path):
         os.mkdir(config_path)
     open(config_path+'/robot_config.bin'.format(config_name), 'wb').write(msg.SerializeToString())
-    print(msg)
-
+    robot.loadConfig(f'config/test/')
 
         
 if __name__ == '__main__':
+    if 'simulation' in sys.argv:
+        robot._simulation_mode = True
+        
     broker = ZmqBroker()
     robot._setBroker(broker)
     broker.registerCallback('config/*/put', foo)
