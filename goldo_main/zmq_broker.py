@@ -83,7 +83,8 @@ class ZmqBroker():
     socket_types = {
         'pub': zmq.PUB,
         'sub': zmq.SUB,
-        'req': zmq.REQ
+        'req': zmq.REQ,
+        'rep': zmq.REP
         }
 
     def __init__(self):
@@ -102,6 +103,7 @@ class ZmqBroker():
         self.register_socket('gui:sub', 'tcp://{}:3902'.format(ip), 'connect', _ProtobufCodec())
         self.register_socket('debug:pub', 'tcp://*:3801', 'bind', _ProtobufCodec())
         self.register_socket('debug:sub', 'tcp://*:3802', 'bind', _ProtobufCodec())
+        self.register_socket('main:rep', 'tcp://*:3301', 'bind', _ProtobufCodec())
 
     def registerCallback(self, pattern: str, callback):
         pattern = (
@@ -121,13 +123,13 @@ class ZmqBroker():
         flags = socket.getsockopt(zmq.EVENTS)
         while flags & zmq.POLLIN:
             payload = await socket.recv_multipart()
-            topic, msg = codec.deserialize(payload)
+            topic, msg = codec[0].deserialize(payload)
             if topic is not None:
-                await self.publishTopic(topic, msg)
+                await codec[1](topic, msg)
             flags = socket.getsockopt(zmq.EVENTS)
 
     async def _writeSocket(self, socket, topic, msg):
-        payload = self._socket_codecs[socket].serialize(topic, msg)
+        payload = self._socket_codecs[socket][0].serialize(topic, msg)
         if payload is not None:
             await socket.send_multipart(payload)
 
@@ -146,19 +148,26 @@ class ZmqBroker():
         if topic.startswith('rplidar/in/'):
             await self._writeSocket(self._sockets['rplidar:pub'], topic, msg)
         await self._writeSocket(self._sockets['debug:pub'], topic, msg)
+        
+    async def _onRequestReceived(self, topic, msg = None):
+        await self._writeSocket(self._sockets['main:rep'], topic + '/resp', msg)
 
     def register_socket(self, name, url, connection_type, codec):
         socket_type = self.__class__.socket_types.get(name.split(':')[-1])
         socket = self._context.socket(socket_type)
+        func = None
         if socket_type == zmq.SUB:
             socket.setsockopt(zmq.SUBSCRIBE, b'')
             self._poller.register(socket, zmq.POLLIN)
+            func = self.publishTopic
+        if socket_type == zmq.REP:
+            func = self._onRequestReceived
         if connection_type == 'connect':
             socket.connect(url)
         if connection_type == 'bind':
             socket.bind(url)
         self._sockets[name] = socket
-        self._socket_codecs[socket] = codec
+        self._socket_codecs[socket] = (codec, func)
 
 
 
