@@ -7,7 +7,7 @@ if _pb_dir not in _sys.path:
     
 # Set protobuf implementation to cpp
 import os as _os
-_os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'cpp'
+#_os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'cpp'
 
 import goldo
 import google.protobuf as _pb

@@ -244,3 +244,16 @@ def propulsion_telemetry(payload):
     msg.error_yaw = vals[8]  * math.pi / 32767
     msg.error_yaw_rate = vals[9]    
     return msg
+
+@nucleo_in('dbg_goldo', 29)
+def dbg_goldo_in(msg):
+    print ("in : {:x}".format(msg.value))
+    return struct.pack('<I', msg.value)
+    
+@nucleo_out('dbg_goldo', 29)
+def dbg_goldo_out(payload):
+    val = struct.unpack("<I", payload)
+    #print ("out : {:x}".format(val[0]))
+    msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value = val[0])
+    return msg
+    
