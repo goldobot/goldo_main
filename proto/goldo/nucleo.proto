@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package goldo.nucleo;
+import "goldo/nucleo/hal.proto";
+import "goldo/nucleo/servos.proto";
+
+import "goldo/pb2_options.proto";
+
+message NucleoConfig {
+  goldo.nucleo.hal.HalConfig hal = 1;
+  repeated goldo.nucleo.servos.ServoConfig servos = 6;
+}
