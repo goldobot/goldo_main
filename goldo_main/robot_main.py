@@ -31,7 +31,10 @@ class RobotMain:
     def loadConfig(self, config_path : Path):
         self._sequences = {}
         config = _pb2.get_symbol('goldo.nucleo.robot.Config')()
-        config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
+        try:
+            config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
+        except Exception as e:
+            print(e)
         self._config_proto = config
         self.sensors = SensorsState(self)
         runpy.run_path(config_path / 'sequences.py', {'robot': self, 'commands': self.commands, 'sensors': self.sensors})

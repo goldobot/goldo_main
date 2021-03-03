@@ -2,6 +2,7 @@ import asyncio
 import zmq
 from zmq.asyncio import Context, Poller
 import struct
+import logging
 import re
 import nucleo_topics
 
@@ -22,13 +23,17 @@ class _NucleoCodec:
         return  [_msg_type_struct.pack(msg_type), encoder(msg)]
 
     def deserialize(self, payload):        
-        msg_type, msg_body = payload        
+        msg_type, msg_body = payload[:2]
         msg_type = _msg_type_struct.unpack(msg_type)[0]
         topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
         if topic is not None:
-            msg = decoder(msg_body)
-            if msg is None:
-                msg = _sym_db.GetSymbol('google.protobuf.Empty')()
+            try:
+                msg = decoder(msg_body)
+                if msg is None:
+                    msg = _sym_db.GetSymbol('google.protobuf.Empty')()
+            except Exception as e:
+                logging.exception(e)
+                return None, None
             return topic, msg
         else:
             return None, None
