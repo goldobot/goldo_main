@@ -1,12 +1,47 @@
 syntax = "proto3";
 
 package goldo.nucleo;
+
+import "goldo/common/geometry.proto";
 import "goldo/nucleo/hal.proto";
+import "goldo/nucleo/odometry.proto";
+import "goldo/nucleo/propulsion.proto";
+import "goldo/nucleo/robot_simulator.proto";
 import "goldo/nucleo/servos.proto";
 
 import "goldo/pb2_options.proto";
 
+message SensorConfig {
+  int32 id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  string name = 64 [(goldo.pb2_options.cpp_type) = VOID];
+}
+
+message TaskPropulsionConfig {
+  enum PropulsionInterface {
+    PWM_OUT = 0;
+    ODRIVE_UART = 1;
+  }
+  PropulsionInterface interface = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  bool use_simulator = 2;
+}
+  
+message RobotGeometry {
+  float front_length = 1;
+  float back_length = 2;
+  repeated goldo.common.geometry.Point outline = 3 [(goldo.pb2_options.cpp_type) = VOID];
+}
+
+message RobotConfig {
+  TaskPropulsionConfig propulsion = 1;
+  RobotGeometry geometry = 128;  
+}
+
 message NucleoConfig {
   goldo.nucleo.hal.HalConfig hal = 1;
+  RobotConfig robot = 2;
+  goldo.nucleo.robot_simulator.RobotSimulatorConfig robot_simulator = 3;
+  goldo.nucleo.odometry.OdometryConfig odometry = 4;
+  goldo.nucleo.propulsion.PropulsionControllerConfig propulsion = 5;
   repeated goldo.nucleo.servos.ServoConfig servos = 6;
+  repeated SensorConfig sensors = 7;
 }

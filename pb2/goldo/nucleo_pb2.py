@@ -11,9 +11,13 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from goldo import pb2_options_pb2 as goldo_dot_pb2__options__pb2
+from goldo.common import geometry_pb2 as goldo_dot_common_dot_geometry__pb2
 from goldo.nucleo import hal_pb2 as goldo_dot_nucleo_dot_hal__pb2
+from goldo.nucleo import odometry_pb2 as goldo_dot_nucleo_dot_odometry__pb2
+from goldo.nucleo import propulsion_pb2 as goldo_dot_nucleo_dot_propulsion__pb2
+from goldo.nucleo import robot_simulator_pb2 as goldo_dot_nucleo_dot_robot__simulator__pb2
 from goldo.nucleo import servos_pb2 as goldo_dot_nucleo_dot_servos__pb2
+from goldo import pb2_options_pb2 as goldo_dot_pb2__options__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -22,11 +26,200 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x12goldo/nucleo.proto\x12\x0cgoldo.nucleo\x1a\x17goldo/pb2_options.proto\x1a\x16goldo/nucleo/hal.proto\x1a\x19goldo/nucleo/servos.proto\"j\n\x0cNucleoConfig\x12(\n\x03hal\x18\x01 \x01(\x0b\x32\x1b.goldo.nucleo.hal.HalConfig\x12\x30\n\x06servos\x18\x06 \x03(\x0b\x32 .goldo.nucleo.servos.ServoConfigb\x06proto3'
+  serialized_pb=b'\n\x12goldo/nucleo.proto\x12\x0cgoldo.nucleo\x1a\x1bgoldo/common/geometry.proto\x1a\x16goldo/nucleo/hal.proto\x1a\x1bgoldo/nucleo/odometry.proto\x1a\x1dgoldo/nucleo/propulsion.proto\x1a\"goldo/nucleo/robot_simulator.proto\x1a\x19goldo/nucleo/servos.proto\x1a\x17goldo/pb2_options.proto\"4\n\x0cSensorConfig\x12\x10\n\x02id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x12\n\x04name\x18@ \x01(\tB\x04\x80\xb5\x18\x0c\"\xb3\x01\n\x14TaskPropulsionConfig\x12O\n\tinterface\x18\x01 \x01(\x0e\x32\x36.goldo.nucleo.TaskPropulsionConfig.PropulsionInterfaceB\x04\x80\xb5\x18\x03\x12\x15\n\ruse_simulator\x18\x02 \x01(\x08\"3\n\x13PropulsionInterface\x12\x0b\n\x07PWM_OUT\x10\x00\x12\x0f\n\x0bODRIVE_UART\x10\x01\"o\n\rRobotGeometry\x12\x14\n\x0c\x66ront_length\x18\x01 \x01(\x02\x12\x13\n\x0b\x62\x61\x63k_length\x18\x02 \x01(\x02\x12\x33\n\x07outline\x18\x03 \x03(\x0b\x32\x1c.goldo.common.geometry.PointB\x04\x80\xb5\x18\x0c\"u\n\x0bRobotConfig\x12\x36\n\npropulsion\x18\x01 \x01(\x0b\x32\".goldo.nucleo.TaskPropulsionConfig\x12.\n\x08geometry\x18\x80\x01 \x01(\x0b\x32\x1b.goldo.nucleo.RobotGeometry\"\x90\x03\n\x0cNucleoConfig\x12(\n\x03hal\x18\x01 \x01(\x0b\x32\x1b.goldo.nucleo.hal.HalConfig\x12(\n\x05robot\x18\x02 \x01(\x0b\x32\x19.goldo.nucleo.RobotConfig\x12K\n\x0frobot_simulator\x18\x03 \x01(\x0b\x32\x32.goldo.nucleo.robot_simulator.RobotSimulatorConfig\x12\x37\n\x08odometry\x18\x04 \x01(\x0b\x32%.goldo.nucleo.odometry.OdometryConfig\x12G\n\npropulsion\x18\x05 \x01(\x0b\x32\x33.goldo.nucleo.propulsion.PropulsionControllerConfig\x12\x30\n\x06servos\x18\x06 \x03(\x0b\x32 .goldo.nucleo.servos.ServoConfig\x12+\n\x07sensors\x18\x07 \x03(\x0b\x32\x1a.goldo.nucleo.SensorConfigb\x06proto3'
   ,
-  dependencies=[goldo_dot_pb2__options__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_hal__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_servos__pb2.DESCRIPTOR,])
+  dependencies=[goldo_dot_common_dot_geometry__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_hal__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_odometry__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_propulsion__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_robot__simulator__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_servos__pb2.DESCRIPTOR,goldo_dot_pb2__options__pb2.DESCRIPTOR,])
 
 
+
+_TASKPROPULSIONCONFIG_PROPULSIONINTERFACE = _descriptor.EnumDescriptor(
+  name='PropulsionInterface',
+  full_name='goldo.nucleo.TaskPropulsionConfig.PropulsionInterface',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='PWM_OUT', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='ODRIVE_UART', index=1, number=1,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=420,
+  serialized_end=471,
+)
+_sym_db.RegisterEnumDescriptor(_TASKPROPULSIONCONFIG_PROPULSIONINTERFACE)
+
+
+_SENSORCONFIG = _descriptor.Descriptor(
+  name='SensorConfig',
+  full_name='goldo.nucleo.SensorConfig',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='goldo.nucleo.SensorConfig.id', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\200\265\030\003', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='goldo.nucleo.SensorConfig.name', index=1,
+      number=64, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\200\265\030\014', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=237,
+  serialized_end=289,
+)
+
+
+_TASKPROPULSIONCONFIG = _descriptor.Descriptor(
+  name='TaskPropulsionConfig',
+  full_name='goldo.nucleo.TaskPropulsionConfig',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='interface', full_name='goldo.nucleo.TaskPropulsionConfig.interface', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\200\265\030\003', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='use_simulator', full_name='goldo.nucleo.TaskPropulsionConfig.use_simulator', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _TASKPROPULSIONCONFIG_PROPULSIONINTERFACE,
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=292,
+  serialized_end=471,
+)
+
+
+_ROBOTGEOMETRY = _descriptor.Descriptor(
+  name='RobotGeometry',
+  full_name='goldo.nucleo.RobotGeometry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='front_length', full_name='goldo.nucleo.RobotGeometry.front_length', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='back_length', full_name='goldo.nucleo.RobotGeometry.back_length', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='outline', full_name='goldo.nucleo.RobotGeometry.outline', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\200\265\030\014', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=473,
+  serialized_end=584,
+)
+
+
+_ROBOTCONFIG = _descriptor.Descriptor(
+  name='RobotConfig',
+  full_name='goldo.nucleo.RobotConfig',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='propulsion', full_name='goldo.nucleo.RobotConfig.propulsion', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='geometry', full_name='goldo.nucleo.RobotConfig.geometry', index=1,
+      number=128, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=586,
+  serialized_end=703,
+)
 
 
 _NUCLEOCONFIG = _descriptor.Descriptor(
@@ -45,8 +238,43 @@ _NUCLEOCONFIG = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='servos', full_name='goldo.nucleo.NucleoConfig.servos', index=1,
+      name='robot', full_name='goldo.nucleo.NucleoConfig.robot', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='robot_simulator', full_name='goldo.nucleo.NucleoConfig.robot_simulator', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='odometry', full_name='goldo.nucleo.NucleoConfig.odometry', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='propulsion', full_name='goldo.nucleo.NucleoConfig.propulsion', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='servos', full_name='goldo.nucleo.NucleoConfig.servos', index=5,
       number=6, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='sensors', full_name='goldo.nucleo.NucleoConfig.sensors', index=6,
+      number=7, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -63,14 +291,56 @@ _NUCLEOCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=112,
-  serialized_end=218,
+  serialized_start=706,
+  serialized_end=1106,
 )
 
+_TASKPROPULSIONCONFIG.fields_by_name['interface'].enum_type = _TASKPROPULSIONCONFIG_PROPULSIONINTERFACE
+_TASKPROPULSIONCONFIG_PROPULSIONINTERFACE.containing_type = _TASKPROPULSIONCONFIG
+_ROBOTGEOMETRY.fields_by_name['outline'].message_type = goldo_dot_common_dot_geometry__pb2._POINT
+_ROBOTCONFIG.fields_by_name['propulsion'].message_type = _TASKPROPULSIONCONFIG
+_ROBOTCONFIG.fields_by_name['geometry'].message_type = _ROBOTGEOMETRY
 _NUCLEOCONFIG.fields_by_name['hal'].message_type = goldo_dot_nucleo_dot_hal__pb2._HALCONFIG
+_NUCLEOCONFIG.fields_by_name['robot'].message_type = _ROBOTCONFIG
+_NUCLEOCONFIG.fields_by_name['robot_simulator'].message_type = goldo_dot_nucleo_dot_robot__simulator__pb2._ROBOTSIMULATORCONFIG
+_NUCLEOCONFIG.fields_by_name['odometry'].message_type = goldo_dot_nucleo_dot_odometry__pb2._ODOMETRYCONFIG
+_NUCLEOCONFIG.fields_by_name['propulsion'].message_type = goldo_dot_nucleo_dot_propulsion__pb2._PROPULSIONCONTROLLERCONFIG
 _NUCLEOCONFIG.fields_by_name['servos'].message_type = goldo_dot_nucleo_dot_servos__pb2._SERVOCONFIG
+_NUCLEOCONFIG.fields_by_name['sensors'].message_type = _SENSORCONFIG
+DESCRIPTOR.message_types_by_name['SensorConfig'] = _SENSORCONFIG
+DESCRIPTOR.message_types_by_name['TaskPropulsionConfig'] = _TASKPROPULSIONCONFIG
+DESCRIPTOR.message_types_by_name['RobotGeometry'] = _ROBOTGEOMETRY
+DESCRIPTOR.message_types_by_name['RobotConfig'] = _ROBOTCONFIG
 DESCRIPTOR.message_types_by_name['NucleoConfig'] = _NUCLEOCONFIG
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+SensorConfig = _reflection.GeneratedProtocolMessageType('SensorConfig', (_message.Message,), {
+  'DESCRIPTOR' : _SENSORCONFIG,
+  '__module__' : 'goldo.nucleo_pb2'
+  # @@protoc_insertion_point(class_scope:goldo.nucleo.SensorConfig)
+  })
+_sym_db.RegisterMessage(SensorConfig)
+
+TaskPropulsionConfig = _reflection.GeneratedProtocolMessageType('TaskPropulsionConfig', (_message.Message,), {
+  'DESCRIPTOR' : _TASKPROPULSIONCONFIG,
+  '__module__' : 'goldo.nucleo_pb2'
+  # @@protoc_insertion_point(class_scope:goldo.nucleo.TaskPropulsionConfig)
+  })
+_sym_db.RegisterMessage(TaskPropulsionConfig)
+
+RobotGeometry = _reflection.GeneratedProtocolMessageType('RobotGeometry', (_message.Message,), {
+  'DESCRIPTOR' : _ROBOTGEOMETRY,
+  '__module__' : 'goldo.nucleo_pb2'
+  # @@protoc_insertion_point(class_scope:goldo.nucleo.RobotGeometry)
+  })
+_sym_db.RegisterMessage(RobotGeometry)
+
+RobotConfig = _reflection.GeneratedProtocolMessageType('RobotConfig', (_message.Message,), {
+  'DESCRIPTOR' : _ROBOTCONFIG,
+  '__module__' : 'goldo.nucleo_pb2'
+  # @@protoc_insertion_point(class_scope:goldo.nucleo.RobotConfig)
+  })
+_sym_db.RegisterMessage(RobotConfig)
 
 NucleoConfig = _reflection.GeneratedProtocolMessageType('NucleoConfig', (_message.Message,), {
   'DESCRIPTOR' : _NUCLEOCONFIG,
@@ -80,4 +350,8 @@ NucleoConfig = _reflection.GeneratedProtocolMessageType('NucleoConfig', (_messag
 _sym_db.RegisterMessage(NucleoConfig)
 
 
+_SENSORCONFIG.fields_by_name['id']._options = None
+_SENSORCONFIG.fields_by_name['name']._options = None
+_TASKPROPULSIONCONFIG.fields_by_name['interface']._options = None
+_ROBOTGEOMETRY.fields_by_name['outline']._options = None
 # @@protoc_insertion_point(module_scope)

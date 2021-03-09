@@ -1,7 +1,5 @@
 syntax = "proto3";
-
 package goldo.nucleo.servos;
-
 import "goldo/pb2_options.proto";
 
 enum ServoType {
