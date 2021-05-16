@@ -103,7 +103,7 @@ def dynamixels_request(msg):
     
 @nucleo_out('dynamixels/response', 61)
 def dynamixels_response(payload):
-    return _pb2.deserialize('goldo.nucleo.fpga.RegReadStatus', payload)  
+    return _pb2.deserialize('goldo.nucleo.dynamixels.ResponsePacketV1', payload)  
     
 
 @nucleo_in('fpga/reg/read', 30)
@@ -182,6 +182,10 @@ def propulsion_calibrate_odrive(msg):
 def propulsion_odrive_clear_errors(msg):
     return _pb2.serialize(msg)
     
+@nucleo_in('propulsion/clear_command_queue', 109)
+def propulsion_clear_command_queue(msg):
+    return _pb2.serialize(msg)
+ 
 @nucleo_in('propulsion/cmd/translation', 140)
 def propulsion_execute_translation(msg):
     return _pb2.serialize(msg)
@@ -206,9 +210,9 @@ def propulsion_execute_face_direction(msg):
 def propulsion_execute_trajectory(msg):
     return struct.pack('<f', msg.speed) + b''.join([_pb2.serialize(p) for p in msg.points])
  
-@nucleo_out('propulsion/cmd_ack', 124)
-def propulsion_cmd_ack(msg):
-    return None
+@nucleo_out('propulsion/cmd_event', 130)
+def propulsion_cmd_ack(payload):
+    return _pb2.deserialize('goldo.nucleo.propulsion.CommandStatus', payload)
     
 @nucleo_out('propulsion/telemetry', 120)
 def propulsion_telemetry(payload):

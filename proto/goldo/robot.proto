@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package goldo.robot;
+import "goldo/nucleo.proto";
+import "goldo/rplidar.proto";
+import "goldo/common/geometry.proto";
+
+import "goldo/pb2_options.proto";
+
+message RobotGeometry {
+  float front_length = 1;
+  float back_length = 2;
+  repeated goldo.common.geometry.Point outline = 3 [(goldo.pb2_options.cpp_type) = VOID];
+}
+
+message SequencesFile {
+  string path = 1;
+  string body = 2;
+}
+
+message RobotConfig {
+  goldo.nucleo.NucleoConfig nucleo = 1;  
+  RobotGeometry robot_geometry = 2;
+  repeated string sequences_names = 40;
+  repeated SequencesFile sequences_files = 41;
+  goldo.rplidar.RPLidarConfig rplidar = 50;
+}

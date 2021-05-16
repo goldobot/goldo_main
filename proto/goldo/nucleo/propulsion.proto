@@ -89,9 +89,34 @@ message PropulsionControllerConfig {
   float reposition_pwm_limit = 7;
 }
 
+message PropulsionTaskConfig {
+  enum MotorControllerType {
+    None = 0;
+    Pwm = 1;
+    ODriveUART =2;
+  }
+  MotorControllerType motor_controller = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 update_period_ms = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 telemetry_period_ms = 3 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 telemetry_ex_period_ms = 4[(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 pose_period_ms = 5 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
+message CommandStatus {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 status = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+  int32 error = 3 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
+message ExecuteSetTargetPose {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  Point position = 2;
+  float yaw = 3;
+}
 message ExecuteTrajectory {
-  float speed = 1;
-  repeated goldo.common.geometry.Point points = 2;
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float speed = 2;
+  repeated goldo.common.geometry.Point points = 3;
 }
 
 message ExecuteTranslation {

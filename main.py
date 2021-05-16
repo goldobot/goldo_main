@@ -9,19 +9,21 @@ from goldo_main import robot
 
 import sys
 
-def rm_tree(pth: Path):
-    for child in pth.iterdir():
+def rm_tree(path: Path):
+    for child in path.iterdir():
         if child.is_file():
             child.unlink()
         else:
             rm_tree(child)
-    pth.rmdir()
+    path.rmdir()
 
     
 async def config_put(config_name, msg):
     config_path = Path(f'config/{config_name}')
     config_path.mkdir(parents=True, exist_ok=True)
     open(config_path / 'robot_config.bin', 'wb').write(msg.SerializeToString())
+    for sequences_file in msg.sequences_files:
+        open(config_path / sequences_file.path, 'w').write(sequences_file.body)
     robot.loadConfig(config_path)
     
 async def config_delete(config_name, msg):
@@ -45,6 +47,7 @@ if __name__ == '__main__':
     broker.registerCallback('config/*/put', config_put)
     broker.registerCallback('config/*/delete', config_delete)
     broker.registerCallback('config/*/set_default', config_set_default)
+    broker.registerCallback('robot/config_nucleo', robot.configNucleo)
     broker.registerCallback('camera/out/image', lambda msg: broker.publishTopic('gui/in/camera/image', msg))
     broker.registerCallback('camera/out/detections', lambda msg: broker.publishTopic('gui/in/camera/detections', msg))
     broker.registerCallback('nucleo/out/propulsion/telemetry', lambda msg: broker.publishTopic('rplidar/in/robot_pose', msg.pose)) 

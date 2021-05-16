@@ -50,16 +50,3 @@ message RPLidarConfig {
   float theta_offset = 1;
   goldo.rplidar.Tresholds tresholds = 2;
 }
-
-
-message Config {
-  bytes data = 1;
-  uint32 crc = 2;
-  repeated string sequence_names = 3;
-  map<string, int32> servo_ids = 4;
-  map<string, int32> sensor_ids = 5;
-  
-  RPLidarConfig rplidar_config = 50;
-  
-  
-}

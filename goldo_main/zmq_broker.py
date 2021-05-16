@@ -22,8 +22,9 @@ class _NucleoCodec:
              return None
         return  [_msg_type_struct.pack(msg_type), encoder(msg)]
 
-    def deserialize(self, payload):        
+    def deserialize(self, payload):
         msg_type, msg_body = payload[:2]
+        
         msg_type = _msg_type_struct.unpack(msg_type)[0]
         topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
         if topic is not None:

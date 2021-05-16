@@ -6,9 +6,13 @@ import asyncio
 import math
 from pathlib import Path
 from .robot_commands import RobotCommands
+from .propulsion import PropulsionCommands
 from .enums import *
+import logging
 
 import runpy
+
+LOGGER = logging.getLogger(__name__)
 
 class SensorsState:
     def __init__(self, robot):
@@ -30,20 +34,17 @@ class RobotMain:
         
     def loadConfig(self, config_path : Path):
         self._sequences = {}
-        config = _pb2.get_symbol('goldo.nucleo.robot.Config')()
+        config = _pb2.get_symbol('goldo.robot.RobotConfig')()
         try:
             config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
         except Exception as e:
             print(e)
         self._config_proto = config
-        self.sensors = SensorsState(self)
-        runpy.run_path(config_path / 'sequences.py', {'robot': self, 'commands': self.commands, 'sensors': self.sensors})
+        #self.sensors = SensorsState(self)
+        self.sensors = None
+        runpy.run_path(config_path / 'sequences.py', {'robot': self, 'propulsion': self.propulsion, 'commands': self.commands, 'sensors': self.sensors})
              
-    def _startPropulsionCmd(self):
-        fut = asyncio.Future()
-        self._futures_propulsion_ack.append(fut)
-        return fut
-        
+       
     def __init__(self):
         config_path = Path(f'config/test/')
         self._tasks = []
@@ -51,6 +52,7 @@ class RobotMain:
         self.side = 0        
         self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
+        self.propulsion = PropulsionCommands()
         self._sequences = {}
         self._match_state = MatchState.Idle
         self._current_task = None
@@ -61,20 +63,24 @@ class RobotMain:
         self._futures_match_timer = []
         self.loadConfig(config_path)
         
-    async def configNucleo(self, msg):
-        buff = self._config_proto.data
+    async def configNucleo(self, msg=None):
+        """Upload the nucleo board configuration."""
+        from .nucleo import compile_config        
+
+        buff, crc = compile_config(self._config_proto)
+        
         await self._broker.publishTopic('nucleo/in/robot/config/load_begin', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadBegin')(size=len(buff)))
         #Upload codes by packets        
         while len(buff) > 0:
             await self._broker.publishTopic('nucleo/in/robot/config/load_chunk', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadChunk')(data=buff[0:32]))
             buff = buff[32:]
         #Finish programming
-        await self._broker.publishTopic('nucleo/in/robot/config/load_end', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=self._config_proto.crc)) 
+        await self._broker.publishTopic('nucleo/in/robot/config/load_end', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=crc)) 
 
-        msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(value = self._config_proto.rplidar_config.theta_offset * math.pi / 180)
+        msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(value = self._config_proto.rplidar.theta_offset * math.pi / 180)
         await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)
         
-        await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar_config.tresholds)
+        await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar.tresholds)
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
         for t in self._tasks:
@@ -136,6 +142,7 @@ class RobotMain:
         self._futures_propulsion_ack = []
         
     async def onSensorsState(self, msg):
+        return
         self.sensors._update(msg)
         await self._broker.publishTopic('gui/in/sensors/start_match', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self.sensors.start_match)) 
         await self._broker.publishTopic('gui/in/sensors/emergency_stop', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self.sensors.emergency_stop))
@@ -165,8 +172,7 @@ class RobotMain:
                     pass
             else:
                 futs.append((t, f))
-        self._futures_match_timer = futs
-            
+        self._futures_match_timer = futs            
         
     async def onRPLidarDetections(self, msg):
         if self._match_state == MatchState.Match and not self._simulation_mode:
@@ -177,26 +183,31 @@ class RobotMain:
         if msg.axis0_error or msg.axis1_error or msg.axis0_motor_error or msg.axis1_motor_error:
             await self._broker.publishTopic('gui/in/odrive_error', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=True))
         else:
-            await self._broker.publishTopic('gui/in/odrive_error', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=False))
-            
-        
+            await self._broker.publishTopic('gui/in/odrive_error', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=False))        
         await self._broker.publishTopic('gui/in/odrive_state', _sym_db.GetSymbol('google.protobuf.StringValue')(value='{}{}'.format(msg.axis0_current_state, msg.axis1_current_state)))
+        
+    async def onSequenceExecute(self, name, msg):
+        LOGGER.info('RobotMain: execute sequence %s', name)
+        self._current_task = asyncio.create_task(self._sequences[name]())
         
     def _setBroker(self, broker):
         self._broker = broker
+        self.propulsion.setBroker(broker)
         broker.registerCallback('gui/out/side', self.onSetSide)
         broker.registerCallback('gui/out/commands/config_nucleo', self.configNucleo)
         broker.registerCallback('gui/out/commands/prematch', self.onPreMatch)
         broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatus)
         broker.registerCallback('nucleo/out/os/reset', self.onNucleoReset)
         broker.registerCallback('nucleo/out/propulsion/telemetry', self.onPropulsionTelemetry)
-        broker.registerCallback('nucleo/out/propulsion/cmd_ack', self.onPropulsionAck)
+        #broker.registerCallback('nucleo/out/propulsion/cmd_ack', self.onPropulsionAck)
         broker.registerCallback('camera/out/detections', self.onCameraDetections)
         broker.registerCallback('nucleo/out/sensors/state', self.onSensorsState)
         broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)
         broker.registerCallback('nucleo/out/odrive/telemetry', self.onODriveTelemetry)
         
         broker.registerCallback('rplidar/out/detections', self.onRPLidarDetections)
+        
+        broker.registerCallback('robot/sequence/*/execute', self.onSequenceExecute)
         
     async def onSetSide(self, msg):
         self.side = msg.value

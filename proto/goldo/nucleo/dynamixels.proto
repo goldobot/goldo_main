@@ -20,15 +20,17 @@ enum Command {
 }
 
 message RequestPacket {
-  uint32 protocol_version = 1 [(goldo.pb2_options.cpp_type) = UINT8];
-  uint32 id = 2 [(goldo.pb2_options.cpp_type) = UINT8];
-  Command command = 3 [(goldo.pb2_options.cpp_type) = UINT8];
-  bytes payload = 4;
+  uint32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 protocol_version = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 id = 3 [(goldo.pb2_options.cpp_type) = UINT8];
+  Command command = 4 [(goldo.pb2_options.cpp_type) = UINT8];
+  bytes payload = 5;
 }
 
 message ResponsePacket {
-  uint32 protocol_version = 1 [(goldo.pb2_options.cpp_type) = UINT8];
-  uint32 id = 2 [(goldo.pb2_options.cpp_type) = UINT8];
-  uint32 error_flags = 3 [(goldo.pb2_options.cpp_type) = UINT8];
-  bytes payload = 4;
+  uint32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 protocol_version = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 id = 3 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 error_flags = 4 [(goldo.pb2_options.cpp_type) = UINT8];
+  bytes payload = 5;
 }
