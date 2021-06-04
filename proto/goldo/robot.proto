@@ -25,3 +25,8 @@ message RobotConfig {
   repeated SequencesFile sequences_files = 41;
   goldo.rplidar.RPLidarConfig rplidar = 50;
 }
+
+
+message RobotState {
+  goldo.nucleo.NucleoState nucleo = 1;
+}

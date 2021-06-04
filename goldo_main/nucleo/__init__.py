@@ -50,17 +50,38 @@ class ConfigSection:
     Servos = 6
     PropulsionTask = 7
     TasksEnable =8
+    
+task_ids = {
+    'propulsion': 0,
+    'odrive_comm': 1,
+    'servos': 2,
+    'dynamixels_comm': 3,
+    'fpga': 4
+    }
+    
+def _make_tasks_enable_flags(proto):
+    flags = 0
+    for task in proto.nucleo.enabled_tasks:
+        flags |= 1 << task_ids[task]
+    return flags
+    
+def _compile_sensors(proto):
+    buff = struct.pack('<B', len(proto))
+    for s in proto:
+        buff = buff + struct.pack('<BB', s.type, s.id)
+    return buff
 
 def compile_config(proto):
     builder = BufferBuilder()
     hal_config = HALConfig(proto.nucleo.hal)
     builder.push_section(ConfigSection.Hal, hal_config.compile())
+    builder.push_section(ConfigSection.Sensors, _compile_sensors(proto.nucleo.sensors))
     builder.push_section(ConfigSection.RobotGeometry, pb2.serialize(proto.robot_geometry))
     builder.push_section(ConfigSection.Odometry, pb2.serialize(proto.nucleo.odometry))
     builder.push_section(ConfigSection.PropulsionController, pb2.serialize(proto.nucleo.propulsion))
     builder.push_section(ConfigSection.PropulsionTask, pb2.serialize(proto.nucleo.propulsion_task))
     builder.push_section(ConfigSection.RobotSimulator, pb2.serialize(proto.nucleo.robot_simulator))
-    builder.push_section(ConfigSection.TasksEnable, struct.pack('I', 1))
+    builder.push_section(ConfigSection.TasksEnable, struct.pack('I', _make_tasks_enable_flags(proto)))
 
     return builder.compile()
 

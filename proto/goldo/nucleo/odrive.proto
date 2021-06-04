@@ -37,13 +37,29 @@ enum ControlMode {
   POSITION_CONTROL = 3;
 }
 
+message AxisTelemetry
+{
+  float pos_estimate = 1;
+  float vel_estimate = 2;
+  float current_iq_setpoint = 3;
+}
+
+message AxisErrors {
+
+}
+
+message AxisStatus
+{
+  AxisErrors errors = 3;
+  AxisState state = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  ControlMode control_mode = 2 [(goldo.pb2_options.cpp_type) = UINT8];  
+}
+
 message Telemetry {
-  float axis0_vel_estimate = 1;
-  float axis1_vel_estimate = 2;
-  fixed32 axis0_error = 3 [(goldo.pb2_options.cpp_type) = UINT32];
-  fixed32 axis1_error = 4 [(goldo.pb2_options.cpp_type) = UINT32];
-  fixed32 axis0_motor_error = 5 [(goldo.pb2_options.cpp_type) = UINT32];
-  fixed32 axis1_motor_error = 6 [(goldo.pb2_options.cpp_type) = UINT32];
-  AxisState axis0_current_state = 7 [(goldo.pb2_options.cpp_type) = UINT8];
-  AxisState axis1_current_state = 8 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 timestamp = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  repeated AxisTelemetry axis = 2 [(goldo.pb2_options.max_count) = 2, (goldo.pb2_options.fixed_count) = true];
+}
+
+message ODriveStatus {
+  repeated AxisStatus axis = 1 [(goldo.pb2_options.max_count) = 2, (goldo.pb2_options.fixed_count) = true];
 }

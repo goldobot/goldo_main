@@ -100,6 +100,7 @@ message PropulsionTaskConfig {
   uint32 telemetry_period_ms = 3 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 telemetry_ex_period_ms = 4[(goldo.pb2_options.cpp_type) = UINT8];
   uint32 pose_period_ms = 5 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 odrive_telemetry_period_ms = 6 [(goldo.pb2_options.cpp_type) = UINT8];
 }
 
 message CommandStatus {
@@ -110,7 +111,7 @@ message CommandStatus {
 
 message ExecuteSetTargetPose {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
-  Point position = 2;
+  goldo.common.geometry.Point position = 2;
   float yaw = 3;
 }
 message ExecuteTrajectory {

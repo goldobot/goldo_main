@@ -1,10 +1,13 @@
 import asyncio
 import zmq
+import zmq.utils.monitor
 from zmq.asyncio import Context, Poller
 import struct
 import logging
 import re
+import socket
 import nucleo_topics
+import struct
 
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
@@ -38,6 +41,7 @@ class _NucleoCodec:
             return topic, msg
         else:
             return None, None
+            
 
 class _ProtobufCodec:
     def serialize(self, topic, msg):
@@ -97,6 +101,7 @@ class ZmqBroker():
         self._context = Context.instance()
         self._poller = Poller()
         self._sockets = {}
+        self._monitors = {}
         self._socket_codecs = {}
         self._callbacks = []
         ip = 'robot01'
@@ -126,6 +131,8 @@ class ZmqBroker():
             await asyncio.gather(*(self._readSocket(s, self._socket_codecs[s]) for s, e in events if e & zmq.POLLIN))
 
     async def _readSocket(self, socket, codec):
+        if codec[0] == 'monitor':
+            return await self._readSocketMonitor(socket)
         flags = socket.getsockopt(zmq.EVENTS)
         while flags & zmq.POLLIN:
             payload = await socket.recv_multipart()
@@ -133,6 +140,21 @@ class ZmqBroker():
             if topic is not None:
                 await codec[1](topic, msg)
             flags = socket.getsockopt(zmq.EVENTS)
+            
+    async def _readSocketMonitor(self, socket_):
+        flags = socket_.getsockopt(zmq.EVENTS)
+        while flags & zmq.POLLIN:
+            descr, endpoint = await socket_.recv_multipart()
+            event, value = struct.unpack('<HI', descr)
+            if event == zmq.EVENT_ACCEPTED:
+                try:
+                    s = socket.socket(fileno=value)
+                    print(s.getpeername())
+                    print(event, value)
+                    s.detach()
+                except:
+                    print('ERR')
+            flags = socket_.getsockopt(zmq.EVENTS)
 
     async def _writeSocket(self, socket, topic, msg):
         payload = self._socket_codecs[socket][0].serialize(topic, msg)
@@ -162,7 +184,12 @@ class ZmqBroker():
         socket_type = self.__class__.socket_types.get(name.split(':')[-1])
         socket = self._context.socket(socket_type)
         func = None
-        if socket_type == zmq.SUB:
+        if socket_type == zmq.PUB:
+            monitor = socket.get_monitor_socket()
+            self._monitors[socket] = monitor
+            self._socket_codecs[monitor] = ('monitor', None)
+            self._poller.register(monitor, zmq.POLLIN)            
+        if socket_type == zmq.SUB:           
             socket.setsockopt(zmq.SUBSCRIBE, b'')
             self._poller.register(socket, zmq.POLLIN)
             func = self.publishTopic

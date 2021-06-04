@@ -40,6 +40,11 @@ def os_reset(payload):
     msg = _sym_db.GetSymbol('google.protobuf.Empty')()
     return msg
     
+@nucleo_out('os/task_statistics/uart_comm', 300)
+def os_task_statistics_uart_comm(payload):
+    return _pb2.deserialize('goldo.nucleo.UARTCommTaskStatistics', payload)
+    
+    
 @nucleo_out('watchdog/state', 251)
 def watchdog_state(payload):
     return _pb2.deserialize('goldo.nucleo.WatchdogState', payload[:6])    
@@ -248,10 +253,15 @@ def propulsion_telemetry(payload):
     msg.error_yaw = vals[8]  * math.pi / 32767
     msg.error_yaw_rate = vals[9]    
     return msg
+    
+@nucleo_out('propulsion/odrive/telemetry', 124)
+def propulsion_telemetry(payload):
+    msg = _pb2.deserialize('goldo.nucleo.odrive.Telemetry', payload)
+    return _pb2.deserialize('goldo.nucleo.odrive.Telemetry', payload)
 
 @nucleo_in('dbg_goldo', 29)
 def dbg_goldo_in(msg):
-    print ("in : {:x}".format(msg.value))
+    #print ("in : {:x}".format(msg.value))
     return struct.pack('<I', msg.value)
     
 @nucleo_out('dbg_goldo', 29)

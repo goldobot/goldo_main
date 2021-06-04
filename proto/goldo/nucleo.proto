@@ -11,8 +11,27 @@ import "goldo/nucleo/servos.proto";
 
 import "goldo/pb2_options.proto";
 
+message MessageQueueStatistics {
+  uint32 min_available_capacity = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 bytes_pushed = 2 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 messages_pushed = 3 [(goldo.pb2_options.cpp_type) = UINT32];
+}
+
+message UARTCommTaskStatistics {
+  uint32 max_cycles = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  MessageQueueStatistics queue_out = 2;
+  MessageQueueStatistics queue_out_prio = 3;
+}
+
+enum SensorType {
+  UNKNOWN= 0;
+  NUCLEO = 1;
+  FPGA = 2;  
+}
+  
 message SensorConfig {
-  int32 id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  SensorType type = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  int32 id = 2 [(goldo.pb2_options.cpp_type) = UINT8];
   string name = 64 [(goldo.pb2_options.cpp_type) = VOID];
 }
 
@@ -24,4 +43,10 @@ message NucleoConfig {
   goldo.nucleo.propulsion.PropulsionTaskConfig propulsion_task = 5;
   repeated goldo.nucleo.servos.ServoConfig servos = 6;
   repeated SensorConfig sensors = 7;
+  repeated string enabled_tasks = 8;
+}
+
+message NucleoState {
+  bool configured = 1;
+  uint32 heartbeat = 2;
 }

@@ -190,6 +190,9 @@ class RobotMain:
         LOGGER.info('RobotMain: execute sequence %s', name)
         self._current_task = asyncio.create_task(self._sequences[name]())
         
+    async def onNucleoHeartbeat(self):
+        broker.registerCallback('nucleo/out/hertbeat', self.onCameraDetections)
+        
     def _setBroker(self, broker):
         self._broker = broker
         self.propulsion.setBroker(broker)
