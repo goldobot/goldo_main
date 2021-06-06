@@ -103,6 +103,12 @@ class PropulsionCommands:
     def clearCommandQueue(self):
         return self._publish('nucleo/in/propulsion/clear_command_queue')
         
+    async def setTargetSpeed(self, target_speed):
+        msg, future = _self._create_command_msg('ExecuteSetTargetSpeed')
+        msg.target_speed = target_speed
+        await self._publish('nucleo/in/propulsion/target_speed/set', msg)
+        await future
+        
     async def setPose(self, pt, yaw):
         msg = _sym_db.GetSymbol('goldo.common.geometry.Pose')()
         msg.yaw = yaw * math.pi/180

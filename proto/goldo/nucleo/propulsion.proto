@@ -114,6 +114,12 @@ message ExecuteSetTargetPose {
   goldo.common.geometry.Point position = 2;
   float yaw = 3;
 }
+
+message ExecuteSetTargetSpeed {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float target_speed = 3;
+}
+
 message ExecuteTrajectory {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   float speed = 2;
