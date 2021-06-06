@@ -20,12 +20,12 @@ class Action(object):
         self.name = name
         self.enabled = False
         self._proto = proto
-        
+        print(proto)
         # action start pose, x, y, yaw
         self.start_pose = (0,0,0)
-        self.priority = proto.priority
+        self.priority = 0
         # sequence to start once arrived at action location
-        self.sequence = proto.sequence
+        #self.sequence = proto.sequence
         # sequence launched when starting to travel towards action location
         self.prepare_sequence = None
         # sequence launched after prepare_sequence if the action is cancelled 
@@ -43,6 +43,7 @@ class StrategyEngine(object):
     def loadConfig(self):
         config_proto = self._robot._config_proto.strategy
         for k, v in config_proto.actions.items():
+            self._actions.append(Action(k, v))
             
         
     @property
