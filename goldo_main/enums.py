@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
-class MatchState(Enum):
+class MatchState(IntEnum):
     Idle = 0
     PreMatch = 1
     WaitForStartOfMatch = 2

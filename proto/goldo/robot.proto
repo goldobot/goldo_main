@@ -36,11 +36,12 @@ enum Side {
 message RobotState {
   goldo.nucleo.NucleoState nucleo = 1;
   map<string, bool> sensors = 2;
-  goldo.table.TableState table = 3;
+  goldo.table.TableState table = 3;  
   bool emergency_stop = 4;
   uint32 score = 5;
   uint32 match_timer = 6;
   Side side = 7;
   goldo.common.geometry.Pose robot_pose = 8;
   bool tirette = 9;
+  repeated goldo.rplidar.RobotDetection rplidar_detections = 10;
 }

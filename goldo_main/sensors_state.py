@@ -21,3 +21,5 @@ class SensorsState:
         state = msg.state
         for k, v in self._sensors_map.items():
             self._sensors_proto[v] =  (state & (1 << k)) != 0
+        self._robot._state_proto.tirette = not self._sensors_proto.get('tirette', True)
+        self._robot._state_proto.emergency_stop = self._sensors_proto.get('emergency_stop', True)
