@@ -25,16 +25,17 @@ class NucleoStateUpdater(object):
         while True:
             await asyncio.sleep(1)
             if not self._heartbeat_received:
-                pass
+                self._nucleo_proto.connected = False                
             self._heartbeat_received = False
             await self._broker.publishTopic('gui/robot/state', self._robot._state_proto)
+            
 
     async def onNucleoReset(self):
         self._nucleo_proto.Clear()
 
     async def onHeartbeatMsg(self, msg):
         if msg.timestamp < self._nucleo_proto.heartbeat:
-            await selt.onNucleoReset()
+            await self.onNucleoReset()
         self._nucleo_proto.heartbeat = msg.timestamp
         self._nucleo_proto.connected = True
         self._heartbeat_received = True
