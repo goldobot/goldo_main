@@ -5,7 +5,6 @@ package goldo.nucleo.statistics;
 import "goldo/pb2_options.proto";
 
 
-
 message MessageQueueStatistics {
   uint32 min_available_capacity = 1 [(goldo.pb2_options.cpp_type) = UINT32];
   uint32 bytes_pushed = 2 [(goldo.pb2_options.cpp_type) = UINT32];

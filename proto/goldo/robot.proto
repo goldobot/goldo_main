@@ -29,4 +29,6 @@ message RobotConfig {
 
 message RobotState {
   goldo.nucleo.NucleoState nucleo = 1;
+  map<string, bool> sensors = 2;
+
 }

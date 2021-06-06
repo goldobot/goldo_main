@@ -4,9 +4,6 @@ import asyncio
 
 from pathlib import Path
 
-import goldo_main.commands
-from goldo_main import robot
-
 import sys
 
 def rm_tree(path: Path):
@@ -35,15 +32,14 @@ async def config_set_default(config_name, msg):
     config_path.mkdir(exist_ok=True)
     open(config_path / 'default', 'w').write(config_name)
     
+async def main():
+    from goldo_main.robot_main import RobotMain
+    global robot
     
-
-        
-if __name__ == '__main__':
+    broker = ZmqBroker()
+    robot = RobotMain(broker)
     if 'simulation' in sys.argv:
         robot._simulation_mode = True
-        
-    broker = ZmqBroker()
-    robot._setBroker(broker)
     broker.registerCallback('config/*/put', config_put)
     broker.registerCallback('config/*/delete', config_delete)
     broker.registerCallback('config/*/set_default', config_set_default)
@@ -52,7 +48,9 @@ if __name__ == '__main__':
     broker.registerCallback('camera/out/detections', lambda msg: broker.publishTopic('gui/in/camera/detections', msg))
     broker.registerCallback('nucleo/out/propulsion/telemetry', lambda msg: broker.publishTopic('rplidar/in/robot_pose', msg.pose)) 
     broker.registerCallback('nucleo/out/match/timer', lambda msg: broker.publishTopic('gui/in/match_timer', msg))         
-    broker.registerCallback('nucleo/out/os/heartbeat', lambda msg: broker.publishTopic('gui/in/heartbeat', msg))          
-    goldo_main.commands._broker = broker
+    broker.registerCallback('nucleo/out/os/heartbeat', lambda msg: broker.publishTopic('gui/in/heartbeat', msg))
+    await broker.run()
+        
+if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(broker.run())
+    loop.run_until_complete(main())

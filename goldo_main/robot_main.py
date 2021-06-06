@@ -7,7 +7,10 @@ import math
 from pathlib import Path
 from .robot_commands import RobotCommands
 from .commands import PropulsionCommands
+from .commands import ServosCommands
 from .commands.scope_commands import ScopeCommands
+from .sensors_state import SensorsState
+from .nucleo.state_updater import NucleoStateUpdater
 from .enums import *
 import logging
 
@@ -15,16 +18,7 @@ import runpy
 
 LOGGER = logging.getLogger(__name__)
 
-class SensorsState:
-    def __init__(self, robot):
-        self._robot = robot
-        for k,v in self._robot._config_proto.sensor_ids.items():
-            setattr(self, k, False)
-        
-    def _update(self, msg):
-        state = msg.gpio | (msg.fpga << 32 )
-        for k,v in self._robot._config_proto.sensor_ids.items():
-            setattr(self, k, bool(state & (1 << v)))
+
             
 class SequenceWrapper(object):
     def __init__(self, robot, func):
@@ -51,19 +45,22 @@ class RobotMain:
         except Exception as e:
             print(e)
         self._config_proto = config
-        #self.sensors = SensorsState(self)
-        self.sensors = None
-        runpy.run_path(config_path / 'sequences.py', {'robot': self, 'propulsion': self.propulsion, 'commands': self.commands, 'sensors': self.sensors})
+        self._sensors_updater.loadConfig()
+        runpy.run_path(config_path / 'sequences.py', self._sequences_globals)
              
        
-    def __init__(self):
+    def __init__(self, broker):
+        self._broker = broker
         config_path = Path(f'config/test/')
+        self._state_proto = _pb2.get_symbol('goldo.robot.RobotState')()
         self._tasks = []
         self._simulation_mode = False
         self.side = 0        
         self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
         self.propulsion = PropulsionCommands()
+        self._sensors_updater = SensorsState(self)
+        self._state_updater = NucleoStateUpdater(self)
         self.scope = ScopeCommands()
         self._sequences = {}
         self._match_state = MatchState.Idle
@@ -73,6 +70,16 @@ class RobotMain:
         self._futures_propulsion_ack = []
         self._futures_propulsion_wait_stopped = []
         self._futures_match_timer = []
+        
+        
+        
+        self._sequences_globals = {}
+        self._sequences_globals['robot'] = self        
+        self._sequences_globals['propulsion'] = self.propulsion
+        self._sequences_globals['sensors'] = self._state_proto.sensors
+        self._sequences_globals['servos'] = ServosCommands(self)
+        self.registerCallbacks()
+
         self.loadConfig(config_path)
         
     async def configNucleo(self, msg=None):
@@ -112,6 +119,7 @@ class RobotMain:
     async def onPreMatch(self, msg):
         config_path = f'config/test/'
         self.loadConfig(config_path)
+        self._sensors_updater.loadConfig()
         print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))
         
         self._match_state = MatchState.PreMatch
@@ -150,16 +158,16 @@ class RobotMain:
         
        
     async def onSensorsState(self, msg):
-        return
-        self.sensors._update(msg)
-        await self._broker.publishTopic('gui/in/sensors/start_match', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self.sensors.start_match)) 
-        await self._broker.publishTopic('gui/in/sensors/emergency_stop', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self.sensors.emergency_stop))
-        if self.sensors.emergency_stop:
-            await self.commands.lidarStop()
-            await self.commands.motorsSetEnable(False)
+        pass
+        #await self._broker.publishTopic('gui/in/sensors/start_match', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self.sensors.start_match)) 
+        #await self._broker.publishTopic('gui/in/sensors/emergency_stop', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self.sensors.emergency_stop))
+        #if self.sensors.emergency_stop:
+        #    await self.commands.lidarStop()
+        #    await self.commands.motorsSetEnable(False)
             
-        if self._match_state == MatchState.WaitForStartOfMatch and self.sensors.start_match:
-            await self.startMatch()            
+        #if self._match_state == MatchState.WaitForStartOfMatch and self.sensors.start_match:
+        #    await self.startMatch()
+        
             
     async def startMatch(self):
         self._match_state = MatchState.Match
@@ -201,8 +209,8 @@ class RobotMain:
     async def onNucleoHeartbeat(self):
         broker.registerCallback('nucleo/out/hertbeat', self.onCameraDetections)
         
-    def _setBroker(self, broker):
-        self._broker = broker
+    def registerCallbacks(self):
+        broker = self._broker        
         self.propulsion.setBroker(broker)
         self.scope.setBroker(broker)
         broker.registerCallback('gui/out/side', self.onSetSide)
@@ -213,12 +221,9 @@ class RobotMain:
         broker.registerCallback('nucleo/out/propulsion/telemetry', self.onPropulsionTelemetry)
         #broker.registerCallback('nucleo/out/propulsion/cmd_ack', self.onPropulsionAck)
         broker.registerCallback('camera/out/detections', self.onCameraDetections)
-        broker.registerCallback('nucleo/out/sensors/state', self.onSensorsState)
         broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)
-        broker.registerCallback('nucleo/out/odrive/telemetry', self.onODriveTelemetry)
-        
-        broker.registerCallback('rplidar/out/detections', self.onRPLidarDetections)
-        
+        broker.registerCallback('nucleo/out/odrive/telemetry', self.onODriveTelemetry)        
+        broker.registerCallback('rplidar/out/detections', self.onRPLidarDetections)        
         broker.registerCallback('robot/sequence/*/execute', self.onSequenceExecute)
         
     async def onSetSide(self, msg):

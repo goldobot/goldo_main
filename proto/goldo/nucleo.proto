@@ -42,12 +42,14 @@ message NucleoTasksState {
 
 message NucleoTasksStatistics {
    goldo.nucleo.statistics.UARTCommTaskStatistics uart_comm = 1;
-   goldo.nucleo.statistics.UARTCommTaskStatistics uart_comm = 1;
+   goldo.nucleo.statistics.ODriveCommTaskStatistics odrive = 2;
 }
 
 message NucleoState {
-  bool configured = 1;
-  uint32 heartbeat = 2;
+  bool connected = 1;
+  bool configured = 2;
+  uint32 heartbeat = 3;
+  NucleoTasksStatistics tasks_statistics = 4;
   
 }
 

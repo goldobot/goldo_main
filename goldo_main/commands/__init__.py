@@ -1,4 +1,4 @@
 from .propulsion_commands import PropulsionCommands
-#from .servos_commands import ServosCommands
+from .servos import ServosCommands
 
 
