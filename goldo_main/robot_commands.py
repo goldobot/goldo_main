@@ -2,6 +2,7 @@ import pb2 as _pb2
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
 import asyncio
+import struct
 import math
 
 import runpy
@@ -108,7 +109,30 @@ class RobotCommands:
         self._robot._futures_match_timer.append((t, fut))
         return fut
 
-
+    #temporary
+    async def _dynamixelsWriteReg(self, id_, reg, payload):
+        msg = _sym_db.GetSymbol('goldo.nucleo.dynamixels.RequestPacket')(
+                sequence_number=0,
+                protocol_version=1,
+                id=id_,
+                command=0x03,
+                payload=struct.pack('B', reg) + payload
+                )
+        await self._publish('nucleo/in/dynamixels/request', msg)
+    
+    async def dynamixelsSetTorqueEnable(self, id_, enable):
+        await self._dynamixelsWriteReg(id_, 24, struct.pack('<?', enable))
+        
+    async def dynamixelsSetPosition(self, id_, position):
+        await self._dynamixelsWriteReg(id_, 30, struct.pack('<H', position))
+        
+    async def dynamixelsSetSpeed(self, id_, speed):
+        await self._dynamixelsWriteReg(id_, 32, struct.pack('<H', speed))
+        
+    async def dynamixelsSetTorqueLimit(self, id_, torque):
+        await self._dynamixelsWriteReg(id_, 34, struct.pack('<H', torque))
+        
+    
     async def servoMove(self, name, position, speed=100):
         servo_id = self._robot._config_proto.servo_ids[name]
         print(self._robot._config_proto.servo_ids)

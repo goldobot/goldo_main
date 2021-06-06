@@ -6,8 +6,7 @@ message Heartbeat {
 }
 
 message SensorsState {
-  fixed32 gpio = 1;
-  fixed32 fpga = 2;
+  fixed32 state = 1;
 }
 
 message WatchdogState {

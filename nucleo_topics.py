@@ -51,6 +51,7 @@ def watchdog_state(payload):
     
 @nucleo_out('sensors/state', 33)
 def sensors_state(payload):
+    print(_pb2.deserialize('goldo.nucleo.SensorsState', payload))
     return _pb2.deserialize('goldo.nucleo.SensorsState', payload)    
     
 @nucleo_out('match/timer', 10)
@@ -104,11 +105,27 @@ def odrive_telemetry(payload):
     
 @nucleo_in('dynamixels/request', 60)
 def dynamixels_request(msg):
-    return _pb2.serialize(msg)
+    buff = struct.pack('<Hbbb',
+        msg.sequence_number,
+        msg.protocol_version,
+        msg.id,
+        msg.command
+        )
+    buff = buff + msg.payload
+    return buff
     
 @nucleo_out('dynamixels/response', 61)
 def dynamixels_response(payload):
-    return _pb2.deserialize('goldo.nucleo.dynamixels.ResponsePacketV1', payload)  
+    msg = _sym_db.GetSymbol('goldo.nucleo.dynamixels.ResponsePacket')()
+    vals = struct.unpack('<HBBB', payload[0:5])
+    msg.sequence_number = vals[0]
+    msg.protocol_version = vals[1]
+    msg.id = vals[2]
+    msg.error_flags = vals[3]
+    msg.payload = payload[4:]
+    print(msg)
+    print(payload[5:])
+    return msg
     
 
 @nucleo_in('fpga/reg/read', 30)
