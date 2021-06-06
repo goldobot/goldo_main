@@ -14,7 +14,8 @@ _sym_db = _pb.symbol_database.Default()
 
 _msg_type_struct = struct.Struct('<H')
 _lidar_point_struct = struct.Struct('<ff')
-
+_lidar_detection_message_struct = struct.Struct('<IIhhhhhhI')
+ 
 import pb2 as _pb2
 
 class _NucleoCodec:
@@ -74,6 +75,8 @@ class _RPLidarCodec:
             return [struct.pack('<b', 5), struct.pack('<fff', msg.near,msg.mid,msg.far)]
         if topic == 'rplidar/in/robot_pose':
             return [struct.pack('<b', 4), struct.pack('<fff', msg.position.x, msg.position.y, msg.yaw)]
+        if topic == 'rplidar/in/config/autotest_enable':
+            return [struct.pack('<b', 6), struct.pack('<B', msg.value)]
         return None
 
     def deserialize(self, payload):
@@ -84,6 +87,20 @@ class _RPLidarCodec:
                 pt = msg.points.add()
                 pt.x, pt.y = _lidar_point_struct.unpack(payload[2][i*8:(i+1)*8])
             return 'rplidar/out/scan', msg
+        if msg_type == 2:
+            vals = _lidar_detection_message_struct.unpack(payload[1])
+            msg = _sym_db.GetSymbol('goldo.rplidar.RobotDetection')(
+                timestamp_ms = vals[0],
+                id = vals[1],
+                x = vals[2] * 0.25e-3,
+                y = vals[3] * 0.25e-3,
+                vx = vals[4] * 1e-3,
+                vy = vals[5] * 1e-3,
+                ax = vals[6] * 1e-3,
+                ay = vals[7] * 1e-3,
+                detect_quality = vals[8]
+                )
+            return 'rplidar/out/robot_detection', msg
         if msg_type == 42:
             msg = _pb2.deserialize('goldo.rplidar.Zones', payload[1])
             return 'rplidar/out/detections', msg

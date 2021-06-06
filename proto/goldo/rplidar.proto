@@ -23,3 +23,15 @@ message RPLidarConfig {
   float theta_offset = 1;
   Tresholds tresholds = 2;
 }
+
+message RobotDetection {
+  uint32 timestamp_ms = 1;
+  uint32 id = 2;
+  float x = 3;
+  float y = 4;
+  float vx = 5;
+  float vy = 6;
+  float ax = 7;
+  float ay = 8;
+  uint32 detect_quality = 9;
+}
