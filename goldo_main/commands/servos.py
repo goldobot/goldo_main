@@ -10,12 +10,16 @@ import runpy
 class ServosCommands:
     def __init__(self, robot):
         self._robot = robot
+        self._servos_ids = {}
+        
+    def loadConfig(self):
+        self._servos_ids = {}
+        servos_proto = self._robot._config_proto.nucleo.servos
+        for i, servo_proto in enumerate(servos_proto):
+            self._servos_ids[servo_proto.name] = i
 
-    def _publish(self, topic, msg=None):
-        return self._robot._broker.publishTopic(topic, msg)        
-    
     async def move(self, name, position, speed=100):
-        servo_id = self._robot._config_proto.servo_ids[name]
+        servo_id = self._servos_ids[name]
         msg = _sym_db.GetSymbol('goldo.nucleo.servos.Move')(servo_id=servo_id, position=position, speed=speed)
-        await self._publish.publishTopic('nucleo/in/servo/move', msg)
+        await self._robot._broker.publishTopic('nucleo/in/servo/move', msg)
 

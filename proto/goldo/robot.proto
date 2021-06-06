@@ -3,6 +3,7 @@ syntax = "proto3";
 package goldo.robot;
 import "goldo/nucleo.proto";
 import "goldo/rplidar.proto";
+import "goldo/table.proto";
 import "goldo/common/geometry.proto";
 
 import "goldo/pb2_options.proto";
@@ -26,9 +27,20 @@ message RobotConfig {
   goldo.rplidar.RPLidarConfig rplidar = 50;
 }
 
+enum Side {
+  SIDE_UNKNOWN = 0;
+  SIDE_BLUE = 1;
+  SIDE_YELLOW = 2;
+}
 
 message RobotState {
   goldo.nucleo.NucleoState nucleo = 1;
   map<string, bool> sensors = 2;
-
+  goldo.table.TableState table = 3;
+  bool emergency_stop = 4;
+  uint32 score = 5;
+  uint32 match_timer = 6;
+  Side side = 7;
+  goldo.common.geometry.Pose robot_pose = 8;
+  bool tirette = 9;
 }

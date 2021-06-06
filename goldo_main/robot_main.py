@@ -46,6 +46,7 @@ class RobotMain:
             print(e)
         self._config_proto = config
         self._sensors_updater.loadConfig()
+        self._sequences_globals['servos'].loadConfig()
         runpy.run_path(config_path / 'sequences.py', self._sequences_globals)
              
        
