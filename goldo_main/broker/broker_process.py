@@ -77,6 +77,9 @@ class ZmqBrokerProcess(object):
             self._forwards.append((re.compile(f"^{pattern}$"), cmd[2]))
             return
         if cmd[0] == ZmqBrokerCmd.PUBLISH_TOPIC:
+            msg = cmd[2]
+            if msg is None:
+                msg = _sym_db.GetSymbol('google.protobuf.Empty')()
             await self.publishTopic(cmd[1], cmd[2])
             return
 
@@ -125,7 +128,7 @@ class ZmqBrokerProcess(object):
         forwards = tuple(self.publishTopic(forward_str.format(*match.groups()), msg) for match, forward_str in forwards_matches if match)
         if len(forwards):
             await asyncio.wait(forwards)
-        await self._writeSocket(self._sockets['debug:pub'], topic, msg)
+        await self.publishTopic(topic, msg)
         
     async def publishTopic(self, topic, msg):
         if topic.startswith('camera/in/'):

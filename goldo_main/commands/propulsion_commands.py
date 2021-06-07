@@ -7,7 +7,7 @@ import math
 import logging
 
 import numpy as np
-import scipy.interpolate.splev
+import scipy.interpolate
 
 from typing import Mapping
 
@@ -107,7 +107,7 @@ class PropulsionCommands:
         return self._publish('nucleo/in/propulsion/clear_command_queue')
         
     async def setTargetSpeed(self, target_speed):
-        msg, future = _self._create_command_msg('ExecuteSetTargetSpeed')
+        msg, future = self._create_command_msg('ExecuteSetTargetSpeed')
         msg.target_speed = target_speed
         await self._publish('nucleo/in/propulsion/target_speed/set', msg)
         await future
@@ -189,7 +189,7 @@ class PropulsionCommands:
         out = scipy.interpolate.splev(u3,tck)
         sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]
         
-        return self.trajectory(sampled_points, speed)
+        await self.trajectory(sampled_points, speed)
         
         
         

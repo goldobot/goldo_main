@@ -193,7 +193,7 @@ def propulsion_motors_velocity_setpoints_set(msg):
     
 @nucleo_in('propulsion/target_speed/set', 103)
 def propulsion_target_speed_set(msg):
-    _pb2.serialize(msg)
+    return _pb2.serialize(msg)
     
 @nucleo_in('propulsion/motors/acceleration_limits/set', 104)
 def propulsion_acceleration_limits_set(msg):

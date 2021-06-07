@@ -1,7 +1,7 @@
 from distutils.core import setup
 from distutils.spawn import find_executable
 from Cython.Build import cythonize
-from protobuf_distutils.generate_py_protobufs import generate_py_protobufs
+#from protobuf_distutils.generate_py_protobufs import generate_py_protobufs
 import os, os.path
 from pathlib import Path
 
