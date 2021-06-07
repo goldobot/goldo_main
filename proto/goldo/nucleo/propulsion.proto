@@ -109,6 +109,12 @@ message CommandStatus {
   int32 error = 3 [(goldo.pb2_options.cpp_type) = UINT8];
 }
 
+message SetMotorsTorqueLimits {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float left = 2;
+  float right = 3;
+}
+
 message ExecuteSetTargetPose {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   goldo.common.geometry.Point position = 2;

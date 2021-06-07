@@ -103,16 +103,6 @@ class PropulsionCommands:
         msg.angular_deccel = angular_deccel
         return self._publish('nucleo/in/propulsion/motors/acceleration_limits/set', msg)
         
-    def setMotorsTorqueLimits(self, left, right):
-        sequence_number = self._sequence_number
-        self._sequence_number = (self._sequence_number + 1) % (1 << 15)
-        
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.SetMotorsTorqueLimits')()
-        msg.sequence_number = sequence_number
-        msg.left = left
-        msg.right = right
-        return self._publish('nucleo/in/propulsion/motors/torque_limits/set', msg)
-        
     def clearCommandQueue(self):
         return self._publish('nucleo/in/propulsion/clear_command_queue')
         

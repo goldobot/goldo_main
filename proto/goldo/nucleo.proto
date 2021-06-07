@@ -8,6 +8,7 @@ import "goldo/nucleo/odometry.proto";
 import "goldo/nucleo/propulsion.proto";
 import "goldo/nucleo/robot_simulator.proto";
 import "goldo/nucleo/servos.proto";
+import "goldo/nucleo/odrive.proto";
 import "goldo/nucleo/statistics.proto";
 
 import "goldo/pb2_options.proto";
@@ -50,6 +51,7 @@ message NucleoState {
   bool configured = 2;
   uint32 heartbeat = 3;
   NucleoTasksStatistics tasks_statistics = 4;
+  goldo.nucleo.odrive.ODriveStatus odrive = 5;
   
 }
 

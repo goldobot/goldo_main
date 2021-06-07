@@ -15,6 +15,9 @@ from multiprocessing import Process, Pipe
 
 from .zmq_codecs import *
 
+import google.protobuf as _pb
+import google.protobuf.descriptor_pb2
+_sym_db = _pb.symbol_database.Default()
 
 class ZmqBrokerCmd(enum.Enum):
     PUBLISH_TOPIC = 0
@@ -142,7 +145,10 @@ class ZmqBrokerProcess(object):
         await self._writeSocket(self._sockets['debug:pub'], topic, msg)
         
     async def _onRequestReceived(self, topic, msg = None):
-        await self._writeSocket(self._sockets['main:rep'], topic + '/resp', msg)
+        descriptor = _sym_db.pool.FindMessageTypeByName(msg.value)
+        proto = google.protobuf.descriptor_pb2.DescriptorProto()
+        descriptor.CopyToProto(proto)
+        await self._writeSocket(self._sockets['main:rep'], topic + '/resp', proto)
 
     def register_socket(self, name, url, connection_type, codec):
         socket_type = self.__class__.socket_types.get(name.split(':')[-1])
@@ -159,6 +165,7 @@ class ZmqBrokerProcess(object):
             func = self.onTopicReceived
         if socket_type == zmq.REP:
             func = self._onRequestReceived
+            self._poller.register(socket, zmq.POLLIN)
         if connection_type == 'connect':
             socket.connect(url)
         if connection_type == 'bind':

@@ -9,6 +9,7 @@ from .robot_commands import RobotCommands
 from .commands import PropulsionCommands
 from .commands import ServosCommands
 from .commands import LidarCommands
+from .commands import ODriveCommands
 from .commands.scope_commands import ScopeCommands
 from .sensors_state import SensorsState
 from .nucleo.state_updater import NucleoStateUpdater
@@ -76,8 +77,11 @@ class RobotMain:
         self._futures_propulsion_wait_stopped = []
         self._futures_match_timer = []
         
-        self._strategy_engine = StrategyEngine(self)        
+        self._strategy_engine = StrategyEngine(self)
+        self.odrive = ODriveCommands(self)
         self._sequences_globals = {}
+        self._sequences_globals['scope'] = self.scope
+        self._sequences_globals['odrive'] = self.odrive
         self._sequences_globals['robot'] = self        
         self._sequences_globals['propulsion'] = self.propulsion
         self._sequences_globals['sensors'] = self._state_proto.sensors

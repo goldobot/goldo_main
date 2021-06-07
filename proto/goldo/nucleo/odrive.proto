@@ -78,8 +78,10 @@ message ClientStatistics {
 
 message AxisStatus
 {
-  AxisState state = 1 [(goldo.pb2_options.cpp_type) = UINT8];
-  ControlMode control_mode = 2 [(goldo.pb2_options.cpp_type) = UINT8];  
+  AxisState current_state = 1;
+  AxisState requested_state = 2;
+  ControlMode control_mode = 3;
+  AxisErrorState errors = 4;
 }
 
 message Telemetry {
@@ -88,5 +90,7 @@ message Telemetry {
 }
 
 message ODriveStatus {
-  repeated AxisStatus axis = 1 [(goldo.pb2_options.max_count) = 2, (goldo.pb2_options.fixed_count) = true];
+  bool synchronized = 1;
+  AxisStatus axis0 = 2;
+  AxisStatus axis1 = 3;
 }
