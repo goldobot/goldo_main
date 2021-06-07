@@ -58,11 +58,14 @@ class PropulsionCommands:
     _broker: object
     _loop: object
 
-    def __init__(self):
+    def __init__(self, robot):
+        self._robot = robot
         self._sequence_number = 1
         self._loop = asyncio.get_event_loop()
         self._futures = {}
         self._commands = {}
+        self._broker = self._robot._broker        
+        self._broker.registerCallback('nucleo/out/propulsion/telemetry', self._onTelemetryMsg)
 
     def setBroker(self, broker):
         self._broker = broker
@@ -94,6 +97,10 @@ class PropulsionCommands:
     def _publish(self, topic, msg=None):
         return self._broker.publishTopic(topic, msg)
 
+    @property
+    def pose(self):
+        return self._robot._state_proto.robot_pose
+        
     async def setEnable(self, enable):
         msg, future = self._create_command_msg('CmdSetEnable')
         msg.enable = enable
@@ -226,7 +233,11 @@ class PropulsionCommands:
         out = scipy.interpolate.splev(u3,tck)
         sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]        
         await self.trajectory(sampled_points, speed)
-
+        
+        
+    async def _onTelemetryMsg(self, msg):
+        self._robot._state_proto.robot_pose.CopyFrom(msg.pose) 
+            
     async def _on_cmd_event(self, msg):
         future = self._futures.get(msg.sequence_number)
         if future is not None:

@@ -35,6 +35,21 @@ enum Side {
   SIDE_YELLOW = 2;
 }
 
+enum MatchState {
+    MATCH_IDLE = 0;
+    MATCH_PREMATCH = 1;
+    MATCH_WAIT_FOR_START_OF_MATCH = 2;
+    MATCH_MATCH = 3;
+    MATCH_MATCH_FINISHED = 4;
+}
+
+message RPLidarState {
+  bool running = 1;
+  repeated goldo.rplidar.RobotDetection detections = 10;
+  goldo.rplidar.Zones zones = 11;
+}
+  
+
 message RobotState {
   goldo.nucleo.NucleoState nucleo = 1;
   map<string, bool> sensors = 2;
@@ -46,4 +61,6 @@ message RobotState {
   goldo.common.geometry.Pose robot_pose = 8;
   bool tirette = 9;
   repeated goldo.rplidar.RobotDetection rplidar_detections = 10;
+  RPLidarState rplidar = 11;
+  MatchState match_state = 12;
 }

@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 class NucleoStateUpdater(object):
     def __init__(self, robot):
@@ -14,7 +15,7 @@ class NucleoStateUpdater(object):
         self._broker.registerCallback('nucleo/out/os/task_statistics/odrive_comm', self.onODriveCommStatsMsg)
 
         self._last_uart_comm_stats_ts = 0
-
+        self._last_message_ts = datetime.now()
         self._watchdog_task = asyncio.create_task(self.runWatchdog())
 
     def setBroker(self, broker):

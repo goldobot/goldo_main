@@ -65,8 +65,6 @@ class ZmqBroker():
             self._message_available.clear()
             topic, msg, callbacks_list = self._conn.recv()
             await self.onTopicReceived(topic, msg, callbacks_list)
-            #events = await self._poller.poll()
-            #await asyncio.gather(*(self._readSocket(s, self._socket_codecs[s]) for s, e in events if e & zmq.POLLIN))
             
     async def onTopicReceived(self, topic, msg, callbacks_list):
         if msg is None:

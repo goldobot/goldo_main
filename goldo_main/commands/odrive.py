@@ -64,7 +64,6 @@ class ODriveCommands:
         proto = self._robot._state_proto.nucleo.odrive        
         proto.axis0.errors.CopyFrom(msg.axis0)
         proto.axis1.errors.CopyFrom(msg.axis1)
-       
         
     async def _onODriveAxisStates(self, msg):
         proto = self._robot._state_proto.nucleo.odrive

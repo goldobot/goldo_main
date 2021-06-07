@@ -13,6 +13,7 @@ from .commands import ODriveCommands
 from .commands.scope_commands import ScopeCommands
 from .sensors_state import SensorsState
 from .nucleo.state_updater import NucleoStateUpdater
+from .rplidar_updater import RPLidarUpdater
 from .enums import *
 from .strategy import StrategyEngine
 import logging
@@ -64,9 +65,10 @@ class RobotMain:
         self.side = 0        
         self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
-        self.propulsion = PropulsionCommands()
+        self.propulsion = PropulsionCommands(self)
         self._sensors_updater = SensorsState(self)
         self._state_updater = NucleoStateUpdater(self)
+        self._rplidar_updater = RPLidarUpdater(self)
         self.scope = ScopeCommands()
         self._sequences = {}
         self._match_state = MatchState.Idle
@@ -80,8 +82,8 @@ class RobotMain:
         self._strategy_engine = StrategyEngine(self)
         self.odrive = ODriveCommands(self)
         self._sequences_globals = {}
-        self._sequences_globals['strategy'] = self._strategy_engine
         self._sequences_globals['scope'] = self.scope
+        self._sequences_globals['strategy'] = self._strategy_engine
         self._sequences_globals['odrive'] = self.odrive
         self._sequences_globals['robot'] = self        
         self._sequences_globals['propulsion'] = self.propulsion
@@ -91,8 +93,6 @@ class RobotMain:
         self.registerCallbacks()
         self.loadConfig(config_path)
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
-    async def testCamera(self):
-        await self._broker.publishTopic('camera/in/foo', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=42))
         
     async def runMainLoop(self):
         while True:
@@ -117,23 +117,24 @@ class RobotMain:
         await self._broker.publishTopic('nucleo/in/robot/config/load_end', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=crc)) 
 
         await asyncio.sleep(1)
+        
         msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(value = self._config_proto.rplidar.theta_offset * math.pi / 180)
-        await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)
-        
+        await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)        
         await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar.tresholds)
-        await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
         
+        await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')        
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
 
         for t in self._tasks:
             t.cancel()
         self._tasks = []
         
-    async def onConfigStatus(self, msg):
-        await self._broker.publishTopic('gui/in/nucleo_config_status', msg)
+    async def logMessage(self, message, *args):
+        print(message.format(*args))
+        await self._broker.publishTopic('main/log/message', _sym_db.GetSymbol('google.protobuf.StringValue')(value=message.format(*args)))
         
-    async def onNucleoReset(self, msg):
-        await self._broker.publishTopic('gui/in/nucleo_reset', msg)         
+    async def onConfigStatus(self, msg):
+        await self._broker.publishTopic('gui/in/nucleo_config_status', msg) 
         
     async def onDebugStartMatch(self, msg):
         await self.startMatch() 
@@ -141,6 +142,7 @@ class RobotMain:
     async def onPreMatch(self, msg):
         print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))        
         self._match_state = MatchState.PreMatch
+        self._state_proto.match_state = self._match_state
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
         self._tasks.append(asyncio.create_task(self._prematchSequence()))
         
@@ -149,12 +151,20 @@ class RobotMain:
             status = await self._sequences['prematch']()
         except Exception as e:
             LOGGER.exception(e)
+            self._match_state = MatchState.Idle
+            self._state_proto.match_state = self._match_state
+            await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
+            LOGGER.error('prematch failed')
             return            
         if status:
             self._match_state = MatchState.WaitForStartOfMatch
+            self._state_proto.match_state = self._match_state
             await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
             LOGGER.info('prematch finished')
         else:
+            self._match_state = MatchState.Idle
+            self._state_proto.match_state = self._match_state
+            await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
             LOGGER.error('prematch failed')
         
     async def _matchSequence(self):
@@ -162,8 +172,11 @@ class RobotMain:
             await asyncio.wait_for(self._strategy_engine.run(), MATCH_DURATION)
         except asyncio.TimeoutError:
             pass
+        except Exception:
+            LOGGER.exception('')
         await self._postmatchSequence()
         return
+        
         await self._sequences['match']()
         self._match_state = MatchState.MatchFinished
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
@@ -178,16 +191,6 @@ class RobotMain:
                     self._last_girouette = 's'
                 else:
                     self._last_girouette = 'n'
-        
-    async def onPropulsionTelemetry(self, msg):
-        self.propulsion_telemetry = msg
-        self._state_proto.robot_pose.CopyFrom(msg.pose)
-            
-        if msg.state == 1:
-            for f in self._futures_propulsion_wait_stopped:
-                f.set_result(None)
-            self._futures_propulsion_wait_stopped = []                    
-  
             
     async def startMatch(self):
         self._match_state = MatchState.Match
@@ -195,7 +198,9 @@ class RobotMain:
         self.match_timer = 100
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state)) 
         print('match started')
-        self._tasks.append(asyncio.create_task(self._matchSequence()))
+        task = asyncio.create_task(self._matchSequence())
+        task.add_done_callback(self.onSequenceDone)
+        self._tasks.append(task)
             
     async def onMatchTimer(self, msg):
         self.match_timer = msg.value
@@ -209,33 +214,18 @@ class RobotMain:
                     pass
             else:
                 futs.append((t, f))
-        self._futures_match_timer = futs            
-        
-    async def onRPLidarDetections(self, msg):
-        if self._match_state == MatchState.Match and not self._simulation_mode:
-            if msg.front_near or msg.left_near or msg.right_near or msg.front_far:
-                await self.commands.motorsSetEnable(False)
-                
-    async def onRPLidarRobotDetectionMsg(self, msg):
-        for d in self._state_proto.rplidar_detections:
-            if d.id == msg.id:
-                d.CopyFrom(msg)
-                return
-        self._state_proto.rplidar_detections.append(msg)
-        
-    async def onODriveTelemetry(self, msg):
-        if msg.axis0_error or msg.axis1_error or msg.axis0_motor_error or msg.axis1_motor_error:
-            await self._broker.publishTopic('gui/in/odrive_error', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=True))
-        else:
-            await self._broker.publishTopic('gui/in/odrive_error', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=False))        
-        await self._broker.publishTopic('gui/in/odrive_state', _sym_db.GetSymbol('google.protobuf.StringValue')(value='{}{}'.format(msg.axis0_current_state, msg.axis1_current_state)))
-        
+        self._futures_match_timer = futs           
+      
     async def onSequenceExecute(self, name, msg):
         LOGGER.info('RobotMain: execute sequence %s', name)
         self._current_task = asyncio.create_task(self._sequences[name]())
+        self._current_task.add_done_callback(self.onSequenceDone)
         
-    async def onNucleoHeartbeat(self):
-        broker.registerCallback('nucleo/out/hertbeat', self.onCameraDetections)
+    def onSequenceDone(self, task):
+        try:
+            result = task.result()
+        except Exception:
+            LOGGER.exception('')        
         
     def registerCallbacks(self):
         broker = self._broker        
@@ -246,14 +236,9 @@ class RobotMain:
         broker.registerCallback('gui/out/commands/prematch', self.onPreMatch)
         broker.registerCallback('gui/out/commands/debug_start_match', self.onDebugStartMatch)
         broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatus)
-        broker.registerCallback('nucleo/out/os/reset', self.onNucleoReset)
-        broker.registerCallback('nucleo/out/propulsion/telemetry', self.onPropulsionTelemetry)
-        #broker.registerCallback('nucleo/out/propulsion/cmd_ack', self.onPropulsionAck)
         broker.registerCallback('camera/out/detections', self.onCameraDetections)
         broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)
-        broker.registerCallback('nucleo/out/odrive/telemetry', self.onODriveTelemetry)        
-        broker.registerCallback('rplidar/out/detections', self.onRPLidarDetections)   
-        broker.registerCallback('rplidar/out/robot_detection', self.onRPLidarRobotDetectionMsg)      
+           
         broker.registerCallback('robot/sequence/*/execute', self.onSequenceExecute)
         
     async def onSetSide(self, msg):

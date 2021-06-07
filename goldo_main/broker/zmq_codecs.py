@@ -73,6 +73,8 @@ class RPLidarCodec:
             return [struct.pack('<b', 4), struct.pack('<fff', msg.position.x, msg.position.y, msg.yaw)]
         if topic == 'rplidar/in/config/autotest_enable':
             return [struct.pack('<b', 6), struct.pack('<B', msg.value)]
+        if topic == 'rplidar/in/config/send_scan_enable':
+            return [struct.pack('<b', 7), struct.pack('<B', msg.value)]
         return None
 
     def deserialize(self, payload):

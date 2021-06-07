@@ -49,7 +49,6 @@ async def main():
     broker.registerCallback('camera/out/detections', lambda msg: broker.publishTopic('gui/in/camera/detections', msg))
     broker.registerCallback('nucleo/out/propulsion/telemetry', lambda msg: broker.publishTopic('rplidar/in/robot_pose', msg.pose)) 
     broker.registerCallback('nucleo/out/match/timer', lambda msg: broker.publishTopic('gui/in/match_timer', msg))         
-    #broker.registerCallback('nucleo/out/os/heartbeat', lambda msg: broker.publishTopic('gui/in/heartbeat', msg))
     broker.registerForward('nucleo/out/os/heartbeat', 'gui/in/heartbeat')
     await broker.run()
         

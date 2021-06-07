@@ -15,6 +15,7 @@ message ActionConfig {
   string sequence_prepare = 3;
   string sequence_prepare_cancel = 4;
   string sequence_post = 5;
+  int32 priority = 6;
 }
 
 message StrategyConfig {
