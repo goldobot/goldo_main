@@ -21,5 +21,6 @@ cdef extern from "lib/astar.hpp":
         void setEnd(unsigned,unsigned) except +
         
         void setWall(unsigned,unsigned) except +
+        void setWay(unsigned,unsigned,unsigned) except +
         
         list[pair[unsigned,unsigned]] getPathOnlyIfNeed(bool,bool*,AStarPathType) except +
