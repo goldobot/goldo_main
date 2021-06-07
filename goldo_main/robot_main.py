@@ -97,6 +97,7 @@ class RobotMain:
         self._current_task = None
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
         
+    
     async def runMainLoop(self):
         while True:
             await asyncio.sleep(0.1)
@@ -163,8 +164,7 @@ class RobotMain:
         print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))        
         self._match_state = MatchState.PreMatch
         self._state_proto.match_state = self._match_state
-        await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
-        
+         
         self._current_task = asyncio.create_task(self._prematchSequence())
         self._current_task.add_done_callback(self.onCurrentTaskDone)
         
@@ -180,7 +180,6 @@ class RobotMain:
             LOGGER.exception(e)
             self._match_state = MatchState.Idle
             self._state_proto.match_state = self._match_state
-            await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
             LOGGER.error('prematch failed')
             return
             
@@ -188,12 +187,10 @@ class RobotMain:
             self._match_armed = False
             self._match_state = MatchState.WaitForStartOfMatch
             self._state_proto.match_state = self._match_state
-            await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
             LOGGER.info('prematch finished')
         else:
             self._match_state = MatchState.Idle
             self._state_proto.match_state = self._match_state
-            await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
             LOGGER.error('prematch failed')
         
     async def _matchSequence(self):
@@ -206,13 +203,7 @@ class RobotMain:
         except Exception:
             LOGGER.exception('')
         print('match end')
-        #await self._postmatchSequence()
         return
-        
-        await self._sequences['match']()
-        self._match_state = MatchState.MatchFinished
-        await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
-        print('match finished')
 
         
     async def onCameraDetections(self, msg):
@@ -228,6 +219,7 @@ class RobotMain:
         if self._current_task is not None:
             return            
         self._match_state = MatchState.Match
+        self._state_proto.match_state = self._match_state
         await self._broker.publishTopic('nucleo/in/match/timer/start')
         self.match_timer = 100
         self._state_proto.match_timer = self.match_timer
@@ -240,6 +232,7 @@ class RobotMain:
     async def onMatchTimer(self, msg):
         self.match_timer = msg.value
         self._state_proto.match_timer = msg.value
+        self._strategy_engine._onMatchTimer(msg.value)
       
     async def onSequenceExecute(self, name, msg):
         LOGGER.info('RobotMain: execute sequence %s', name)

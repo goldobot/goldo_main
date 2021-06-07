@@ -201,7 +201,7 @@ def propulsion_motors_enable_set(msg):
 def propulsion_emergency_stop(msg):
     return _pb2.serialize(msg)
     
-@nucleo_in('propulsion/clear_error', 105)
+@nucleo_in('propulsion/clear_error', 108)
 def propulsion_clear_error(msg):
     return _pb2.serialize(msg)
     

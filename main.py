@@ -54,14 +54,18 @@ async def main():
         
 if __name__ == '__main__':
     setproctitle.setproctitle('goldo_main')
-    logger = logging.getLogger('goldo_main.strategy.strategy_engine')
-    logger.setLevel(logging.DEBUG)
     
-    ogger = logging.getLogger('goldo_main.robot_main')
+    
+    logger = logging.getLogger('goldo_main.robot_main')
     logger.setLevel(logging.DEBUG)
     
     consoleHandler = logging.StreamHandler()
     consoleHandler.setLevel(logging.DEBUG)
+
+    logger.addHandler(consoleHandler)
+    
+    logger = logging.getLogger('goldo_main.strategy.strategy_engine')
+    logger.setLevel(logging.DEBUG)
 
     logger.addHandler(consoleHandler)
     

@@ -49,10 +49,15 @@ class StrategyEngine(object):
         self._current_sequence = None
         self._actions_by_name = {}
         self._running = False
+        self._timer_callbacks = []
+        self._tasks = {}
         
     @property
     def actions(self):
         return self._actions_by_name
+        
+    def addTimerCallback(self, timer, callback):
+        self._timer_callbacks.append((timer, callback))            
         
     def loadConfig(self):
         config_proto = self._robot._config_proto.strategy
@@ -68,10 +73,18 @@ class StrategyEngine(object):
         
     async def run(self):
         self._running = True
-        await self.runSequence('start_match')
+        try:
+            await self.runSequence('start_match')
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            LOGGER.exception('error in start_match sequence')
+        print('finish start match')
+            
         while self._running:            
             action, path = self._selectNextAction()
             if action is not None:
+                
                 LOGGER.debug('selected action: %s', action.name)
             await asyncio.sleep(1)
             
@@ -79,10 +92,20 @@ class StrategyEngine(object):
         LOGGER.debug('start sequence %s', name)
         try:
             await self._robot._sequences[name]()
-        except Exception as e:
+        except Exception:
             LOGGER.exception('exception in sequence %s', name)
-            raise e
+            raise
         LOGGER.debug('finish sequence %s', name)
+        
+    def _onMatchTimer(self, value):
+        l = []
+        for timer, callback in self._timer_callbacks:
+            if value <= timer:
+                task = asyncio.create_task(callback())
+                self._tasks[id(task)] = task
+            else:            
+                l.append((timer, callback))
+        self._timer_callbacks = l
         
     def _selectNextAction(self):
         self._actions.sort(key=lambda a: -a.priority)
@@ -95,7 +118,7 @@ class StrategyEngine(object):
         return None, None
 
                 
-            
+    
         
     def _computePathForAction(self, action):
         current_pose = self.robot_state.robot_pose
