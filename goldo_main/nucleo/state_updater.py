@@ -31,6 +31,7 @@ class NucleoStateUpdater(object):
 
     async def onNucleoReset(self):
         self._nucleo_proto.Clear()
+        self._robot.onNucleoReset()
 
     async def onHeartbeatMsg(self, msg):
         if msg.timestamp < self._nucleo_proto.heartbeat:

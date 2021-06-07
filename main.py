@@ -57,6 +57,9 @@ if __name__ == '__main__':
     logger = logging.getLogger('goldo_main.strategy.strategy_engine')
     logger.setLevel(logging.DEBUG)
     
+    ogger = logging.getLogger('goldo_main.robot_main')
+    logger.setLevel(logging.DEBUG)
+    
     consoleHandler = logging.StreamHandler()
     consoleHandler.setLevel(logging.DEBUG)
 

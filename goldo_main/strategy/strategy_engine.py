@@ -69,9 +69,10 @@ class StrategyEngine(object):
     async def run(self):
         self._running = True
         await self.runSequence('start_match')
-        while self._running:
-            print('select next action')
-            self._selectNextAction()
+        while self._running:            
+            action, path = self._selectNextAction()
+            if action is not None:
+                LOGGER.debug('selected action: %s', action.name)
             await asyncio.sleep(1)
             
     async def runSequence(self, name):   
@@ -89,9 +90,10 @@ class StrategyEngine(object):
         for action in self._actions:
             if action.enabled:
                 ok, path, cost = self._computePathForAction(action)
-                if ok: 
-                    break
-        print(path)
+                if ok:
+                    return action, path
+        return None, None
+
                 
             
         

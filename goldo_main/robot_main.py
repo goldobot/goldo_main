@@ -72,6 +72,7 @@ class RobotMain:
         self.scope = ScopeCommands()
         self._sequences = {}
         self._match_state = MatchState.Idle
+        self._match_armed = False
         self._current_task = None
         self._last_girouette = None
         self.girouette = None
@@ -92,18 +93,35 @@ class RobotMain:
         self._sequences_globals['lidar'] = LidarCommands(self)
         self.registerCallbacks()
         self.loadConfig(config_path)
+        self._task_match = None
+        self._current_task = None
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
         
     async def runMainLoop(self):
         while True:
             await asyncio.sleep(0.1)
-            await self._broker.publishTopic('gui/in/robot_state', self._state_proto)
-            if self._match_state == MatchState.WaitForStartOfMatch and not self._state_proto.tirette:
+            await self._broker.publishTopic('gui/in/robot_state', self._state_proto)            
+            if self._match_state == MatchState.WaitForStartOfMatch and self._state_proto.tirette:
+                self._match_armed = True
+            if self._match_state == MatchState.WaitForStartOfMatch and self._match_armed and not self._state_proto.tirette:
                 print('start match')
                 await self.startMatch()
+            if self.propulsion.state == 2:
+                if self._state_proto.robot_pose.speed > 0 and self._state_proto.rplidar.zones.front_near:
+                    await self.propulsion.emergencyStop()
+                if self._state_proto.robot_pose.speed < 0 and self._state_proto.rplidar.zones.back_near:
+                    await self.propulsion.emergencyStop()
+                if self._state_proto.robot_pose.speed > 0.5 and self._state_proto.rplidar.zones.front_far:
+                    await self.propulsion.emergencyStop()
+                if self._state_proto.robot_pose.speed < -0.5 and self._state_proto.rplidar.zones.back_far:
+                    await self.propulsion.emergencyStop()
+            #print(self._state_proto.robot_pose.speed)
+            #print(self._state_proto.rplidar)
         
     async def configNucleo(self, msg=None):
         """Upload the nucleo board configuration."""
+        if self._current_task is not None:
+            self._current_task.cancel()
         from .nucleo import compile_config        
 
         buff, crc = compile_config(self._config_proto)
@@ -125,9 +143,9 @@ class RobotMain:
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')        
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
 
-        for t in self._tasks:
-            t.cancel()
-        self._tasks = []
+    def onNucleoReset(self):
+        if self._current_task is not None:
+            self._current_task.cancel()
         
     async def logMessage(self, message, *args):
         print(message.format(*args))
@@ -140,23 +158,34 @@ class RobotMain:
         await self.startMatch() 
         
     async def onPreMatch(self, msg):
+        if self._current_task is not None:
+            return            
         print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))        
         self._match_state = MatchState.PreMatch
         self._state_proto.match_state = self._match_state
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
-        self._tasks.append(asyncio.create_task(self._prematchSequence()))
+        
+        self._current_task = asyncio.create_task(self._prematchSequence())
+        self._current_task.add_done_callback(self.onCurrentTaskDone)
         
     async def _prematchSequence(self):
         try:
             status = await self._sequences['prematch']()
+        except asyncio.CancelledError:
+            self._match_state = MatchState.Idle
+            self._state_proto.match_state = self._match_state
+            LOGGER.error('prematch task cancelled')
+            raise
         except Exception as e:
             LOGGER.exception(e)
             self._match_state = MatchState.Idle
             self._state_proto.match_state = self._match_state
             await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
             LOGGER.error('prematch failed')
-            return            
+            return
+            
         if status:
+            self._match_armed = False
             self._match_state = MatchState.WaitForStartOfMatch
             self._state_proto.match_state = self._match_state
             await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
@@ -172,9 +201,12 @@ class RobotMain:
             await asyncio.wait_for(self._strategy_engine.run(), MATCH_DURATION)
         except asyncio.TimeoutError:
             pass
+        except asyncio.CancelledError:
+            raise
         except Exception:
             LOGGER.exception('')
-        await self._postmatchSequence()
+        print('match end')
+        #await self._postmatchSequence()
         return
         
         await self._sequences['match']()
@@ -193,43 +225,37 @@ class RobotMain:
                     self._last_girouette = 'n'
             
     async def startMatch(self):
+        if self._current_task is not None:
+            return            
         self._match_state = MatchState.Match
         await self._broker.publishTopic('nucleo/in/match/timer/start')
         self.match_timer = 100
+        self._state_proto.match_timer = self.match_timer
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state)) 
         print('match started')
-        task = asyncio.create_task(self._matchSequence())
-        task.add_done_callback(self.onSequenceDone)
-        self._tasks.append(task)
-            
+        
+        self._current_task = asyncio.create_task(self._matchSequence())
+        self._current_task.add_done_callback(self.onCurrentTaskDone)
+                    
     async def onMatchTimer(self, msg):
         self.match_timer = msg.value
         self._state_proto.match_timer = msg.value
-        futs = []
-        for t, f in self._futures_match_timer:
-            if msg.value > 0 and msg.value < t:
-                try:
-                    f.set_result(None)
-                except:
-                    pass
-            else:
-                futs.append((t, f))
-        self._futures_match_timer = futs           
       
     async def onSequenceExecute(self, name, msg):
         LOGGER.info('RobotMain: execute sequence %s', name)
         self._current_task = asyncio.create_task(self._sequences[name]())
-        self._current_task.add_done_callback(self.onSequenceDone)
+        self._current_task.add_done_callback(self.onCurrentTaskDone)
         
-    def onSequenceDone(self, task):
+    def onCurrentTaskDone(self, task):
         try:
             result = task.result()
+            LOGGER.debug('task finished: %s', task)
         except Exception:
-            LOGGER.exception('')        
-        
+            LOGGER.exception('') 
+        self._current_task = None            
+            
     def registerCallbacks(self):
         broker = self._broker        
-        self.propulsion.setBroker(broker)
         self.scope.setBroker(broker)
         broker.registerCallback('gui/out/side', self.onSetSide)
         broker.registerCallback('gui/out/commands/config_nucleo', self.configNucleo)
@@ -237,8 +263,7 @@ class RobotMain:
         broker.registerCallback('gui/out/commands/debug_start_match', self.onDebugStartMatch)
         broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatus)
         broker.registerCallback('camera/out/detections', self.onCameraDetections)
-        broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)
-           
+        broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)           
         broker.registerCallback('robot/sequence/*/execute', self.onSequenceExecute)
         
     async def onSetSide(self, msg):
