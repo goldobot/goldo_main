@@ -14,6 +14,11 @@ from typing import Mapping
 
 LOGGER = logging.getLogger(__name__)
 
+class PropulsionError(Exception):
+    def __init__(self, error):
+        self.error = error
+    
+
 class PropulsionCommand(object):
     def __init__(self, loop, sequence_number):
         self._sequence_number = sequence_number
@@ -214,9 +219,13 @@ class PropulsionCommands:
 
     async def _on_cmd_event(self, msg):
         future = self._futures.get(msg.sequence_number)
-        print(msg.sequence_number, msg.status, msg.error)
         if future is not None:
             if msg.status == 1:
                 future.set_result(None)
                 return
-            print(msg)
+            if msg.status == 2:
+                future.set_exception(PropulsionError(msg.error))
+                return
+            if msg.status == 3:
+                future.set_exception(PropulsionError(msg.error))
+                return

@@ -45,7 +45,6 @@ class ODriveCommands:
     async def clearErrors(self):
         await self._sendRequest(228 + 71, 0, b'')
         await self._sendRequest(228 + 300, 0, b'')
-
         
     async def _sendRequest(self, endpoint_id, expected_response_size, payload):
         seq = 0
@@ -77,5 +76,3 @@ class ODriveCommands:
         proto.axis1.current_state = msg.axis1.current_state
         proto.axis1.requested_state = msg.axis1.requested_state
         proto.axis1.control_mode = msg.axis1.control_mode
-        
-        print('odrv', self._robot._state_proto.nucleo.odrive)

@@ -37,8 +37,7 @@ def watchdog_state(payload):
     
 @nucleo_out('os/reset', 4)
 def os_reset(payload):
-    msg = _sym_db.GetSymbol('google.protobuf.Empty')()
-    return msg
+    return _sym_db.GetSymbol('google.protobuf.Empty')()
     
 @nucleo_out('os/task_statistics/uart_comm', 300)
 def os_task_statistics_uart_comm(payload):
@@ -46,7 +45,6 @@ def os_task_statistics_uart_comm(payload):
     
 @nucleo_out('os/task_statistics/odrive_comm', 301)
 def os_task_statistics_odrive_comm(payload):
-    print(_pb2.deserialize('goldo.nucleo.statistics.ODriveCommTaskStatistics', payload))
     return _pb2.deserialize('goldo.nucleo.statistics.ODriveCommTaskStatistics', payload)    
     
 @nucleo_out('watchdog/state', 251)
@@ -126,8 +124,6 @@ def dynamixels_response(payload):
     msg.id = vals[2]
     msg.error_flags = vals[3]
     msg.payload = payload[4:]
-    print(msg)
-    print(payload[5:])
     return msg
     
 
@@ -147,9 +143,23 @@ def fpga_reg_write(msg):
 def servo_move(msg):
     return _pb2.serialize(msg)
     
+@nucleo_in('servo/enable/set', 42)
+def servo_move(msg):
+    return _pb2.serialize(msg)
+    
 @nucleo_in('servo/move_multiple', 41)
 def servo_move_multiple(msg):
     return struct.pack('<HH', msg.sequence_number, msg.speed) + b''.join([_pb2.serialize(pos) for pos in msg.positions])
+  
+@nucleo_out('servo/move_multiple', 41)
+def servo_status_move_multiple(payload):
+    msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=struct.unpack('<H', payload)[0])
+    return msg
+    
+@nucleo_out('servo/status/moving', 44)
+def servo_status_moving(payload):
+    msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=struct.unpack('<I', payload)[0])
+    return msg
     
 @nucleo_in('odometry/config/get', 210)
 def odometry_config_get(msg):
@@ -198,6 +208,10 @@ def propulsion_target_speed_set(msg):
 @nucleo_in('propulsion/motors/acceleration_limits/set', 104)
 def propulsion_acceleration_limits_set(msg):
     return _pb2.serialize(msg)
+    
+@nucleo_in('propulsion/motors/torque_limits/set', 112)
+def propulsion_torque_limits_set(msg):
+    return _pb2.serialize(msg)
 
 @nucleo_in('propulsion/pose/set', 105)
 def propulsion_pose_set(msg):
@@ -213,21 +227,17 @@ def propulsion_odrive_clear_errors(msg):
     
 @nucleo_out('propulsion/odrive/statistics', 180)
 def propulsion_odrive_statistics(payload):
-    print(len(payload))
-    msg = _pb2.deserialize('goldo.nucleo.odrive.ClientStatistics', payload[:9])
-    print(msg)
-    return msg
+    return _pb2.deserialize('goldo.nucleo.odrive.ClientStatistics', payload[:9])
+
+    
 @nucleo_out('propulsion/odrive/axis_states', 181)
 def propulsion_odrive_axis_states(payload):
     msg = _pb2.deserialize('goldo.nucleo.odrive.AxisStates', payload)
-    print(msg)
     return msg
     
 @nucleo_out('propulsion/odrive/errors', 182)
 def propulsion_odrive_errors(payload):
-    print(len(payload))
     msg = _pb2.deserialize('goldo.nucleo.odrive.AxisErrorStates', payload)
-    print(msg)
     return msg
     
 @nucleo_in('propulsion/clear_command_queue', 109)

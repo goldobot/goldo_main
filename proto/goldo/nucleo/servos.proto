@@ -21,6 +21,11 @@ message ServoConfig {
   string name = 64 [(goldo.pb2_options.cpp_type) = VOID];
 }
 
+message SetEnable {
+  int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  bool enable = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
 message ServoPosition {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
