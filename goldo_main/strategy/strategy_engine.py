@@ -51,6 +51,11 @@ class StrategyEngine(object):
         self._running = False
         self._timer_callbacks = []
         self._tasks = {}
+        self._astar = astar.AStarWrapper()
+        self._astar.resetCosts()
+        
+        print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
+
         
     @property
     def actions(self):

@@ -9,21 +9,6 @@ from AStar cimport AStar, AStarPathType
 
 cdef (float, float) Point
 
-cdef bool _is_right_side((float, float) p, (float, float) strt, (float, float) end):
-    """Determine if a point (p) is `inside` a line segment (strt-->end).
-    See : line_crosses, in_out_crosses in npg_helpers.
-    position = sign((Bx - Ax) * (Y - Ay) - (By - Ay) * (X - Ax))
-    negative for right of clockwise line, positive for left. So in essence,
-    the reverse of _is_left_side with the outcomes reversed ;)
-    """
-    cdef float x = p[0]
-    cdef float y = p[1]
-    cdef float x0 = strt[0]
-    cdef float y0 = strt[1]
-    cdef float x1 = end[0]
-    cdef float y1 = end[1]
-    return (x1 - x0) * (y - y0) - (y1 - y0) * (x - x0)
-
 cdef class AStarWrapper:
     cdef AStar* c_astar
     
@@ -31,10 +16,62 @@ cdef class AStarWrapper:
         self.c_astar = new AStar()
         self.c_astar[0].setMatrix(200,300)
         
+    def setSquare(self, p, r):
+        cdef int x0 = p[0] * 100 - r
+        cdef int y0 = p[1] * 100 + 149 - r
+        cdef int x1 = p[0] * 100 + r
+        cdef int y1 = p[1] * 100 + 149 + r
+        if x0 < 0:
+            x0 = 0
+        if x1 < 0:
+            x1 = 0
+        if x0 > 199:
+            x0 = 199
+        if x1 > 199:
+            x1 = 199
+        if y0 < 0:
+            y0 = 0
+        if y1 < 0:
+            y1 = 0
+        if y0 > 299:
+            y0 = 299
+        if y1 > 299:
+            y1 = 299
+        for i in range(x0, y0):
+            for j in range(y0, y1):
+                self.c_astar[0].setWall(i, j)
+        
+    def unsetSquare(self, x, y, r):
+        pass
+        
+    def setWall(self, x, y):
+        self.c_astar[0].setWall(x, y)
+       
     def resetCosts(self):
         for x in range(200):
             for y in range(300):
                 self.c_astar[0].setWay(x, y, 1)
+        for i in range(200):
+            for j in range(15):
+                self.setWall(i,j)
+                self.setWall(i,299 - j)
+            
+        for i in range(300):
+            for j in range(15):
+                self.setWall(j,i)
+                self.setWall(199 - j,i)
+                
+        #recifs
+        for i in range(30):
+            for j in range(15):
+                self.setWall(199 - i, 150 - 60 - j)
+                self.setWall(199 - i, 150 - 60 + j)
+                self.setWall(199 - i, 150 + 60 - j)
+                self.setWall(199 - i, 150 + 60 + j)
+        for i in range(45):
+            for j in range(15):
+                self.setWall(199 - i, 150 - j)
+                self.setWall(199 - i, 150 + j)
         
     def computePath(self, p0, p1):
         cdef unsigned x0 = p0[0] * 100
@@ -49,16 +86,6 @@ cdef class AStarWrapper:
         cdef bool is_new_path
         cdef AStarPathType path_type = AStarPathType.smooth 
         
-        for i in range(200):
-            self.c_astar[0].setWall(i,0)
-            self.c_astar[0].setWall(i,299)
-            
-        for i in range(200):
-            self.c_astar[0].setWall(0,i)
-            self.c_astar[0].setWall(199,i)
-            
-        for i in range(100):
-            self.c_astar[0].setWall(i,150)
             
         path = self.c_astar[0].getPathOnlyIfNeed(True, &is_new_path, path_type)
         ret = []

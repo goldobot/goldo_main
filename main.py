@@ -62,7 +62,7 @@ if __name__ == '__main__':
     consoleHandler = logging.StreamHandler()
     consoleHandler.setLevel(logging.DEBUG)
 
-    logger.addHandler(consoleHandler)
+    #logger.addHandler(consoleHandler)
     
     logger = logging.getLogger('goldo_main.strategy.strategy_engine')
     logger.setLevel(logging.DEBUG)

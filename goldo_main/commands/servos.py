@@ -33,11 +33,15 @@ class ServosCommands:
         await self._robot._broker.publishTopic('nucleo/in/servo/enable/set', msg)
         
     async def move(self, name, position, speed=100):
+        seq = self._sequence_number
+        self._sequence_number = (self._sequence_number + 1) % 255
+        
         servo_id = self._servos_ids[name]
         msg = _sym_db.GetSymbol('goldo.nucleo.servos.Move')(servo_id=servo_id, position=position, speed=speed)
         await self._robot._broker.publishTopic('nucleo/in/servo/move', msg)
         
-    async def moveMultiple(self, servos, speed = 0x3ff):
+    async def moveMultiple(self, servos, speed = 1):
+        speed = int(speed * 0x3ff)
         elts = []
         servos_mask = 0
         seq = self._sequence_number

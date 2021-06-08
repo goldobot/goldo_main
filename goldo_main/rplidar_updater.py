@@ -32,10 +32,13 @@ class RPLidarUpdater:
         self._last_message_ts = datetime.now()
         state_proto = self._robot._state_proto
         self._detections_ts[msg.id] = datetime.now()
+        added = False
         for d in state_proto.rplidar_detections:
             if d.id == msg.id:
                 d.CopyFrom(msg)
-                return
-        state_proto.rplidar_detections.append(msg)
+                added = True
+                break
+        if not added:
+            state_proto.rplidar_detections.append(msg)
         del state_proto.rplidar.detections[:]
         state_proto.rplidar.detections.extend(state_proto.rplidar_detections)
