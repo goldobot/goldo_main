@@ -93,4 +93,5 @@ message ODriveStatus {
   bool synchronized = 1;
   AxisStatus axis0 = 2;
   AxisStatus axis1 = 3;
+  ClientStatistics client_statistics = 4;
 }

@@ -49,8 +49,15 @@ message UARTCommTaskStatistics {
 }
 
 message ODriveCommTaskStatistics {
-  uint32 max_cycles = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  //uint32 max_cycles = 1 [(goldo.pb2_options.cpp_type) = UINT32];
   ODriveStreamParserStatistics parser = 2;
   ODriveStreamWriterStatistics writer = 3;
   MessageQueueStatistics queue = 4;
+}
+
+message PropulsionTaskStatistics {
+  uint32 max_cycles = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  MessageQueueStatistics queue = 2;
+  MessageQueueStatistics urgent_queue = 3;
+  MessageQueueStatistics odrive_queue = 4;
 }

@@ -4,6 +4,9 @@
 from libcpp.list cimport list
 from libcpp.pair cimport pair
 from libcpp cimport bool
+from cpython.bytes cimport PyBytes_FromStringAndSize
+
+
 
 from AStar cimport AStar, AStarPathType
 
@@ -11,6 +14,7 @@ cdef (float, float) Point
 
 cdef class AStarWrapper:
     cdef AStar* c_astar
+    cdef char c_arr[200 * 300]
     
     def __cinit__(self):
         self.c_astar = new AStar()
@@ -41,25 +45,63 @@ cdef class AStarWrapper:
             for j in range(y0, y1):
                 self.c_astar[0].setWall(i, j)
         
-    def unsetSquare(self, x, y, r):
-        pass
+    def fillRect(self, int x1, int y1, int x2, int y2):
+        cdef int x, y
+        if x1 < 0:
+            x1 = 0
+        if x2 > 199:
+            x2 = 199
+        if y1 < 0:
+            y1 = 0
+        if y2 > 299:
+            y2 = 299
+        for x in range(x1, x2):
+            for y in range(y1, y2):
+                self.setWall(x, y)
+                
+    def clearRect(self, int x1, int y1, int x2, int y2):
+        cdef int x, y
+        if x1 < 0:
+            x1 = 0
+        if x2 > 199:
+            x2 = 199
+        if y1 < 0:
+            y1 = 0
+        if y2 > 299:
+            y2 = 299
+        for x in range(x1, x2):
+            for y in range(y1, y2):
+                self.setWay(x, y)
         
-    def setWall(self, x, y):
+    def getArr(self):
+        return PyBytes_FromStringAndSize(self.c_arr, 200 * 300)
+        
+    cdef setWall(self, unsigned x, unsigned y):
         self.c_astar[0].setWall(x, y)
-       
+        self.c_arr[y + x * 300] = 0
+        
+    cdef setWay(self, unsigned x, unsigned y):
+        self.c_astar[0].setWay(x, y, 1)
+        self.c_arr[y + x * 300] = -1
+        
+        
     def resetCosts(self):
+        cdef int x, y
+        cdef int i, j
+        
         for x in range(200):
             for y in range(300):
-                self.c_astar[0].setWay(x, y, 1)
-        for i in range(200):
+                self.setWay(x, y)
+                
+        for x in range(200):
             for j in range(15):
-                self.setWall(i,j)
-                self.setWall(i,299 - j)
-            
-        for i in range(300):
-            for j in range(15):
-                self.setWall(j,i)
-                self.setWall(199 - j,i)
+                self.setWall(x,j)
+                self.setWall(x,299 - j)
+                
+        for y in range(300):
+            for i in range(15):
+                self.setWall(i,y)
+                self.setWall(199 - i,y)
                 
         #recifs
         for i in range(30):

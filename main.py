@@ -19,9 +19,10 @@ def rm_tree(path: Path):
 async def config_put(config_name, msg):
     config_path = Path(f'config/{config_name}')
     config_path.mkdir(parents=True, exist_ok=True)
+    (config_path / 'sequences').mkdir(parents=True, exist_ok=True)
     open(config_path / 'robot_config.bin', 'wb').write(msg.SerializeToString())
     for sequences_file in msg.sequences_files:
-        open(config_path / sequences_file.path, 'w').write(sequences_file.body)
+        open(config_path / 'sequences' / sequences_file.path, 'w').write(sequences_file.body)
     robot.loadConfig(config_path)
     
 async def config_delete(config_name, msg):
@@ -50,6 +51,8 @@ async def main():
     broker.registerCallback('nucleo/out/propulsion/telemetry', lambda msg: broker.publishTopic('rplidar/in/robot_pose', msg.pose)) 
     broker.registerCallback('nucleo/out/match/timer', lambda msg: broker.publishTopic('gui/in/match_timer', msg))         
     broker.registerForward('nucleo/out/os/heartbeat', 'gui/in/heartbeat')
+    #broker.startRecording()
+    
     await broker.run()
         
 if __name__ == '__main__':

@@ -7,4 +7,9 @@ class MatchState(IntEnum):
     Match = 3
     MatchFinished = 4
     
+class Side:
+    Unknown = 0
+    Blue = 1
+    Yellow = 2
+    
 __all = [MatchState]

@@ -43,7 +43,8 @@ message NucleoTasksState {
 
 message NucleoTasksStatistics {
    goldo.nucleo.statistics.UARTCommTaskStatistics uart_comm = 1;
-   goldo.nucleo.statistics.ODriveCommTaskStatistics odrive = 2;
+   goldo.nucleo.statistics.ODriveCommTaskStatistics odrive_comm = 2;
+   goldo.nucleo.statistics.PropulsionTaskStatistics propulsion = 3;
 }
 
 message NucleoState {
@@ -52,6 +53,7 @@ message NucleoState {
   uint32 heartbeat = 3;
   NucleoTasksStatistics tasks_statistics = 4;
   goldo.nucleo.odrive.ODriveStatus odrive = 5;
+  goldo.nucleo.odrive.ClientStatistics odrive_client_statistics = 6;
   
 }
 

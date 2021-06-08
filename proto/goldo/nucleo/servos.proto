@@ -21,6 +21,15 @@ message ServoConfig {
   string name = 64 [(goldo.pb2_options.cpp_type) = VOID];
 }
 
+message LiftConfig {
+  int32 kp = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 ki = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 kd = 3 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 range = 4 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 pwm_clamp = 5 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 block_trig = 6 [(goldo.pb2_options.cpp_type) = UINT16];
+}
+
 message SetEnable {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   bool enable = 2 [(goldo.pb2_options.cpp_type) = UINT8];
@@ -35,6 +44,17 @@ message Move {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
   uint32 speed = 3 [(goldo.pb2_options.cpp_type) = UINT16];
+}
+
+message CmdLiftDoHoming {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 lift_id = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
+message CmdLiftSetEnable {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 lift_id = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+  bool enable = 3 [(goldo.pb2_options.cpp_type) = UINT8];
 }
 
 message CmdMoveMultiple {

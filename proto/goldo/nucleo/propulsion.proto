@@ -77,9 +77,12 @@ message PropulsionControllerConfig {
   repeated PropulsionLowLevelPIDConfig pid_configs = 2 [(goldo.pb2_options.max_count) = 4, (goldo.pb2_options.fixed_count) = true];
   float lookahead_distance = 3;
   float lookahead_time = 4;
-  float static_pwm_limit = 5;
-  float cruise_pwm_limit = 6;
-  float reposition_pwm_limit = 7;
+  float static_motor_speed_limit = 5;
+  float cruise_motor_speed_limit = 6;
+  float reposition_motor_speed_limit = 7;
+  float static_torque_limit = 8;
+  float cruise_torque_limit = 9;
+  float reposition_torque_limit = 10;
 }
 
 message PropulsionTaskConfig {
@@ -134,6 +137,12 @@ message CmdSetPose {
 message CmdSetTargetSpeed {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   float target_speed = 3;
+}
+
+message CmdMeasureNormal {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float angle = 2;
+  float distance = 3;
 }
 
 message ExecuteTrajectory {

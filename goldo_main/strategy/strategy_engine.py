@@ -4,6 +4,7 @@ import asyncio
 import logging
 import math
 import pb2 as _pb2
+from goldo_main.enums import *
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
 
@@ -52,10 +53,26 @@ class StrategyEngine(object):
         self._timer_callbacks = []
         self._tasks = {}
         self._astar = astar.AStarWrapper()
-        self._astar.resetCosts()
-        
-        print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
 
+       
+        
+
+    async def try_astar(self):
+        return
+        self._astar.resetCosts()
+        self._astar.fillRect(35,0,125, 55)
+        if self._robot.side == Side.Blue or True:
+            #port
+            self._astar.fillRect(200-55,90,200, 150)
+            #adversary start area
+            self._astar.fillRect(35,300-55,125, 300)
+            self._astar.fillRect(0,300-55,35, 300)
+            self._astar.fillRect(125,300-55,165, 300)
+            
+        msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
+
+        await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
+        #print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
         
     @property
     def actions(self):

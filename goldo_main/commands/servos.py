@@ -52,27 +52,35 @@ class ServosCommands:
             elts.append(_sym_db.GetSymbol('goldo.nucleo.servos.ServoPosition')(servo_id=id_, position=v))
             servos_mask |= (1 << id_)
         msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdMoveMultiple')(sequence_number=seq, speed=speed, positions=elts)
-        
-        
-        
+
         future = self._loop.create_future()
         self._futures[id(future)] = [future, False, seq, servos_mask]
         
         future.add_done_callback(functools.partial(self._remove_future, id(future)))
-           
+
         await self._robot._broker.publishTopic('nucleo/in/servo/move_multiple', msg)
         await future
+        
+    async def liftDoHoming(self, id_):
+        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftDoHoming')(sequence_number=0, lift_id=id_)
+        await self._robot._broker.publishTopic('nucleo/in/lift/do_homing', msg)
+        
+    async def liftSetEnable(self, id_, enable):
+        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftSetEnable')(sequence_number=0, lift_id=id_, enable=enable)
+        await self._robot._broker.publishTopic('nucleo/in/lift/set_enable', msg)
         
     async def _onMsgAck(self, msg):
         for e in self._futures.values():
             if e[2] == msg.value:
                 e[1] = True
+                print('servo ack')
         
     async def _onMsgMoving(self, msg):
         for e in self._futures.values():
             if e[1] and not(msg.value & e[3]):
                 e[0].set_result(None)
         
+    #def _publish
     def _remove_future(self, id_, future):
         self._futures.pop(id_, None)
         
@@ -87,5 +95,4 @@ class ServosCommands:
         cmd = PropulsionCommand(self._loop, sequence_number)
         self._commands[sequence_number] = cmd
         return sequence_number, cmd
-    async def _onMovingMsg(self, msg):
-        pass
+

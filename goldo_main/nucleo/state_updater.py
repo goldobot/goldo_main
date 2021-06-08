@@ -12,9 +12,14 @@ class NucleoStateUpdater(object):
         self._broker.registerCallback('nucleo/out/os/task_statistics/uart_comm', self.onUartCommStatsMsg)
         self._broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatusMsg)
         self._broker.registerCallback('nucleo/out/os/task_statistics/uart_comm', self.onUartCommStatsMsg)
-        self._broker.registerCallback('nucleo/out/os/task_statistics/odrive_comm', self.onODriveCommStatsMsg)
+        self._broker.registerCallback('nucleo/out/os/task_statistics/odrive_comm', self.onODriveCommStatsMsg)        
+        self._broker.registerCallback('nucleo/out/os/task_statistics/propulsion', self.onPropulsionStatsMsg)
+        self._broker.registerCallback('nucleo/out/propulsion/odrive/statistics', self.onPropulsionODriveStatsMsg)
+        
+        
 
         self._last_uart_comm_stats_ts = 0
+        self._last_odrive_comm_stats_ts = 0
         self._last_message_ts = datetime.now()
         self._watchdog_task = asyncio.create_task(self.runWatchdog())
 
@@ -39,6 +44,8 @@ class NucleoStateUpdater(object):
         self._nucleo_proto.heartbeat = msg.timestamp
         self._nucleo_proto.connected = True
         self._heartbeat_received = True
+        await self._broker.publishTopic('nucleo/in/os/ping', None)
+        #print(self._last_odrive_comm_stats_ts)
 
     async def onResetMessage(self, msg):
         await self.onNucleoReset()
@@ -54,6 +61,15 @@ class NucleoStateUpdater(object):
     async def onODriveCommStatsMsg(self, msg):
         self._last_odrive_comm_stats_ts = self._nucleo_proto.heartbeat
         self._nucleo_proto.tasks_statistics.odrive_comm.CopyFrom(msg)
+        
+    async def onPropulsionODriveStatsMsg(self, msg):
+        self._last_odrive_client_stats_ts = self._nucleo_proto.heartbeat
+        self._nucleo_proto.odrive.client_statistics.CopyFrom(msg)
+        self._nucleo_proto.odrive.synchronized = msg.synchronized
+        
+    async def onPropulsionStatsMsg(self, msg):
+        self._last_propulsionstats_ts = self._nucleo_proto.heartbeat
+        self._nucleo_proto.tasks_statistics.propulsion.CopyFrom(msg)
 
     async def onFpgaStatsMsg(self, msg):
         pass

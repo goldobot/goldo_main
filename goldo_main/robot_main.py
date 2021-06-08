@@ -12,11 +12,17 @@ from .commands import LidarCommands
 from .commands import ODriveCommands
 from .commands.camera import CameraCommands
 from .commands.scope_commands import ScopeCommands
+
+from .commands.propulsion_commands import PropulsionError
+
 from .sensors_state import SensorsState
 from .nucleo.state_updater import NucleoStateUpdater
 from .rplidar_updater import RPLidarUpdater
 from .enums import *
 from .strategy import StrategyEngine
+from . import sequences_importer
+import importlib
+
 import logging
 
 import runpy
@@ -26,19 +32,15 @@ LOGGER = logging.getLogger(__name__)
 MATCH_DURATION = 100
 
             
-class SequenceWrapper(object):
-    def __init__(self, robot, func):
-        self._func = func
-        self._name = func.__name__
-        self._robot = robot
         
-    async def __call__(self,*args,**kwargs):
-        pass
+class RobotExceptions(object):  
+    PropulsionError = PropulsionError
         
         
 class RobotMain:
     def sequence(self, func):
         self._sequences[func.__name__] = func
+        return func
         
     def snapGirouette(self):
         self.girouette = self._last_girouette
@@ -55,7 +57,15 @@ class RobotMain:
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
         self._strategy_engine.loadConfig()
-        runpy.run_path(config_path / 'sequences.py', self._sequences_globals)        
+        
+        #import all sequences
+        sequences_importer.meta_finder.unload_all()
+        sequences_path = config_path / 'sequences'
+        sequences_importer.meta_finder.sequences_path = sequences_path
+        sequences_importer.meta_finder.inject_globals = self._sequences_globals        
+        importlib.import_module('sequences.sequences')
+        
+    
        
     def __init__(self, broker):
         self._broker = broker
@@ -95,6 +105,7 @@ class RobotMain:
         self._sequences_globals['sensors'] = self._state_proto.sensors
         self._sequences_globals['servos'] = ServosCommands(self)
         self._sequences_globals['lidar'] = LidarCommands(self)
+        self._sequences_globals['exceptions'] = RobotExceptions
         self.registerCallbacks()
         self.loadConfig(config_path)
         self._task_match = None
@@ -125,8 +136,8 @@ class RobotMain:
         
     async def configNucleo(self, msg=None):
         """Upload the nucleo board configuration."""
-        if self._current_task is not None:
-            self._current_task.cancel()
+        #if self._current_task is not None:
+            #self._current_task.cancel()
         from .nucleo import compile_config        
 
         buff, crc = compile_config(self._config_proto)
@@ -148,9 +159,11 @@ class RobotMain:
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')        
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
 
-    def onNucleoReset(self):
-        if self._current_task is not None:
-            self._current_task.cancel()
+    def onNucleoReset(self):        
+        self._match_state = MatchState.Idle
+        self._state_proto.match_state = self._match_state
+        #if self._current_task is not None:
+            #self._current_task.cancel()
         
     async def logMessage(self, message, *args):
         print(message.format(*args))
@@ -164,7 +177,9 @@ class RobotMain:
         
     async def onPreMatch(self, msg):
         if self._current_task is not None:
-            return            
+            self._current_task.cancel()
+            
+            #return            
         print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))        
         self._match_state = MatchState.PreMatch
         self._state_proto.match_state = self._match_state

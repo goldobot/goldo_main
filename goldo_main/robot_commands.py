@@ -15,7 +15,7 @@ class RobotCommands:
         return self._robot._broker.publishTopic(topic, msg)
     
     def sequence(self, func):
-        self._robot.sequence(func)
+        return self._robot.sequence(func)
 
     @property
     def score(self):
@@ -23,7 +23,15 @@ class RobotCommands:
         
     async def setScore(self, score):
         self._robot._state_proto.score = score
-        await self._publish('gui/in/score', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=score))
+        await self._publish('gui/in/score', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._robot._state_proto.score))
+        
+    @property
+    def side(self):
+        return self._robot.side        
+            
+    @property
+    def sensors(self):
+        return self._robot._state_proto.sensors
         
         
         

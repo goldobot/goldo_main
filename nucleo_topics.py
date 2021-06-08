@@ -30,6 +30,10 @@ def heartbeat(payload):
     msg = _sym_db.GetSymbol('goldo.nucleo.Heartbeat')()
     msg.timestamp = _unpack_heartbeat(payload)[0]
     return msg
+
+@nucleo_in('os/ping', 1)
+def ping(msg):
+    return b''
     
 @nucleo_out('os/heap_stats', 3)
 def watchdog_state(payload):
@@ -43,9 +47,15 @@ def os_reset(payload):
 def os_task_statistics_uart_comm(payload):
     return _pb2.deserialize('goldo.nucleo.statistics.UARTCommTaskStatistics', payload)
     
+
 @nucleo_out('os/task_statistics/odrive_comm', 301)
 def os_task_statistics_odrive_comm(payload):
     return _pb2.deserialize('goldo.nucleo.statistics.ODriveCommTaskStatistics', payload)    
+    
+@nucleo_out('os/task_statistics/propulsion', 302)
+def os_task_statistics_uart_comm(payload):
+    return _pb2.deserialize('goldo.nucleo.statistics.PropulsionTaskStatistics', payload)
+    
     
 @nucleo_out('watchdog/state', 251)
 def watchdog_state(payload):
@@ -151,6 +161,15 @@ def servo_move(msg):
 def servo_move_multiple(msg):
     return struct.pack('<HH', msg.sequence_number, msg.speed) + b''.join([_pb2.serialize(pos) for pos in msg.positions])
   
+@nucleo_in('lift/set_enable', 46)
+def lift_do_homing(msg):
+    return _pb2.serialize(msg)
+    
+@nucleo_in('lift/do_homing', 48)
+def lift_do_homing(msg):
+    return _pb2.serialize(msg)
+    
+    
 @nucleo_out('servo/move_multiple', 41)
 def servo_status_move_multiple(payload):
     msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=struct.unpack('<H', payload)[0])
@@ -260,6 +279,10 @@ def propulsion_execute_translation(msg):
 def propulsion_execute_reposition(msg):
     return _pb2.serialize(msg)
     
+@nucleo_in('propulsion/cmd/measure_normal', 146)
+def propulsion_execute_reposition(msg):
+    return _pb2.serialize(msg)
+    
 @nucleo_in('propulsion/cmd/move_to', 141)
 def propulsion_execute_move_to(msg):
     return _pb2.serialize(msg)
@@ -269,6 +292,10 @@ def propulsion_execute_rotation(msg):
     return _pb2.serialize(msg)
     
 @nucleo_in('propulsion/cmd/point_to', 143)
+def propulsion_execute_point_to(msg):
+    return _pb2.serialize(msg)
+    
+@nucleo_in('propulsion/cmd/point_to_back', 153)
 def propulsion_execute_point_to(msg):
     return _pb2.serialize(msg)
     
