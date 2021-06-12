@@ -107,13 +107,21 @@ class ZmqBroker():
         ip = 'robot01'
         self.register_socket('nucleo:pub', 'tcp://{}:3002'.format(ip), 'connect', _NucleoCodec())
         self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect', _NucleoCodec())
+        
+        self.register_socket('nucleo_ftdi:pub', 'tcp://{}:3004'.format(ip), 'connect', _NucleoCodec())
+        self.register_socket('nucleo_ftdi:sub', 'tcp://{}:3003'.format(ip), 'connect', _NucleoCodec())
+        
         self.register_socket('rplidar:pub', 'tcp://{}:3101'.format(ip), 'connect', _RPLidarCodec())
         self.register_socket('rplidar:sub', 'tcp://{}:3102'.format(ip), 'connect', _RPLidarCodec())
+        
         self.register_socket('camera:sub', 'tcp://{}:3201'.format(ip), 'connect', _ProtobufCodec())
+        
         self.register_socket('gui:pub', 'tcp://{}:3901'.format(ip), 'connect', _ProtobufCodec())
         self.register_socket('gui:sub', 'tcp://{}:3902'.format(ip), 'connect', _ProtobufCodec())
+        
         self.register_socket('debug:pub', 'tcp://*:3801', 'bind', _ProtobufCodec())
         self.register_socket('debug:sub', 'tcp://*:3802', 'bind', _ProtobufCodec())
+        
         self.register_socket('main:rep', 'tcp://*:3301', 'bind', _ProtobufCodec())
 
     def registerCallback(self, pattern: str, callback):

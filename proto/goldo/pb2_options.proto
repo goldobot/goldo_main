@@ -24,4 +24,5 @@ extend google.protobuf.FieldOptions {
   CppType cpp_type = 50000;
   int32 max_count = 50001;
   bool fixed_count = 50002;
+  CppType count_type = 50003;
 }

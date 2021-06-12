@@ -51,7 +51,6 @@ def watchdog_state(payload):
     
 @nucleo_out('sensors/state', 33)
 def sensors_state(payload):
-    print(_pb2.deserialize('goldo.nucleo.SensorsState', payload))
     return _pb2.deserialize('goldo.nucleo.SensorsState', payload)    
     
 @nucleo_out('match/timer', 10)
@@ -273,9 +272,21 @@ def propulsion_telemetry(payload):
     
 @nucleo_out('propulsion/odrive/telemetry', 124)
 def propulsion_telemetry(payload):
-    msg = _pb2.deserialize('goldo.nucleo.odrive.Telemetry', payload)
     return _pb2.deserialize('goldo.nucleo.odrive.Telemetry', payload)
+    
+@nucleo_in('propulsion/scope/config/set', 111)
+def propulsion_scope_config_set(msg):
+    if len(msg.channels) > 8:
+        raise RuntimeError('ScopeConfig channels count > 8')
+    return struct.pack('<HH', msg.period, len(msg.channels)) + b''.join([_pb2.serialize(channel) for channel in msg.channels])
 
+@nucleo_out('propulsion/scope/data', 125)
+def propulsion_scope(payload):
+    msg = _sym_db.GetSymbol('goldo.nucleo.ScopeData')()
+    msg.timestamp = struct.unpack('<H', payload[0:2])[0]
+    msg.data = payload[2:]
+    return msg
+    
 @nucleo_in('dbg_goldo', 29)
 def dbg_goldo_in(msg):
     #print ("in : {:x}".format(msg.value))

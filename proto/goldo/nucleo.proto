@@ -50,3 +50,41 @@ message NucleoState {
   bool configured = 1;
   uint32 heartbeat = 2;
 }
+
+message ScopeChannelConfig {
+  // raw encoding are for enum or integer values.
+  // scaled values are encoded as uints with 0 corresponding to min_value and uint_max to max value.
+  enum Encoding {
+    RAW8 = 0;
+    RAW16 = 1;
+    RAW32 = 2;
+    SCALED8 = 4;
+    SCALED16 = 5;
+    SCALED32 = 6;
+    FLOAT32 = 8;    
+  };
+  uint32 variable = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 encoding = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  float min_value = 3;
+  float max_value = 4;
+}
+
+message ScopeConfig {
+  uint32 period = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  repeated ScopeChannelConfig channels = 2 [(goldo.pb2_options.count_type) = UINT16, (goldo.pb2_options.max_count) = 8];
+}
+
+message ScopeData {
+  uint32 timestamp = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  bytes data = 2;
+}
+
+message ScopeChannelValues {
+  repeated float float_values = 1;
+}
+
+message ScopeValues {
+  repeated float timestamps = 1;
+  repeated ScopeChannelValues channels = 2;
+}
+

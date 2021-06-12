@@ -6,7 +6,8 @@ import asyncio
 import math
 from pathlib import Path
 from .robot_commands import RobotCommands
-from .propulsion import PropulsionCommands
+from .commands import PropulsionCommands
+from .commands.scope_commands import ScopeCommands
 from .enums import *
 import logging
 
@@ -48,11 +49,12 @@ class RobotMain:
     def __init__(self):
         config_path = Path(f'config/test/')
         self._tasks = []
-        self._simulation_mode = False
+        self._simulation_mode = True
         self.side = 0        
         self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
         self.propulsion = PropulsionCommands()
+        self.scope = ScopeCommands()
         self._sequences = {}
         self._match_state = MatchState.Idle
         self._current_task = None
@@ -77,12 +79,19 @@ class RobotMain:
         #Finish programming
         await self._broker.publishTopic('nucleo/in/robot/config/load_end', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=crc)) 
 
+        await asyncio.sleep(1)
         msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(value = self._config_proto.rplidar.theta_offset * math.pi / 180)
         await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)
         
         await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar.tresholds)
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
+        
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
+        #test
+        msg = _sym_db.GetSymbol('goldo.nucleo.ScopeConfig')(period=10)
+        msg.channels.append(_sym_db.GetSymbol('goldo.nucleo.ScopeChannelConfig')(variable = 4, encoding = 4, min_value=-1, max_value=1))        
+        await self._broker.publishTopic('nucleo/in/propulsion/scope/config/set', msg)
+
         for t in self._tasks:
             t.cancel()
         self._tasks = []
@@ -133,14 +142,7 @@ class RobotMain:
                 f.set_result(None)
             self._futures_propulsion_wait_stopped = []                    
         
-    async def onPropulsionAck(self, msg):
-        for f in self._futures_propulsion_ack:
-            try:
-                f.set_result(None)
-            except:
-                pass
-        self._futures_propulsion_ack = []
-        
+       
     async def onSensorsState(self, msg):
         return
         self.sensors._update(msg)
@@ -196,6 +198,7 @@ class RobotMain:
     def _setBroker(self, broker):
         self._broker = broker
         self.propulsion.setBroker(broker)
+        self.scope.setBroker(broker)
         broker.registerCallback('gui/out/side', self.onSetSide)
         broker.registerCallback('gui/out/commands/config_nucleo', self.configNucleo)
         broker.registerCallback('gui/out/commands/prematch', self.onPreMatch)

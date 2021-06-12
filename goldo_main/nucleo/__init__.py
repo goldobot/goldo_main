@@ -70,6 +70,12 @@ def _compile_sensors(proto):
     for s in proto:
         buff = buff + struct.pack('<BB', s.type, s.id)
     return buff
+    
+def _compile_servos(proto):
+    buff = struct.pack('<H', len(proto))
+    for s in proto:
+        buff = buff + pb2.serialize(s)
+    return buff
 
 def compile_config(proto):
     builder = BufferBuilder()
@@ -81,6 +87,7 @@ def compile_config(proto):
     builder.push_section(ConfigSection.PropulsionController, pb2.serialize(proto.nucleo.propulsion))
     builder.push_section(ConfigSection.PropulsionTask, pb2.serialize(proto.nucleo.propulsion_task))
     builder.push_section(ConfigSection.RobotSimulator, pb2.serialize(proto.nucleo.robot_simulator))
+    builder.push_section(ConfigSection.Servos, _compile_servos(proto.nucleo.servos))
     builder.push_section(ConfigSection.TasksEnable, struct.pack('I', _make_tasks_enable_flags(proto)))
 
     return builder.compile()
