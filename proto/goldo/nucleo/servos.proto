@@ -7,6 +7,7 @@ enum ServoType {
   STANDARD = 1;
   DYNAMIXEL_AX12 = 2;
   DYNAMIXEL_MX28 = 3;
+  GOLDO_LIFT = 4;
 }
 
 message ServoConfig {
@@ -19,6 +20,10 @@ message ServoConfig {
   string name = 64 [(goldo.pb2_options.cpp_type) = VOID];
 }
 
+message ServoPosition {
+  int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+}
 message Move {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];

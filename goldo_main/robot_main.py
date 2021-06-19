@@ -26,6 +26,16 @@ class SensorsState:
         for k,v in self._robot._config_proto.sensor_ids.items():
             setattr(self, k, bool(state & (1 << v)))
             
+class SequenceWrapper(object):
+    def __init__(self, robot, func):
+        self._func = func
+        self._name = func.__name__
+        self._robot = robot
+        
+    async def __call__(self,*args,**kwargs):
+        pass
+        
+        
 class RobotMain:
     def sequence(self, func):
         self._sequences[func.__name__] = func
@@ -49,7 +59,7 @@ class RobotMain:
     def __init__(self):
         config_path = Path(f'config/test/')
         self._tasks = []
-        self._simulation_mode = True
+        self._simulation_mode = False
         self.side = 0        
         self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
@@ -87,10 +97,6 @@ class RobotMain:
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
         
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
-        #test
-        msg = _sym_db.GetSymbol('goldo.nucleo.ScopeConfig')(period=10)
-        msg.channels.append(_sym_db.GetSymbol('goldo.nucleo.ScopeChannelConfig')(variable = 4, encoding = 4, min_value=-1, max_value=1))        
-        await self._broker.publishTopic('nucleo/in/propulsion/scope/config/set', msg)
 
         for t in self._tasks:
             t.cancel()

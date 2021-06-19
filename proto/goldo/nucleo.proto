@@ -8,21 +8,11 @@ import "goldo/nucleo/odometry.proto";
 import "goldo/nucleo/propulsion.proto";
 import "goldo/nucleo/robot_simulator.proto";
 import "goldo/nucleo/servos.proto";
+import "goldo/nucleo/statistics.proto";
 
 import "goldo/pb2_options.proto";
 
-message MessageQueueStatistics {
-  uint32 min_available_capacity = 1 [(goldo.pb2_options.cpp_type) = UINT32];
-  uint32 bytes_pushed = 2 [(goldo.pb2_options.cpp_type) = UINT32];
-  uint32 messages_pushed = 3 [(goldo.pb2_options.cpp_type) = UINT32];
-}
-
-message UARTCommTaskStatistics {
-  uint32 max_cycles = 1 [(goldo.pb2_options.cpp_type) = UINT32];
-  MessageQueueStatistics queue_out = 2;
-  MessageQueueStatistics queue_out_prio = 3;
-}
-
+      
 enum SensorType {
   UNKNOWN= 0;
   NUCLEO = 1;
@@ -46,9 +36,19 @@ message NucleoConfig {
   repeated string enabled_tasks = 8;
 }
 
+message NucleoTasksState {
+  bool comm_uart = 1;  
+}
+
+message NucleoTasksStatistics {
+   goldo.nucleo.statistics.UARTCommTaskStatistics uart_comm = 1;
+   goldo.nucleo.statistics.UARTCommTaskStatistics uart_comm = 1;
+}
+
 message NucleoState {
   bool configured = 1;
   uint32 heartbeat = 2;
+  
 }
 
 message ScopeChannelConfig {

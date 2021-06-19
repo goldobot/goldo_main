@@ -42,8 +42,12 @@ def os_reset(payload):
     
 @nucleo_out('os/task_statistics/uart_comm', 300)
 def os_task_statistics_uart_comm(payload):
-    return _pb2.deserialize('goldo.nucleo.UARTCommTaskStatistics', payload)
+    return _pb2.deserialize('goldo.nucleo.statistics.UARTCommTaskStatistics', payload)
     
+@nucleo_out('os/task_statistics/odrive_comm', 301)
+def os_task_statistics_odrive_comm(payload):
+    print(_pb2.deserialize('goldo.nucleo.statistics.ODriveCommTaskStatistics', payload))
+    return _pb2.deserialize('goldo.nucleo.statistics.ODriveCommTaskStatistics', payload)    
     
 @nucleo_out('watchdog/state', 251)
 def watchdog_state(payload):
@@ -85,8 +89,8 @@ def robot_config_load_status(payload):
     
 @nucleo_in('odrive/request', 50)
 def odrive_request(msg):
-    # bit 15 is reserved by odrive protocol, bit 14 is set to 1, bit 13 is 1 for debug and 0 for propulsion
-    buff = struct.pack('<HHH', msg.sequence_number | 0x6000, msg.endpoint_id, msg.expected_response_size)
+    # bit 15 is reserved by odrive protocol, bit 14 is set to 0
+    buff = struct.pack('<HHH', msg.sequence_number & 0x3fff, msg.endpoint_id, msg.expected_response_size)
     buff += msg.payload
     buff += struct.pack('<H', msg.protocol_version)
     return buff
@@ -94,7 +98,7 @@ def odrive_request(msg):
 @nucleo_out('odrive/response', 51)
 def odrive_response(payload):
     msg = _sym_db.GetSymbol('goldo.nucleo.odrive.ResponsePacket')()
-    msg.sequence_number = struct.unpack('<H', payload[0:2])[0] & 0x1fff
+    msg.sequence_number = struct.unpack('<H', payload[0:2])[0] & 0x3fff
     msg.payload = payload[2:]    
     return msg
     
