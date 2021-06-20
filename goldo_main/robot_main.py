@@ -8,6 +8,7 @@ from pathlib import Path
 from .robot_commands import RobotCommands
 from .commands import PropulsionCommands
 from .commands.scope_commands import ScopeCommands
+from .nucleo.state_updater import NucleoStateUpdater
 from .enums import *
 import logging
 

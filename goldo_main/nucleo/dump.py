@@ -48,7 +48,3 @@ class NucleoDumper:
             mem = resp[0]['payload']['memory']
             buff += bytes.fromhex(mem[0]['contents'])
         return buff
-        
-dumper = NucleoDumper()
-dumper.dump('dump')
-dumper.close()
