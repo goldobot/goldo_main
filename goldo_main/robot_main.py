@@ -44,11 +44,11 @@ class RobotMain:
             config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
         except Exception as e:
             print(e)
+        LOGGER.debug(config)
         self._config_proto = config
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
-        runpy.run_path(config_path / 'sequences.py', self._sequences_globals)
-             
+        runpy.run_path(config_path / 'sequences.py', self._sequences_globals)        
        
     def __init__(self, broker):
         self._broker = broker
@@ -70,9 +70,7 @@ class RobotMain:
         self.girouette = None
         self._futures_propulsion_ack = []
         self._futures_propulsion_wait_stopped = []
-        self._futures_match_timer = []
-        
-        
+        self._futures_match_timer = []       
         
         self._sequences_globals = {}
         self._sequences_globals['robot'] = self        

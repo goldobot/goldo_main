@@ -147,6 +147,10 @@ def fpga_reg_write(msg):
 def servo_move(msg):
     return _pb2.serialize(msg)
     
+@nucleo_in('servo/move_multiple', 41)
+def servo_move_multiple(msg):
+    return struct.pack('<HH', msg.sequence_number, msg.speed) + b''.join([_pb2.serialize(pos) for pos in msg.positions])
+    
 @nucleo_in('odometry/config/get', 210)
 def odometry_config_get(msg):
     return b''

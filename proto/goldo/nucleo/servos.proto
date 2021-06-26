@@ -16,7 +16,8 @@ message ServoConfig {
   int32 cw_limit = 3 [(goldo.pb2_options.cpp_type) = UINT16];
   int32 ccw_limit = 4 [(goldo.pb2_options.cpp_type) = UINT16];
   int32 max_speed = 5 [(goldo.pb2_options.cpp_type) = UINT16];
-  int32 max_torque = 6 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 max_torque = 6 [(goldo.pb2_options.cpp_type) = UINT8];
+  int32 reserved = 100 [(goldo.pb2_options.cpp_type) = UINT8];
   string name = 64 [(goldo.pb2_options.cpp_type) = VOID];
 }
 
@@ -24,8 +25,19 @@ message ServoPosition {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
 }
+
 message Move {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
   uint32 speed = 3 [(goldo.pb2_options.cpp_type) = UINT16];
+}
+
+message CmdMoveMultiple {
+  // for multiple servos move, each servo speed is computed to ensure they all finish 
+  // the move at the same time. the move duration is determined by the slowest servo
+  // each servo speed is (servo.max_speed * speed / 1023)
+  // setting speed to 1023 ensures the fastest move
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 speed = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  repeated ServoPosition positions = 3;
 }
