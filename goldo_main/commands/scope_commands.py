@@ -55,7 +55,6 @@ class ScopeCommands:
         self._ref_timestamp = msg.timestamp
 
     async def onConfig(self, msg):
-        print(msg)
         self._config = msg
         self._total_size = sum([_variableSize(chan.encoding) for chan in self._config.channels])
         self._factors = [_variableFactor(chan.encoding) for chan in self._config.channels]
@@ -68,7 +67,6 @@ class ScopeCommands:
         if timestamp_delta > (1 <<15):
             timestamp_delta -= (1 << 16)
         timestamp_base = self._ref_timestamp + timestamp_delta
-        print(timestamp_base)
         out_msg = _sym_db.GetSymbol('goldo.nucleo.ScopeValues')()
         out_msg.channels.extend([_sym_db.GetSymbol('goldo.nucleo.ScopeChannelValues')() for i in range(len(self._config.channels))])
         for i in range(len(msg.data) // self._total_size):

@@ -61,17 +61,23 @@ class PropulsionCommands:
         self._broker.registerCallback('nucleo/out/propulsion/cmd_event', self._on_cmd_event)
 
     def _create_future(self):
-        #future = self._loop.create_future()
+        future = self._loop.create_future()
         sequence_number = self._sequence_number
         self._sequence_number = (self._sequence_number + 1) % (1 << 15)
         LOGGER.debug("PropulsionCommands: create future, sequence_number=%s", sequence_number)
         
-        #self._futures[sequence_number] = (future, None)
-        #future.add_done_callback(functools.partial(self._remove_future, sequence_number))
-        #return sequence_number, future
+        self._futures[sequence_number] = future
+        future.add_done_callback(functools.partial(self._remove_future, sequence_number))
+        return sequence_number, future
         cmd = PropulsionCommand(self._loop, sequence_number)
         self._commands[sequence_number] = cmd
         return sequence_number, cmd
+        
+    def _create_command_msg(self, name):
+        sequence_number, future = self._create_future()
+        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.' + name)()
+        msg.sequence_number = sequence_number
+        return msg, future
 
     def _remove_future(self, sequence_number: int, future: asyncio.Future):
         LOGGER.debug("Remove done future %r", sequence_number)
@@ -105,58 +111,53 @@ class PropulsionCommands:
         await self._publish('nucleo/in/propulsion/pose/set', msg)
 
     async def translation(self, distance, speed):
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteTranslation')(
-            distance = distance,
-            speed = speed)
-        #fut = self._robot._startPropulsionCmd()
+        msg, future = self._create_command_msg('ExecuteTranslation')
+        msg.distance = distance
+        msg.speed = speed        
         await self._publish('nucleo/in/propulsion/cmd/translation', msg)
-        #await fut
+        await future
 
     async  def moveTo(self, pt, speed):
-        sequence_number, future = self._create_future()
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteMoveTo')()
-        msg.sequence_number = sequence_number
+        msg, future = self._create_command_msg('ExecuteMoveTo')
         msg.speed = speed
         msg.point.x = pt[0]
         msg.point.y = pt[1]
-
         await self._publish('nucleo/in/propulsion/cmd/move_to', msg)
-        return future
+        await future
 
     async def rotation(self, angle, yaw_rate):
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteRotation')(
-                yaw_delta = angle * math.pi/180,
-                yaw_rate = yaw_rate)
-        #fut = self._robot._startPropulsionCmd()
+        msg, future = self._create_command_msg('ExecuteRotation')
+        msg.angle = angle * math.pi/180
+        msg.yaw_rate = yaw_rate
+        
         await self._publish('nucleo/in/propulsion/cmd/rotation', msg)
-        #await fut
+        await future
 
     async def pointTo(self, pt, yaw_rate):
-        sequence_number, future = self._create_future()
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecutePointTo')()
+        msg, future = self._create_command_msg('ExecutePointTo')
         msg.yaw_rate = yaw_rate
         msg.point.x = pt[0]
         msg.point.y = pt[1]
-        msg.sequence_number = sequence_number
+
         await self._publish('nucleo/in/propulsion/cmd/point_to', msg)
-        return future
+        await future
 
     async def faceDirection(self, yaw, yaw_rate):
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteFaceDirection')()
+        msg, future = self._create_command_msg('ExecuteFaceDirection')
         msg.yaw_rate = yaw_rate
         msg.yaw = yaw * math.pi/180
-        #fut = self._robot._startPropulsionCmd()
+
         await self._publish('nucleo/in/propulsion/cmd/face_direction', msg)
-        #await fut
+        await future
 
     async def trajectory(self, points, speed):
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.ExecuteTrajectory')()
+        msg, future = self._create_command_msg('ExecuteTrajectory')
         msg.speed = speed
         Point = _sym_db.GetSymbol('goldo.common.geometry.Point')
         msg.points.extend([Point(x=pt[0], y=pt[1])for pt in points])
-        #fut = self._robot._startPropulsionCmd()
+
         await self._publish('nucleo/in/propulsion/cmd/trajectory', msg)
-        #await fut
+        await future
 
     async def setPose(self, pt, yaw):
         msg = _sym_db.GetSymbol('goldo.common.geometry.Pose')()
@@ -166,9 +167,8 @@ class PropulsionCommands:
         await self._publish('nucleo/in/propulsion/pose/set', msg)
 
     async def _on_cmd_event(self, msg):
-        cmd = self._commands.get(msg.sequence_number)
-        print(msg)
-        if cmd is not None:
-            cmd._update_status(msg.status)
-            if msg.status > 0:
-                del self._commands[msg.sequence_number]
+        future = self._futures.get(msg.sequence_number)
+        print(msg.sequence_number, msg.status, msg.error)
+        if future is not None:
+            if msg.status == 1:
+                future.set_result(None)
