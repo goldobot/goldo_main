@@ -407,6 +407,11 @@ void AstarWrapper::dbg_astar_test(int x_start_mm, int y_start_mm,
     }
   }
 
+  m_path_find_pg.m_playground[(y_start+Y_OFF_CM)*(X_SZ_CM) + x_start] = 
+    m_path_find_pg.PATH_WP;
+  m_path_find_pg.m_playground[(y_end+Y_OFF_CM)*(X_SZ_CM) + x_end] = 
+    m_path_find_pg.PATH_WP;
+
   /* dump result */
   m_path_find_pg.create_playground_ppm();
   m_path_find_pg.dump_playground_ppm(dump_fname);
