@@ -12,6 +12,7 @@ from .commands.scope_commands import ScopeCommands
 from .sensors_state import SensorsState
 from .nucleo.state_updater import NucleoStateUpdater
 from .enums import *
+from .strategy import StrategyEngine
 import logging
 
 import runpy
@@ -49,6 +50,7 @@ class RobotMain:
         self._config_proto = config
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
+        self._strategy_engine.loadConfig()
         runpy.run_path(config_path / 'sequences.py', self._sequences_globals)        
        
     def __init__(self, broker):
@@ -71,8 +73,9 @@ class RobotMain:
         self.girouette = None
         self._futures_propulsion_ack = []
         self._futures_propulsion_wait_stopped = []
-        self._futures_match_timer = []       
+        self._futures_match_timer = []
         
+        self._strategy_engine = StrategyEngine(self)        
         self._sequences_globals = {}
         self._sequences_globals['robot'] = self        
         self._sequences_globals['propulsion'] = self.propulsion
@@ -123,9 +126,11 @@ class RobotMain:
     async def onNucleoReset(self, msg):
         await self._broker.publishTopic('gui/in/nucleo_reset', msg)         
         
-    async def onPreMatch(self, msg):
-        print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))
+    async def onDebugStartMatch(self, msg):
+        await self.startMatch() 
         
+    async def onPreMatch(self, msg):
+        print("prematch started, side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))        
         self._match_state = MatchState.PreMatch
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
         self._tasks.append(asyncio.create_task(self._prematchSequence()))
@@ -135,8 +140,7 @@ class RobotMain:
             status = await self._sequences['prematch']()
         except Exception as e:
             LOGGER.exception(e)
-            return
-            
+            return            
         if status:
             self._match_state = MatchState.WaitForStartOfMatch
             await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
@@ -150,7 +154,7 @@ class RobotMain:
         except asyncio.TimeoutError:
             pass
         await self._postmatchSequence()
-        
+        return
         await self._sequences['match']()
         self._match_state = MatchState.MatchFinished
         await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
@@ -186,6 +190,7 @@ class RobotMain:
             
     async def onMatchTimer(self, msg):
         self.match_timer = msg.value
+        self._state_proto.match_timer = msg.value
         futs = []
         for t, f in self._futures_match_timer:
             if msg.value > 0 and msg.value < t:
@@ -230,6 +235,7 @@ class RobotMain:
         broker.registerCallback('gui/out/side', self.onSetSide)
         broker.registerCallback('gui/out/commands/config_nucleo', self.configNucleo)
         broker.registerCallback('gui/out/commands/prematch', self.onPreMatch)
+        broker.registerCallback('gui/out/commands/debug_start_match', self.onDebugStartMatch)
         broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatus)
         broker.registerCallback('nucleo/out/os/reset', self.onNucleoReset)
         broker.registerCallback('nucleo/out/propulsion/telemetry', self.onPropulsionTelemetry)

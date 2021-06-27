@@ -4,6 +4,7 @@ package goldo.robot;
 import "goldo/nucleo.proto";
 import "goldo/rplidar.proto";
 import "goldo/table.proto";
+import "goldo/strategy.proto";
 import "goldo/common/geometry.proto";
 
 import "goldo/pb2_options.proto";
@@ -25,6 +26,7 @@ message RobotConfig {
   repeated string sequences_names = 40;
   repeated SequencesFile sequences_files = 41;
   goldo.rplidar.RPLidarConfig rplidar = 50;
+  goldo.strategy.StrategyConfig strategy = 60;
 }
 
 enum Side {

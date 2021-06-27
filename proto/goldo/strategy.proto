@@ -1,0 +1,22 @@
+syntax = "proto3";
+package goldo.strategy;
+import "goldo/common/geometry.proto";
+
+
+message Pose {
+  float x = 1;
+  float y = 2;
+  float yaw = 3;
+}
+
+message ActionConfig {
+  Pose start_pose = 1;
+  string sequence_action = 2;
+  string sequence_prepare = 3;
+  string sequence_prepare_cancel = 4;
+  string sequence_post = 5;
+}
+
+message StrategyConfig {
+  map<string,ActionConfig> actions = 2;
+}

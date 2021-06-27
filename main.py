@@ -1,6 +1,7 @@
 from goldo_main.zmq_broker import ZmqBroker
 import nucleo_topics
 import asyncio
+import logging
 
 from pathlib import Path
 
@@ -52,5 +53,13 @@ async def main():
     await broker.run()
         
 if __name__ == '__main__':
+    logger = logging.getLogger('goldo_main.strategy.strategy_engine')
+    logger.setLevel(logging.DEBUG)
+    
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setLevel(logging.DEBUG)
+
+    logger.addHandler(consoleHandler)
+    
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
