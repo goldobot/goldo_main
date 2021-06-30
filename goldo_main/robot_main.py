@@ -8,6 +8,7 @@ from pathlib import Path
 from .robot_commands import RobotCommands
 from .commands import PropulsionCommands
 from .commands import ServosCommands
+from .commands import LidarCommands
 from .commands.scope_commands import ScopeCommands
 from .sensors_state import SensorsState
 from .nucleo.state_updater import NucleoStateUpdater
@@ -81,6 +82,7 @@ class RobotMain:
         self._sequences_globals['propulsion'] = self.propulsion
         self._sequences_globals['sensors'] = self._state_proto.sensors
         self._sequences_globals['servos'] = ServosCommands(self)
+        self._sequences_globals['lidar'] = LidarCommands(self)
         self.registerCallbacks()
         self.loadConfig(config_path)
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
