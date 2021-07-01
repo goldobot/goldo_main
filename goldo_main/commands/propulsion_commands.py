@@ -6,6 +6,9 @@ import functools
 import math
 import logging
 
+import numpy as np
+import scipy.interpolate.splev
+
 from typing import Mapping
 
 
@@ -164,6 +167,33 @@ class PropulsionCommands:
 
         await self._publish('nucleo/in/propulsion/cmd/trajectory', msg)
         await future
+        
+    async def trajectorySpline(self, points, speed):
+        ctr = np.array([points[0]] + points + [points[-1]])
+        
+        #control points, double first and last
+        x=ctr[:,0]
+        y=ctr[:,1]
+        
+        #knots
+        l=len(x)
+        t=np.linspace(0,1,l-2,endpoint=True)
+        t=np.append([0,0,0],t)
+        t=np.append(t,[1,1,1])
+        
+        tck=[t,[x,y],3]
+        
+        num_samples = 16
+        
+        u3=np.linspace(0,1,num_samples,endpoint=True)
+        out = scipy.interpolate.splev(u3,tck)
+        sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]
+        
+        return self.trajectory(sampled_points, speed)
+        
+        
+        
+        
 
     async def setPose(self, pt, yaw):
         msg = _sym_db.GetSymbol('goldo.common.geometry.Pose')()
