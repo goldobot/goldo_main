@@ -211,6 +211,25 @@ def propulsion_calibrate_odrive(msg):
 def propulsion_odrive_clear_errors(msg):
     return _pb2.serialize(msg)
     
+@nucleo_out('propulsion/odrive/statistics', 180)
+def propulsion_odrive_statistics(payload):
+    print(len(payload))
+    msg = _pb2.deserialize('goldo.nucleo.odrive.ClientStatistics', payload[:9])
+    print(msg)
+    return msg
+@nucleo_out('propulsion/odrive/axis_states', 181)
+def propulsion_odrive_axis_states(payload):
+    msg = _pb2.deserialize('goldo.nucleo.odrive.AxisStates', payload)
+    print(msg)
+    return msg
+    
+@nucleo_out('propulsion/odrive/errors', 182)
+def propulsion_odrive_errors(payload):
+    print(len(payload))
+    msg = _pb2.deserialize('goldo.nucleo.odrive.AxisErrorStates', payload)
+    print(msg)
+    return msg
+    
 @nucleo_in('propulsion/clear_command_queue', 109)
 def propulsion_clear_command_queue(msg):
     return _pb2.serialize(msg)

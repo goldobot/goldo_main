@@ -44,13 +44,40 @@ message AxisTelemetry
   float current_iq_setpoint = 3;
 }
 
-message AxisErrors {
-
+message AxisErrorState {
+  uint32 axis = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 motor = 2 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 controller = 3 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 encoder = 4 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 sensorless_estimator = 5 [(goldo.pb2_options.cpp_type) = UINT32];
 }
+
+message AxisState_ {
+  AxisState current_state = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  AxisState requested_state = 2[(goldo.pb2_options.cpp_type) = UINT32];
+  ControlMode control_mode = 3 [(goldo.pb2_options.cpp_type) = UINT32];
+}
+
+message AxisErrorStates {
+  AxisErrorState axis0 = 1;
+  AxisErrorState axis1 = 2;
+}
+
+message AxisStates {
+  AxisState_ axis0 = 1;
+  AxisState_ axis1 = 2;
+}
+
+message ClientStatistics {
+  uint32 max_latency = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 timeout_errors = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 uptime = 3 [(goldo.pb2_options.cpp_type) = UINT32];
+  bool synchronized = 4;
+}
+
 
 message AxisStatus
 {
-  AxisErrors errors = 3;
   AxisState state = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   ControlMode control_mode = 2 [(goldo.pb2_options.cpp_type) = UINT8];  
 }

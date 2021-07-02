@@ -99,8 +99,8 @@ message PropulsionTaskConfig {
   uint32 update_period_ms = 2 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 telemetry_period_ms = 3 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 telemetry_ex_period_ms = 4[(goldo.pb2_options.cpp_type) = UINT8];
-  uint32 pose_period_ms = 5 [(goldo.pb2_options.cpp_type) = UINT8];
-  uint32 odrive_telemetry_period_ms = 6 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 pose_period_ms = 5 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 odrive_telemetry_period_ms = 6 [(goldo.pb2_options.cpp_type) = UINT16];
 }
 
 message CommandStatus {
