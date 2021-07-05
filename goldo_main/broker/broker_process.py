@@ -52,6 +52,7 @@ class ZmqBrokerProcess(object):
         self.register_socket('rplidar:sub', 'tcp://{}:3102'.format(ip), 'connect', RPLidarCodec())
         
         self.register_socket('camera:sub', 'tcp://{}:3201'.format(ip), 'connect', ProtobufCodec())
+        self.register_socket('camera:pub', 'tcp://{}:3202'.format(ip), 'connect', ProtobufCodec())
         
         self.register_socket('gui:pub', 'tcp://{}:3901'.format(ip), 'connect', ProtobufCodec())
         self.register_socket('gui:sub', 'tcp://{}:3902'.format(ip), 'connect', ProtobufCodec())

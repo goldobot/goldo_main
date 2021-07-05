@@ -80,6 +80,7 @@ class RobotMain:
         self._strategy_engine = StrategyEngine(self)
         self.odrive = ODriveCommands(self)
         self._sequences_globals = {}
+        self._sequences_globals['strategy'] = self._strategy_engine
         self._sequences_globals['scope'] = self.scope
         self._sequences_globals['odrive'] = self.odrive
         self._sequences_globals['robot'] = self        
@@ -90,6 +91,8 @@ class RobotMain:
         self.registerCallbacks()
         self.loadConfig(config_path)
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
+    async def testCamera(self):
+        await self._broker.publishTopic('camera/in/foo', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=42))
         
     async def runMainLoop(self):
         while True:
