@@ -187,15 +187,23 @@ def propulsion_config_set(msg):
 
 @nucleo_in('propulsion/enable/set', 100)
 def propulsion_enable_set(msg):
-    return struct.pack('<B', msg.value)
+    return _pb2.serialize(msg)
     
 @nucleo_in('propulsion/simulation/enable', 110)
-def propulsion_enable_set(msg):
+def propulsion_simulation_enable_set(msg):
     return struct.pack('<B', msg.value)
     
 @nucleo_in('propulsion/motors/enable/set', 101)
 def propulsion_motors_enable_set(msg):
     return struct.pack('<B', msg.value)
+    
+@nucleo_in('propulsion/emergency_stop', 107)
+def propulsion_emergency_stop(msg):
+    return _pb2.serialize(msg)
+    
+@nucleo_in('propulsion/clear_error', 105)
+def propulsion_clear_error(msg):
+    return _pb2.serialize(msg)
     
 @nucleo_in('propulsion/motors/velocity_setpoints/set', 102)
 def propulsion_motors_velocity_setpoints_set(msg):
@@ -215,7 +223,7 @@ def propulsion_torque_limits_set(msg):
 
 @nucleo_in('propulsion/pose/set', 105)
 def propulsion_pose_set(msg):
-    return struct.pack('<fff', msg.position.x, msg.position.y, msg.yaw)
+    return _pb2.serialize(msg)
     
 @nucleo_in('propulsion/calibrate_odrive', 151)
 def propulsion_calibrate_odrive(msg):
@@ -246,6 +254,10 @@ def propulsion_clear_command_queue(msg):
  
 @nucleo_in('propulsion/cmd/translation', 140)
 def propulsion_execute_translation(msg):
+    return _pb2.serialize(msg)
+    
+@nucleo_in('propulsion/cmd/reposition', 149)
+def propulsion_execute_reposition(msg):
     return _pb2.serialize(msg)
     
 @nucleo_in('propulsion/cmd/move_to', 141)

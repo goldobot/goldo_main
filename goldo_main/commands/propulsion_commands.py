@@ -72,11 +72,11 @@ class PropulsionCommands:
         future = self._loop.create_future()
         sequence_number = self._sequence_number
         self._sequence_number = (self._sequence_number + 1) % (1 << 15)
-        LOGGER.debug("PropulsionCommands: create future, sequence_number=%s", sequence_number)
-        
+        LOGGER.debug("PropulsionCommands: create future, sequence_number=%s", sequence_number)        
         self._futures[sequence_number] = future
         future.add_done_callback(functools.partial(self._remove_future, sequence_number))
         return sequence_number, future
+        
         cmd = PropulsionCommand(self._loop, sequence_number)
         self._commands[sequence_number] = cmd
         return sequence_number, cmd
@@ -94,19 +94,23 @@ class PropulsionCommands:
     def _publish(self, topic, msg=None):
         return self._broker.publishTopic(topic, msg)
 
-    def setEnable(self, enable):
-        return self._publish('nucleo/in/propulsion/enable/set', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=enable))
+    async def setEnable(self, enable):
+        msg, future = self._create_command_msg('CmdSetEnable')
+        msg.enable = enable
+        await self._publish('nucleo/in/propulsion/enable/set', msg)
+        await future
 
     def setMotorsEnable(self, enable):
         return self._publish('nucleo/in/propulsion/motors/enable/set', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=enable))
 
-    def setAccelerationLimits(self, accel, deccel, angular_accel, angular_deccel):
-        msg = _sym_db.GetSymbol('goldo.nucleo.propulsion.AccelerationLimits')()
+    async def setAccelerationLimits(self, accel, deccel, angular_accel, angular_deccel):
+        msg, future = self._create_command_msg('CmdSetAccelerationLimits')        
         msg.accel = accel
         msg.deccel = deccel
         msg.angular_accel = angular_accel
         msg.angular_deccel = angular_deccel
-        return self._publish('nucleo/in/propulsion/motors/acceleration_limits/set', msg)
+        await self._publish('nucleo/in/propulsion/motors/acceleration_limits/set', msg)
+        await future
         
     def setMotorsTorqueLimits(self, left, right):
         sequence_number = self._sequence_number
@@ -122,23 +126,41 @@ class PropulsionCommands:
         return self._publish('nucleo/in/propulsion/clear_command_queue')
         
     async def setTargetSpeed(self, target_speed):
-        msg, future = self._create_command_msg('ExecuteSetTargetSpeed')
+        msg, future = self._create_command_msg('CmdSetTargetSpeed')
         msg.target_speed = target_speed
         await self._publish('nucleo/in/propulsion/target_speed/set', msg)
         await future
         
     async def setPose(self, pt, yaw):
-        msg = _sym_db.GetSymbol('goldo.common.geometry.Pose')()
+        msg, future = self._create_command_msg('CmdSetPose')
         msg.yaw = yaw * math.pi/180
         msg.position.x = pt[0]
         msg.position.y = pt[1]
         await self._publish('nucleo/in/propulsion/pose/set', msg)
+        await future
+        
+    async def emergencyStop(self):
+        msg, future = self._create_command_msg('CmdEmpty')
+        await self._publish('nucleo/in/propulsion/emergency_stop', msg)
+        await future
+        
+    async def clearError(self):
+        msg, future = self._create_command_msg('CmdEmpty')
+        await self._publish('nucleo/in/propulsion/clear_error', msg)
+        await future
 
     async def translation(self, distance, speed):
         msg, future = self._create_command_msg('ExecuteTranslation')
         msg.distance = distance
         msg.speed = speed        
         await self._publish('nucleo/in/propulsion/cmd/translation', msg)
+        await future
+        
+    async def reposition(self, distance, speed):
+        msg, future = self._create_command_msg('ExecuteReposition')
+        msg.distance = distance
+        msg.speed = speed        
+        await self._publish('nucleo/in/propulsion/cmd/reposition', msg)
         await future
 
     async  def moveTo(self, pt, speed):
@@ -202,20 +224,8 @@ class PropulsionCommands:
         
         u3=np.linspace(0,1,num_samples,endpoint=True)
         out = scipy.interpolate.splev(u3,tck)
-        sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]
-        
+        sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]        
         await self.trajectory(sampled_points, speed)
-        
-        
-        
-        
-
-    async def setPose(self, pt, yaw):
-        msg = _sym_db.GetSymbol('goldo.common.geometry.Pose')()
-        msg.yaw = yaw * math.pi/180
-        msg.position.x = pt[0]
-        msg.position.y = pt[1]
-        await self._publish('nucleo/in/propulsion/pose/set', msg)
 
     async def _on_cmd_event(self, msg):
         future = self._futures.get(msg.sequence_number)
@@ -228,4 +238,7 @@ class PropulsionCommands:
                 return
             if msg.status == 3:
                 future.set_exception(PropulsionError(msg.error))
+                return
+            if msg.status == 4:
+                future.set_result(None)
                 return

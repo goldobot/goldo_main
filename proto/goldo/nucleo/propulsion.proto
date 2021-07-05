@@ -40,13 +40,6 @@ message MotorsVelocitySetpoints {
   float right_current_feedforward = 4;
 }
 
-message AccelerationLimits {
-  float accel = 1;
-  float deccel = 2;
-  float angular_accel = 3;
-  float angular_deccel = 4;
-}
-
 message OdometryConfig {
   float dist_per_count_left = 1;
   float dist_per_count_right = 2;
@@ -115,13 +108,30 @@ message SetMotorsTorqueLimits {
   float right = 3;
 }
 
-message ExecuteSetTargetPose {
+message CmdEmpty {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+}
+
+message CmdSetEnable {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  bool enable = 2 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
+message CmdSetAccelerationLimits {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float accel = 2;
+  float deccel = 3;
+  float angular_accel = 4;
+  float angular_deccel = 5;
+}
+
+message CmdSetPose {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   goldo.common.geometry.Point position = 2;
   float yaw = 3;
 }
 
-message ExecuteSetTargetSpeed {
+message CmdSetTargetSpeed {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   float target_speed = 3;
 }
@@ -133,6 +143,12 @@ message ExecuteTrajectory {
 }
 
 message ExecuteTranslation {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  float distance = 2;
+  float speed = 3;
+}
+
+message ExecuteReposition {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   float distance = 2;
   float speed = 3;
