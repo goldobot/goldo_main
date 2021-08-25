@@ -49,17 +49,11 @@ class ZmqBrokerProcess(object):
         self.register_socket('nucleo_ftdi:sub', 'tcp://{}:3003'.format(ip), 'connect', NucleoCodec())
         
         self.register_socket('rplidar:pub', 'tcp://{}:3101'.format(ip), 'connect', RPLidarCodec())
-        self.register_socket('rplidar:sub', 'tcp://{}:3102'.format(ip), 'connect', RPLidarCodec())
-        
-        self.register_socket('camera:sub', 'tcp://{}:3201'.format(ip), 'connect', ProtobufCodec())
-        self.register_socket('camera:pub', 'tcp://{}:3202'.format(ip), 'connect', ProtobufCodec())
-        
-        self.register_socket('gui:pub', 'tcp://{}:3901'.format(ip), 'connect', ProtobufCodec())
-        self.register_socket('gui:sub', 'tcp://{}:3902'.format(ip), 'connect', ProtobufCodec())
-        
+        self.register_socket('rplidar:sub', 'tcp://{}:3102'.format(ip), 'connect', RPLidarCodec())        
+     
         self.register_socket('debug:pub', 'tcp://*:3801', 'bind', ProtobufCodec())
-        self.register_socket('debug:sub', 'tcp://*:3802', 'bind', ProtobufCodec())
-        
+        self.register_socket('debug:sub', 'tcp://*:3802', 'bind', ProtobufCodec())        
+     
         self.register_socket('main:rep', 'tcp://*:3301', 'bind', ProtobufCodec())
         
         self._poller.register(self._conn, zmq.POLLIN)
@@ -135,10 +129,6 @@ class ZmqBrokerProcess(object):
         await self.publishTopic(topic, msg)
         
     async def publishTopic(self, topic, msg):
-        if topic.startswith('camera/in/'):
-            await self._writeSocket(self._sockets['camera:pub'], topic, msg)
-        if topic.startswith('gui/in/'):
-            await self._writeSocket(self._sockets['gui:pub'], topic, msg)
         if topic.startswith('nucleo/in/'):
             await self._writeSocket(self._sockets['nucleo:pub'], topic, msg)
         if topic.startswith('rplidar/in/'):

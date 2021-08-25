@@ -2,6 +2,7 @@ from goldo_main.zmq_broker import ZmqBroker
 import asyncio
 import setproctitle
 import logging
+import datetime
 
 from pathlib import Path
 
@@ -56,6 +57,10 @@ async def main():
     await broker.run()
         
 if __name__ == '__main__':
+    
+    now=datetime.datetime.now()
+    
+    print("START goldo_main {:s}".format(now.strftime("%Y-%m-%d %H:%M:%S")))
     setproctitle.setproctitle('goldo_main')
     
     
