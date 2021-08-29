@@ -80,10 +80,9 @@ class RPLidarCodec:
     def deserialize(self, payload):
         msg_type = struct.unpack('<B', payload[0])[0]
         if msg_type == 1:
-            msg = _sym_db.GetSymbol('goldo.common.geometry.PointCloud')()
-            for i in range(len(payload[2])//8):
-                pt = msg.points.add()
-                pt.x, pt.y = _lidar_point_struct.unpack(payload[2][i*8:(i+1)*8])
+            msg = _sym_db.GetSymbol('goldo.common.geometry.PointCloud')(
+                num_points=len(payload[2])//8,
+                data=payload[2]) 
             return 'rplidar/out/scan', msg
         if msg_type == 2:
             vals = _lidar_detection_message_struct.unpack(payload[1])

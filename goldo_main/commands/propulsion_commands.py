@@ -132,7 +132,7 @@ class PropulsionCommands:
         msg.deccel = deccel
         msg.angular_accel = angular_accel
         msg.angular_deccel = angular_deccel
-        await self._publish_sequence('nucleo/in/propulsion/motors/acceleration_limits/set', msg)
+        await self._publish_sequence('nucleo/in/propulsion/acceleration_limits/set', msg)
         await future
 
     def setMotorsTorqueLimits(self, left, right):
