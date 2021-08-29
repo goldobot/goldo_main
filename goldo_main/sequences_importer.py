@@ -20,11 +20,14 @@ class MyMetaFinder(MetaPathFinder):
             except Exception:
                 pass
         self.sequence_modules = {}
-            
-        
-        
         
     def find_spec(self, fullname, path, target=None):
+        if fullname == 'sequences':
+            file_location = Path(__file__) / Path('../sequences/__init__.py')
+            return spec_from_file_location(
+                fullname,
+                str(file_location),
+                loader=MyLoader(self, fullname, str(file_location)))
         if fullname.startswith('sequences.'):
             file_location = self.sequences_path / Path(fullname[10:] + '.py')
             return spec_from_file_location(
