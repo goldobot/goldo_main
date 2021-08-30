@@ -18,7 +18,6 @@ class CameraCommands:
         
         self._robot._broker.registerCallback('camera/out/detections', self._onMsgDetections)
 
-    
 
     async def captureGirouette(self):        
         future = self._loop.create_future()

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package goldo.rplidar;
+package goldo.log;
 
 message LogMessage {
   string message = 1;

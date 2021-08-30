@@ -1,6 +1,6 @@
 import logging
-import pb2
-from pb2.goldo.log_pb2 import LogMessage 
+import pb2 as _pb2
+LogMessage = _pb2.get_symbol('goldo.log.LogMessage')
 import asyncio
 import queue
 
@@ -18,7 +18,6 @@ class GoldoLogHandler(logging.Handler):
             try:
                 while True:
                     msg = self.queue.get(False) # non blocking
-                    #print(msg)
                     await self.zmq_client.publishTopic('goldo_main/log', msg)
             except queue.Empty:
                     pass   
