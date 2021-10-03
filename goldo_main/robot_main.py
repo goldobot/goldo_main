@@ -274,7 +274,6 @@ class RobotMain:
         broker.registerCallback('gui/out/commands/prematch', self.onPreMatch)
         broker.registerCallback('gui/out/commands/debug_start_match', self.onDebugStartMatch)
         broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatus)
-        broker.registerCallback('camera/out/detections', self.onCameraDetections)
         broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)           
         broker.registerCallback('robot/sequence/*/execute', self.onSequenceExecute)
         

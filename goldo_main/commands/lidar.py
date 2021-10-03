@@ -16,3 +16,15 @@ class LidarCommands:
 
     def stop(self):
         return self._publish('rplidar/in/stop')
+
+    def objectFrontNear(self):
+        return self._robot._state_proto.rplidar.zones.front_near
+
+    def objectFrontFar(self):
+        return self._robot._state_proto.rplidar.zones.front_far
+
+    def objectBackNear(self):
+        return self._robot._state_proto.rplidar.zones.back_near
+
+    def objectBackFar(self):
+        return self._robot._state_proto.rplidar.zones.back_far
