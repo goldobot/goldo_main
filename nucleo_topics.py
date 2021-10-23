@@ -7,6 +7,7 @@ _sym_db = _pb2._sym_db
 _in = {}
 _out = {}
 
+_msg_BytesValue = _sym_db.GetSymbol('google.protobuf.BytesValue')
 _msg_propulsion_Telemetry =  _sym_db.GetSymbol('goldo.nucleo.propulsion.Telemetry')
 _unpack_propulsion_Telemetry = struct.Struct('<hhhhhhhHHbbBB').unpack
 
@@ -351,10 +352,12 @@ def propulsion_telemetry(payload):
     return _pb2.deserialize('goldo.nucleo.odrive.Telemetry', payload)
     
 @nucleo_out('propulsion/odometry_stream', 126)
-def propulsion_telemetry(payload):
-    msg = _msg_propulsion_Telemetry()
-    print('strea', payload)
-    return msg
+def odometry_stream(payload):
+    return _msg_BytesValue(value=payload)
+    
+@nucleo_out('propulsion/odrive_stream', 127)
+def odometry_stream(payload):
+    return _msg_BytesValue(value=payload)
     
 @nucleo_in('propulsion/scope/config/set', 111)
 def propulsion_scope_config_set(msg):

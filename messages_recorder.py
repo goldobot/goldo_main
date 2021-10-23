@@ -1,5 +1,6 @@
 import zmq
 import time
+import sys
 import struct
 import pathlib
 
@@ -70,19 +71,25 @@ def write_rec_header(file):
     file.write(header)
     file.flush()
 
+def get_out_path(out_path):
+    stem = out_path.stem
+    candidate = out_path.with_name(stem + '.bin')
+    if not candidate.exists():
+        return candidate
+    i = 1
+    while True:
+        candidate = out_path.with_name(stem + f'_{i}.bin')
+        if not candidate.exists():
+            return candidate
+        i += 1
+        
 def main():
     ip = 'robot01'
-    
-    #find next filename
-    i = 0
-    while True:        
-        log_path = pathlib.Path('recordings/rec_{}.bin'.format(i))
-        if not log_path.is_file():
-            break
-        i += 1
-    
+    out_path = pathlib.Path(sys.argv[1])
+    out_path = get_out_path(out_path)
+
     #open log file
-    file = open(log_path, 'wb')
+    file = open(out_path, 'wb')
     write_rec_header(file)
     start_ts = time.time()
     last_flush_ts = start_ts
