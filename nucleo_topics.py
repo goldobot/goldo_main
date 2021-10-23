@@ -350,6 +350,12 @@ def propulsion_telemetry(payload):
 def propulsion_telemetry(payload):
     return _pb2.deserialize('goldo.nucleo.odrive.Telemetry', payload)
     
+@nucleo_out('propulsion/odometry_stream', 126)
+def propulsion_telemetry(payload):
+    msg = _msg_propulsion_Telemetry()
+    print('strea', payload)
+    return msg
+    
 @nucleo_in('propulsion/scope/config/set', 111)
 def propulsion_scope_config_set(msg):
     if len(msg.channels) > 8:

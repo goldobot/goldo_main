@@ -1,8 +1,3 @@
-import zmq
-import time
-import struct
-import pathlib
-
 import google.protobuf.descriptor_pool
 import google.protobuf.reflection
 from google.protobuf.descriptor import MakeDescriptor
@@ -11,8 +6,6 @@ from google.protobuf.descriptor_pb2 import DescriptorProto,  FieldDescriptorProt
 import struct
 
 pool = google.protobuf.descriptor_pool.Default()
-
-import pb2
 
 def topological_sort(dependencies):
     vertices = list(dependencies.keys())
@@ -31,17 +24,17 @@ def topological_sort(dependencies):
             sortUtil(v)
     return stack[::-1]
     
-
-    
-def write_rec_header(file):
-    d = DescriptorProto(name='RecordFileHeader', field = [
+d = DescriptorProto(name='RecordFileHeader', field = [
     FieldDescriptorProto(
         name='data',
         number=1,
         label=FieldDescriptorProto.LABEL_REPEATED,
         type=FieldDescriptorProto.TYPE_BYTES)
-    ])
+])
 
+
+    
+def write_rec_header(file):
     d = MakeDescriptor(d)
     message_factory = MessageFactory()
     RecFileHeader = message_factory.GetPrototype(d)
@@ -69,43 +62,10 @@ def write_rec_header(file):
     file.write(b'goldo_rec' + struct.pack('<I', len(header)))
     file.write(header)
     file.flush()
+    
+    
 
-def main():
-    ip = 'robot01'
+
+
+
     
-    #find next filename
-    i = 0
-    while True:        
-        log_path = pathlib.Path('recordings/rec_{}.bin'.format(i))
-        if not log_path.is_file():
-            break
-        i += 1
-    
-    #open log file
-    file = open(log_path, 'wb')
-    write_rec_header(file)
-    start_ts = time.time()
-    last_flush_ts = start_ts
-    
-    context = zmq.Context()    
-    socket_sub = context.socket(zmq.SUB)
-    socket_sub.connect('tcp://{}:3801'.format(ip))
-    socket_sub.setsockopt(zmq.SUBSCRIBE,b'')
-    
-    while True:
-        topic, full_name, payload = socket_sub.recv_multipart()
-        ts = time.time()
-        
-        header = struct.pack('<IIII', int((ts - start_ts) * 1000), len(topic), len(full_name), len(payload))
-        file.write(header)
-        file.write(topic)
-        file.write(full_name)
-        file.write(payload)
-        
-        if ts - last_flush_ts >= 1:
-            last_flush_ts = ts
-            file.flush()
-        
-        
-if __name__ == '__main__':
-    main()

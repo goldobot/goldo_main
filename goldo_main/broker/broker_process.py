@@ -43,11 +43,10 @@ class ZmqBrokerProcess(object):
         self._forwards = []
         ip = 'robot01'
         self.register_socket('nucleo:pub', 'tcp://{}:3002'.format(ip), 'connect', NucleoCodec())
-        self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect', NucleoCodec())
-        
-        self.register_socket('nucleo_ftdi:pub', 'tcp://{}:3004'.format(ip), 'connect', NucleoCodec())
-        self.register_socket('nucleo_ftdi:sub', 'tcp://{}:3003'.format(ip), 'connect', NucleoCodec())
-        
+        self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect', NucleoCodec())      
+
+        self._sockets['nucleo:sub'].connect('tcp://{}:3003'.format(ip))        
+   
         self.register_socket('rplidar:pub', 'tcp://{}:3101'.format(ip), 'connect', RPLidarCodec())
         self.register_socket('rplidar:sub', 'tcp://{}:3102'.format(ip), 'connect', RPLidarCodec())        
      
