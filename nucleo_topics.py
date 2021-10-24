@@ -12,7 +12,7 @@ _msg_propulsion_Telemetry =  _sym_db.GetSymbol('goldo.nucleo.propulsion.Telemetr
 _unpack_propulsion_Telemetry = struct.Struct('<hhhhhhhHHbbBB').unpack
 
 _msg_propulsion_TelemetryEx =  _sym_db.GetSymbol('goldo.nucleo.propulsion.TelemetryEx')
-_unpack_propulsion_TelemetryEx = struct.Struct('<hhhhhhhhhh').unpack
+_unpack_propulsion_TelemetryEx = struct.Struct('<hhhhhhhhhhhh').unpack
 
 _unpack_heartbeat = struct.Struct('<I').unpack
 
@@ -332,7 +332,7 @@ def propulsion_telemetry(payload):
     return msg
     
 @nucleo_out('propulsion/telemetry_ex', 121)
-def propulsion_telemetry(payload):
+def propulsion_telemetry_ex(payload):
     msg = _msg_propulsion_TelemetryEx()
     vals = _unpack_propulsion_TelemetryEx(payload)
     msg.target_pose.position.x = vals[0] * 0.25e-3
@@ -340,11 +340,13 @@ def propulsion_telemetry(payload):
     msg.target_pose.yaw = vals[2] * math.pi / 32767
     msg.target_pose.speed = vals[3] * 1e-3
     msg.target_pose.yaw_rate = vals[4] * 1e-3
-    msg.error_longi = vals[5] * 0.25e-3
-    msg.error_lateral = vals[6] * 0.25e-3
-    msg.error_speed = vals[7] * 1e-3
-    msg.error_yaw = vals[8]  * math.pi / 32767
-    msg.error_yaw_rate = vals[9]    
+    msg.lookahead_position.x = vals[5] * 0.25e-3
+    msg.lookahead_position.y = vals[6] * 0.25e-3
+    msg.error_longi = vals[7] * 0.25e-3
+    msg.error_lateral = vals[8] * 0.25e-3
+    msg.error_speed = vals[9] * 1e-3
+    msg.error_yaw = vals[10]  * math.pi / 32767
+    msg.error_yaw_rate = vals[11]    
     return msg
     
 @nucleo_out('propulsion/odrive/telemetry', 124)

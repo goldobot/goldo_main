@@ -31,6 +31,7 @@ message TelemetryEx {
   float error_yaw = 4;
   float error_speed = 5;
   float error_yaw_rate = 6;
+  goldo.common.geometry.Point lookahead_position = 7;
 }
 
 message MotorsVelocitySetpoints {
