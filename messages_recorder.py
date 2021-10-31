@@ -36,12 +36,17 @@ def topological_sort(dependencies):
     
 def write_rec_header(file):
     d = DescriptorProto(name='RecordFileHeader', field = [
-    FieldDescriptorProto(
-        name='data',
-        number=1,
-        label=FieldDescriptorProto.LABEL_REPEATED,
-        type=FieldDescriptorProto.TYPE_BYTES)
-    ])
+        FieldDescriptorProto(
+            name='data',
+            number=1,
+            label=FieldDescriptorProto.LABEL_REPEATED,
+            type=FieldDescriptorProto.TYPE_BYTES),
+        FieldDescriptorProto(
+            name='version',
+            number=2,
+            type=FieldDescriptorProto.TYPE_INT32),
+        ]
+        )
 
     d = MakeDescriptor(d)
     message_factory = MessageFactory()
@@ -50,10 +55,9 @@ def write_rec_header(file):
     file_descriptors_protos = {}
 
     for k, v in  pool._file_descriptors.items():
-        if k.startswith('goldo/'):
-            dp = FileDescriptorProto()
-            v.CopyToProto(dp)
-            file_descriptors_protos[k] = dp
+        dp = FileDescriptorProto()
+        v.CopyToProto(dp)
+        file_descriptors_protos[k] = dp
             
     dependents = {}
 

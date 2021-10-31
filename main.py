@@ -4,6 +4,7 @@ import setproctitle
 import logging
 import datetime
 
+
 from pathlib import Path
 
 import sys
@@ -37,9 +38,16 @@ async def config_set_default(config_name, msg):
     
 async def main():
     from goldo_main.robot_main import RobotMain
+    from goldo_main.log_handler import GoldoLogHandler
     global robot
     
     broker = ZmqBroker()
+    handler = GoldoLogHandler(broker)
+    
+    logger = logging.getLogger('goldo_main')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    
     robot = RobotMain(broker)
     if 'simulation' in sys.argv:
         robot._simulation_mode = True
