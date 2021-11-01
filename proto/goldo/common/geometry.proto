@@ -11,6 +11,11 @@ message PointCloud {
   bytes data = 2;
 }
 
+message StaticPose {
+  Point position = 1;
+  float yaw = 2;
+}
+
 message Pose {
   Point position = 1;
   float yaw = 2;
