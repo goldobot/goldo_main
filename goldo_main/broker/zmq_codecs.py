@@ -6,10 +6,10 @@ import struct
 import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
 
-_msg_type_struct = struct.Struct('<H')
+_msg_type_struct = struct.Struct('<BBHIi')
 _lidar_point_struct = struct.Struct('<ff')
 _lidar_detection_message_struct = struct.Struct('<IIhhhhhhI')
- 
+
 import pb2 as _pb2
 
 __all__ = ['NucleoCodec', 'ProtobufCodec', 'RPLidarCodec']
@@ -20,12 +20,12 @@ class NucleoCodec:
         if encoder is None:
              print('error', topic, msg_type)
              return None
-        return  [_msg_type_struct.pack(msg_type), encoder(msg)]
+        return [_msg_type_struct.pack(0,0,msg_type,0,0), encoder(msg)]
 
     def deserialize(self, payload):
-        msg_type, msg_body = payload[:2]
-        
-        msg_type = _msg_type_struct.unpack(msg_type)[0]
+        msg_header, msg_body = payload[:2]
+
+        comm_id, reserved, msg_type, t_seconds, t_nanoseconds = _msg_type_struct.unpack(msg_header)
         topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
         if topic is not None:
             try:
@@ -38,7 +38,7 @@ class NucleoCodec:
             return topic, msg
         else:
             return None, None
-            
+
 
 class ProtobufCodec:
     def serialize(self, topic, msg):
@@ -82,7 +82,7 @@ class RPLidarCodec:
         if msg_type == 1:
             msg = _sym_db.GetSymbol('goldo.common.geometry.PointCloud')(
                 num_points=len(payload[2])//8,
-                data=payload[2]) 
+                data=payload[2])
             return 'rplidar/out/scan', msg
         if msg_type == 2:
             vals = _lidar_detection_message_struct.unpack(payload[1])
