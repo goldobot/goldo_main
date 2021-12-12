@@ -255,7 +255,7 @@ class PropulsionCommands:
         msg, future = self._create_command_msg('ExecuteTrajectory', True)
         msg.speed = speed
         msg.reposition_distance = reposition_distance
-        msg.reposition_distance = reposition_speed
+        msg.reposition_speed = reposition_speed
         Point = _sym_db.GetSymbol('goldo.common.geometry.Point')
         msg.points.extend([Point(x=pt[0], y=pt[1])for pt in points])
 
