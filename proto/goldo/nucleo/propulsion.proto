@@ -163,6 +163,8 @@ message CmdMeasureNormal {
 message ExecuteTrajectory {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   float speed = 2;
+  float reposition_distance = 4;
+  float reposition_speed = 5;
   repeated goldo.common.geometry.Point points = 3;
 }
 

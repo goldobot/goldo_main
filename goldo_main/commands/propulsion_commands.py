@@ -251,16 +251,18 @@ class PropulsionCommands:
         await self._publish_sequence('nucleo/in/propulsion/cmd/face_direction', msg)
         await future
 
-    async def trajectory(self, points, speed):
+    async def trajectory(self, points, speed, *, reposition_distance=0, reposition_speed=0):
         msg, future = self._create_command_msg('ExecuteTrajectory', True)
         msg.speed = speed
+        msg.reposition_distance = reposition_distance
+        msg.reposition_distance = reposition_speed
         Point = _sym_db.GetSymbol('goldo.common.geometry.Point')
         msg.points.extend([Point(x=pt[0], y=pt[1])for pt in points])
 
         await self._publish_sequence('nucleo/in/propulsion/cmd/trajectory', msg)
         await future
 
-    async def trajectorySpline(self, points, speed):
+    async def trajectorySpline(self, points, speed, **kwargs):
         ctr = np.array([points[0]] + points + [points[-1]])
 
         #control points, double first and last
@@ -280,7 +282,7 @@ class PropulsionCommands:
         u3=np.linspace(0,1,num_samples,endpoint=True)
         out = scipy.interpolate.splev(u3,tck)
         sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]
-        await self.trajectory(sampled_points, speed)
+        await self.trajectory(sampled_points, speed, **kwargs)
 
 
     async def _onTelemetryMsg(self, msg):
