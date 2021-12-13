@@ -33,19 +33,13 @@ class ServosCommands:
         await self._robot._broker.publishTopic('nucleo/in/servo/enable/set', msg)
         
     async def move(self, name, position, speed=100):
-        seq = self._sequence_number
-        self._sequence_number = (self._sequence_number + 1) % 255
-        
-        servo_id = self._servos_ids[name]
-        msg = _sym_db.GetSymbol('goldo.nucleo.servos.Move')(servo_id=servo_id, position=position, speed=speed)
-        await self._robot._broker.publishTopic('nucleo/in/servo/move', msg)
+        await self.moveMultiple({name: position}, speed * 0.01)
         
     async def moveMultiple(self, servos, speed = 1):
         speed = int(speed * 0x3ff)
         elts = []
         servos_mask = 0
-        seq = self._sequence_number
-        self._sequence_number = (self._sequence_number + 1) % 255
+        seq = self._get_sequence_number()
         
         for k, v in servos.items():
             id_ = self._servos_ids[k]
@@ -61,12 +55,14 @@ class ServosCommands:
         await self._robot._broker.publishTopic('nucleo/in/servo/move_multiple', msg)
         await future
         
-    async def liftDoHoming(self, id_):
-        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftDoHoming')(sequence_number=0, lift_id=id_)
+    async def liftDoHoming(self, id_):        
+        seq = self._get_sequence_number()
+        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftDoHoming')(sequence_number=seq, lift_id=id_)
         await self._robot._broker.publishTopic('nucleo/in/lift/do_homing', msg)
         
     async def liftSetEnable(self, id_, enable):
-        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftSetEnable')(sequence_number=0, lift_id=id_, enable=enable)
+        seq = self._get_sequence_number()
+        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftSetEnable')(sequence_number=seq, lift_id=id_, enable=enable)
         await self._robot._broker.publishTopic('nucleo/in/lift/set_enable', msg)
         
     async def _onMsgAck(self, msg):
@@ -80,6 +76,11 @@ class ServosCommands:
             if e[1] and not(msg.value & e[3]):
                 e[0].set_result(None)
         
+    def _get_sequence_number(self):
+        seq = self._sequence_number
+        self._sequence_number = (self._sequence_number + 1) % 0x0fff
+        print(seq)
+        return seq
     #def _publish
     def _remove_future(self, id_, future):
         self._futures.pop(id_, None)

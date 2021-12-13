@@ -143,36 +143,7 @@ def fpga_reg_read_status(payload):
 def fpga_reg_write(msg):
     return _pb2.serialize(msg)
 
-@nucleo_in('servo/move', 40)
-def servo_move(msg):
-    return _pb2.serialize(msg)
 
-@nucleo_in('servo/enable/set', 42)
-def servo_move(msg):
-    return _pb2.serialize(msg)
-
-@nucleo_in('servo/move_multiple', 41)
-def servo_move_multiple(msg):
-    return struct.pack('<HH', msg.sequence_number, msg.speed) + b''.join([_pb2.serialize(pos) for pos in msg.positions])
-
-@nucleo_in('lift/set_enable', 46)
-def lift_do_homing(msg):
-    return _pb2.serialize(msg)
-
-@nucleo_in('lift/do_homing', 48)
-def lift_do_homing(msg):
-    return _pb2.serialize(msg)
-
-
-@nucleo_out('servo/move_multiple', 41)
-def servo_status_move_multiple(payload):
-    msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=struct.unpack('<H', payload)[0])
-    return msg
-
-@nucleo_out('servo/status/moving', 44)
-def servo_status_moving(payload):
-    msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=struct.unpack('<I', payload)[0])
-    return msg
 
 @nucleo_in('odometry/config/get', 210)
 def odometry_config_get(msg):
