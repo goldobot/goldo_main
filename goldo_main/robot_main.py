@@ -57,6 +57,7 @@ class RobotMain:
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
         self._strategy_engine.loadConfig()
+        self.propulsion.loadConfig()
         
         #import all sequences
         sequences_importer.meta_finder.unload_all()
@@ -112,7 +113,6 @@ class RobotMain:
         self._current_task = None
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
         
-    
     async def runMainLoop(self):
         while True:
             await asyncio.sleep(0.1)

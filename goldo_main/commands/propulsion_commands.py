@@ -66,12 +66,18 @@ class PropulsionCommands:
         self._futures_ack = {}
         self._commands = {}
         self._cmd = {}
+        self._sensor_ids = {}
         self._broker = self._robot._broker
         self._broker.registerCallback('nucleo/out/propulsion/telemetry', self._onTelemetryMsg)
         self._broker.registerCallback('nucleo/out/propulsion/cmd_event', self._on_cmd_event)
         self._broker.registerCallback('nucleo/out/propulsion/controller/event', self._on_controller_event)
         self.state = 0
-
+        
+    def loadConfig(self):
+        self._sensor_ids = {}
+        for i, sensor_proto in enumerate(self._robot._config_proto.nucleo.sensors):
+            name = sensor_proto.name
+            self._sensor_ids[name] = i
 
     def _create_future(self):
         future = self._loop.create_future()
@@ -295,7 +301,23 @@ class PropulsionCommands:
         sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]
         await self.trajectory(sampled_points, speed, **kwargs)
 
+    async def _setEventSensorsMaks(self, sensors):        
+        msg, future = self._create_command_msg('CmdSetEventSensorsMask')
+        rising_mask = 0
+        falling_mask = 0
+        for k, v in sensors.items():
+            if v in ['rising', 'both']:
+                rising_mask |= 1 << self._sensor_ids[k]
+            if v in ['falling', 'both']:
+                falling_mask |= 1 << self._sensor_ids[k]
 
+        msg.mask_rising = rising_mask
+        msg.mask_falling = falling_mask
+
+        await self._publish_sequence('nucleo/in/propulsion/set_event_sensors_mask', msg)
+        await future
+        
+        
     async def _onTelemetryMsg(self, msg):
         self._robot._state_proto.robot_pose.CopyFrom(msg.pose)
         self.state = msg.state

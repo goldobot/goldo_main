@@ -30,8 +30,9 @@ message StateChange {
 message PropulsionEvent {
   goldo.common.geometry.Pose pose = 1;  
   float parameter = 2;
-  uint32 data = 3 [(goldo.pb2_options.cpp_type) = UINT32];;
-  uint32 type = 4 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 data1 = 3 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 data2 = 4 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 type = 5 [(goldo.pb2_options.cpp_type) = UINT8];
 }
 
 message Telemetry {
@@ -171,6 +172,12 @@ message CmdMeasureNormal {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   float angle = 2;
   float distance = 3;
+}
+
+message CmdSetEventSensorsMask {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 mask_rising = 2 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 mask_falling = 3 [(goldo.pb2_options.cpp_type) = UINT32];
 }
 
 message ExecuteTrajectory {

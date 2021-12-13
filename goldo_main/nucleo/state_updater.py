@@ -14,9 +14,7 @@ class NucleoStateUpdater(object):
         self._broker.registerCallback('nucleo/out/os/task_statistics/uart_comm', self.onUartCommStatsMsg)
         self._broker.registerCallback('nucleo/out/os/task_statistics/odrive_comm', self.onODriveCommStatsMsg)        
         self._broker.registerCallback('nucleo/out/os/task_statistics/propulsion', self.onPropulsionStatsMsg)
-        self._broker.registerCallback('nucleo/out/propulsion/odrive/statistics', self.onPropulsionODriveStatsMsg)
-        
-        
+        self._broker.registerCallback('nucleo/out/propulsion/odrive/statistics', self.onPropulsionODriveStatsMsg)        
 
         self._last_uart_comm_stats_ts = 0
         self._last_odrive_comm_stats_ts = 0
@@ -25,7 +23,6 @@ class NucleoStateUpdater(object):
 
     def setBroker(self, broker):
         self._broker = broker
-
 
     async def runWatchdog(self):
         while True:
