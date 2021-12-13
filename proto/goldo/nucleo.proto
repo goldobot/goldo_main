@@ -35,6 +35,7 @@ message NucleoConfig {
   repeated goldo.nucleo.servos.ServoConfig servos = 6;
   repeated SensorConfig sensors = 7;
   repeated string enabled_tasks = 8;
+  repeated goldo.nucleo.servos.LiftConfig lifts = 9;
 }
 
 message NucleoTasksState {

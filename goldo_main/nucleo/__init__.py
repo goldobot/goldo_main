@@ -49,7 +49,8 @@ class ConfigSection:
     PropulsionController = 5
     Servos = 6
     PropulsionTask = 7
-    TasksEnable =8
+    TasksEnable = 8
+    Lifts = 9
     
 task_ids = {
     'propulsion': 0,
@@ -76,6 +77,12 @@ def _compile_servos(proto):
     for s in proto:
         buff = buff + pb2.serialize(s)
     return buff
+    
+def _compile_lifts(proto):
+    buff = struct.pack('<I', len(proto))
+    for s in proto:
+        buff = buff + pb2.serialize(s)
+    return buff
 
 def compile_config(proto):
     builder = BufferBuilder()
@@ -88,6 +95,7 @@ def compile_config(proto):
     builder.push_section(ConfigSection.PropulsionTask, pb2.serialize(proto.nucleo.propulsion_task))
     builder.push_section(ConfigSection.RobotSimulator, pb2.serialize(proto.nucleo.robot_simulator))
     builder.push_section(ConfigSection.Servos, _compile_servos(proto.nucleo.servos))
+    builder.push_section(ConfigSection.Lifts, _compile_lifts(proto.nucleo.lifts))
     builder.push_section(ConfigSection.TasksEnable, struct.pack('I', _make_tasks_enable_flags(proto)))
 
     return builder.compile()

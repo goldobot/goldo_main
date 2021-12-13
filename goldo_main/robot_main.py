@@ -263,7 +263,8 @@ class RobotMain:
             result = task.result()
             LOGGER.debug('task finished: %s', task)
         except Exception:
-            LOGGER.exception('') 
+            LOGGER.exception('', task)
+            logging.exception('') 
         self._current_task = None            
             
     def registerCallbacks(self):
