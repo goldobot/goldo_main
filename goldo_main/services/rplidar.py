@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import math
 
 import google.protobuf as _pb
 
@@ -16,6 +17,14 @@ class RPLidarUpdater:
         self._last_message_ts = datetime.now() - timedelta(seconds=10)
         self._detections_ts = {}
         self._watchdog_task = asyncio.create_task(self.runWatchdog())
+
+    async def loadConfig(self):
+        config_proto = self._robot._config_proto
+        msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(
+            value=config_proto.rplidar.theta_offset * math.pi / 180)
+        await self._robot._broker.publishTopic('rplidar/in/config/theta_offset', msg)
+        await self._robot._broker.publishTopic('rplidar/in/config/distance_tresholds', config_proto.rplidar.tresholds)
+
 
     async def runWatchdog(self):
         while True:

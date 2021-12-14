@@ -51,7 +51,6 @@ class RobotMain:
         self._config_proto = config
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
-        self.propulsion.loadConfig()
 
         # import all sequences
         sequences_importer.meta_finder.unload_all()
@@ -114,7 +113,7 @@ class RobotMain:
             if self._match_state == MatchState.WaitForStartOfMatch and self._match_armed and not self._state_proto.tirette:
                 LOGGER.info('start match')
                 await self.startMatch()
-            if self.propulsion.state == 2:
+            if self.propulsion.state == 2 and False:
                 if self._state_proto.robot_pose.speed > 0 and self._state_proto.rplidar.zones.front_near:
                     await self.propulsion.emergencyStop()
                 if self._state_proto.robot_pose.speed < 0 and self._state_proto.rplidar.zones.back_near:
@@ -144,11 +143,9 @@ class RobotMain:
                                         _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=crc))
 
         await asyncio.sleep(1)
+        await self._rplidar_updater.loadConfig()
+        self.propulsion.loadConfig()
 
-        msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(
-            value=self._config_proto.rplidar.theta_offset * math.pi / 180)
-        await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)
-        await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar.tresholds)
 
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable',
