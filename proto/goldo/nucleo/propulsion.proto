@@ -122,10 +122,10 @@ message PropulsionTaskConfig {
 }
 
 message CommandStatus {
-  int32 timestamp = 4 [(goldo.pb2_options.cpp_type) = UINT32];
-  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
-  int32 status = 2 [(goldo.pb2_options.cpp_type) = UINT8];
-  int32 error = 3 [(goldo.pb2_options.cpp_type) = UINT8];
+  uint32 timestamp = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 sequence_number = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 status = 3 [(goldo.pb2_options.cpp_type) = UINT8];
+  int32 error = 4 [(goldo.pb2_options.cpp_type) = UINT8];
 }
 
 message SetMotorsTorqueLimits {
