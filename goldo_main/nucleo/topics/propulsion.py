@@ -1,6 +1,7 @@
+import struct
 import pb2 as _pb2
-
 from goldo_main.nucleo.topics._registry import *
+
 
 _sym_db = _pb2._sym_db
 
@@ -30,3 +31,7 @@ def acceleration_limits_set(msg):
 @nucleo_in('propulsion/motors/torque_limits/set', 112)
 def torque_limits_set(msg):
     return _pb2.serialize(msg)
+
+@nucleo_in('propulsion/cmd/trajectory', 145)
+def execute_trajectory(msg):
+    return struct.pack('<HHfff', msg.sequence_number, 0, msg.speed, msg.reposition_distance, msg.reposition_speed) + b''.join([_pb2.serialize(p) for p in msg.points])

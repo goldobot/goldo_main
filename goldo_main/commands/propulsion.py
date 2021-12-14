@@ -76,6 +76,9 @@ class PropulsionCommands:
         self._broker.registerCallback('nucleo/out/propulsion/cmd_event', self._on_cmd_event)
         self._broker.registerCallback('nucleo/out/propulsion/controller/event', self._on_controller_event)
         self.state = 0
+        
+        self.speed = 1
+        self.yaw_rate = 1
 
     def loadConfig(self):
         self._sensor_ids = {}
@@ -248,7 +251,9 @@ class PropulsionCommands:
         await self._publish_sequence('nucleo/in/propulsion/cmd/rotation', msg)
         await future
 
-    async def pointTo(self, pt, yaw_rate, back=False):
+    async def pointTo(self, pt, yaw_rate=None, back=False):
+        if yaw_rate is None:
+            yaw_rate = self.yaw_rate
         msg, future = self._create_command_msg('ExecutePointTo', True)
         msg.yaw_rate = yaw_rate
         msg.point.x = pt[0]
@@ -264,7 +269,9 @@ class PropulsionCommands:
         await self.pointTo(pt, yaw_rate, back)
         await self.moveTo(pt, speed)
 
-    async def faceDirection(self, yaw, yaw_rate):
+    async def faceDirection(self, yaw, yaw_rate = None):
+        if yaw_rate is None:
+            yaw_rate = self.yaw_rate
         msg, future = self._create_command_msg('ExecuteFaceDirection', True)
         msg.yaw_rate = yaw_rate
         msg.yaw = yaw * math.pi / 180
@@ -283,7 +290,9 @@ class PropulsionCommands:
         await self._publish_sequence('nucleo/in/propulsion/cmd/trajectory', msg)
         await future
 
-    async def trajectorySpline(self, points, speed, **kwargs):
+    async def trajectorySpline(self, points, speed = None, **kwargs):
+        if speed is None:
+            speed = self.speed
         ctr = np.array([points[0]] + points + [points[-1]])
 
         # control points, double first and last

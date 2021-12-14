@@ -28,11 +28,12 @@ class SequenceState(IntEnum):
     # ready
     PrepareFinished = 2
     # in prepare_cancel_sequence
-    Abort = 3
+    Cancel = 3   
     # sequence
     Sequence = 4
+    Abort = 5
     # Finalize
-    Finalize = 5
+    Finalize = 6
 
 
 @dataclass
@@ -46,6 +47,8 @@ class Action:
     sequence: Optional[str] = None
     # sequence to execute during move to begin_pose
     sequence_prepare: Optional[str] = None
+    # sequence to execute after sequence_prepare if action is cancelled (because an adversary moved)
+    sequence_cancel: Optional[str] = None
     # sequence to execute after sequence_prepare if action is aborted (because an adversary moved)
     sequence_abort: Optional[str] = None
     # sequence to execute after sequence, during move to next action
@@ -61,6 +64,13 @@ class Path:
     @property
     def valid(self):
         return len(self.points) >= 2
+        
+@dataclass
+class ObstaclePolygon:
+    name: str
+    enabled: bool = False
+    points: Sequence[Tuple[float, float]] = field(default_factory=lambda: [])
+    
 
 
 class StrategyEngineBase:
@@ -70,17 +80,27 @@ class StrategyEngineBase:
     _sequence_state: SequenceState = SequenceState.Idle
     _movement_state: MovementState = MovementState.Idle
     _timer_callbacks: Sequence[Tuple[float, Callable[[None], Awaitable[None]]]] = []
-    _tasks: Sequence[asyncio.Task] = []
+    _tasks: Mapping[int, asyncio.Task] = {}
 
     @property
     def actions(self):
         return self._actions_by_name
 
-    def create_action(self, name, **kwargs):
+    def create_action(self, name, **kwargs) -> Action:
         action = Action(name=name, **kwargs)
         self._actions_by_name[action.name] = action
         self._actions.append(action)
         return action
+    
+    @property
+    def obstacles(self):
+        return self._obstacles
+        
+    def create_obstacle_polygon(self, name, **kwargs) -> ObstaclePolygon:
+        obstacle = ObstaclePolygon(name, **kwargs)
+        self._obstacles[name] = obstacle
+        return obstacle
+        
 
     def reset(self):
         self._actions_by_name = {}
@@ -100,7 +120,7 @@ class StrategyEngineBase:
             LOGGER.exception('error in start_match sequence')
 
         print('finish start match')
-
+        LOGGER.debug('selected FOO: ')
         action, path = self._select_next_action()
         if action is not None:
             LOGGER.debug('selected action: %s', action.name)
@@ -119,7 +139,7 @@ class StrategyEngineBase:
         else:
             self._sequence_state = SequenceState.PrepareFinished
 
-        self._current_move = asyncio.create_task(self._execute_move())
+        self._current_move = asyncio.create_task(self._execute_move(path))
         self._current_move.add_done_callback(self._on_move_done)
         self._movement_state = MovementState.Moving
 
@@ -137,7 +157,9 @@ class StrategyEngineBase:
         self._actions.sort(key=lambda action: -action.priority)
         for action in self._actions:
             if action.enabled:
-                return action, self._compute_path(action)
+                path = self._compute_path(action)
+                if path is not None:
+                    return action, path
         return None, None
 
     def _compute_path(self, action: Action) -> Path:
@@ -215,6 +237,7 @@ class StrategyEngineBase:
         # select next action
         action, path = self._select_next_action()
         if action is None:
+            LOGGER.debug('no new action found')
             return
 
         self.current_action = action
@@ -227,7 +250,7 @@ class StrategyEngineBase:
         else:
             self._sequence_state = SequenceState.PrepareFinished
 
-        self._current_move = asyncio.create_task(self._execute_move())
+        self._current_move = asyncio.create_task(self._execute_move(path))
         self._current_move.add_done_callback(self._on_move_done)
         self._movement_state = MovementState.Moving
 

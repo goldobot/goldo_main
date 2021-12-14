@@ -7,7 +7,7 @@ import pb2 as _pb2
 from goldo_main.enums import *
 import google.protobuf as _pb
 
-from .strategy_engine_base import StrategyEngineBase, Action, Path
+from .strategy_engine_base import StrategyEngineBase, Action, Path, ObstaclePolygon
 
 _sym_db = _pb.symbol_database.Default()
 
@@ -65,13 +65,24 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.fillRect((1.9, -1.5), (2.0, 1.5), 0)
         self._astar.fillRect((0, -1.5), (2.0, -1.4), 0)
         self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
+        
+        #test
+        self._astar.fillRect((1.0, -0.9), (1.6, -0.4), 0)
 
+        # other robots
         astar_path = self._astar.computePath((pose_proto.position.x, pose_proto.position.y),
                                              (action.begin_pose[0], action.begin_pose[1]))
-        return Path(points=astar_path, begin_yaw=pose_proto.yaw, end_yaw=action.begin_pose[3] * math.pi / 180)
+        if len(astar_path) < 2:
+            print('NO PATH', action)
+            return None
+        return Path(points=astar_path, begin_yaw=pose_proto.yaw, end_yaw=action.begin_pose[2] * math.pi / 180)
 
-    async def _execute_move(self):
-        await asyncio.sleep(2)
+    async def _execute_move(self, path):
+        print('move')
+        propulsion = self._robot.propulsion
+        await propulsion.pointTo(path.points[1])
+        await propulsion.trajectorySpline(path.points)
+        await propulsion.faceDirection(path.end_yaw * 180/math.pi)
 
     def _onMatchTimer(self, value):
         l = []

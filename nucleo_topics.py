@@ -284,9 +284,6 @@ def propulsion_execute_point_to(msg):
 def propulsion_execute_face_direction(msg):
     return _pb2.serialize(msg)
 
-@nucleo_in('propulsion/cmd/trajectory', 145)
-def propulsion_execute_trajectory(msg):
-    return struct.pack('<HHfff', msg.sequence_number, 0, msg.speed, msg.reposition_distance, msg.reposition_speed) + b''.join([_pb2.serialize(p) for p in msg.points])
 
 @nucleo_out('propulsion/cmd_event', 130)
 def propulsion_cmd_ack(payload):
