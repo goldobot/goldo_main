@@ -27,6 +27,13 @@ message StateChange {
   PropulsionControllerError error = 3 [(goldo.pb2_options.cpp_type) = UINT8];
 }
 
+message PropulsionEvent {
+  goldo.common.geometry.Pose pose = 1;  
+  float parameter = 2;
+  uint32 data = 3 [(goldo.pb2_options.cpp_type) = UINT32];;
+  uint32 type = 4 [(goldo.pb2_options.cpp_type) = UINT8];
+}
+
 message Telemetry {
   goldo.common.geometry.Pose pose = 1;
   uint32 left_encoder = 2;
@@ -147,6 +154,12 @@ message CmdSetPose {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   goldo.common.geometry.Point position = 2;
   float yaw = 3;
+}
+
+message CmdTransformPose {
+  int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
+  goldo.common.geometry.Point translation = 2;
+  float rotation = 3;
 }
 
 message CmdSetTargetSpeed {

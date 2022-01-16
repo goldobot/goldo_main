@@ -69,6 +69,7 @@ class PropulsionCommands:
         self._broker = self._robot._broker
         self._broker.registerCallback('nucleo/out/propulsion/telemetry', self._onTelemetryMsg)
         self._broker.registerCallback('nucleo/out/propulsion/cmd_event', self._on_cmd_event)
+        self._broker.registerCallback('nucleo/out/propulsion/controller/event', self._on_controller_event)
         self.state = 0
 
 
@@ -161,6 +162,14 @@ class PropulsionCommands:
         msg.position.y = pt[1]
         await self._publish_sequence('nucleo/in/propulsion/pose/set', msg)
         await future
+        
+    async def transformPose(self, translation, rotation, angle_unit='deg'):
+        msg, future = self._create_command_msg('CmdTransformPose')
+        msg.rotation = rotation * (math.pi/180 if angle_unit == 'deg' else 1)
+        msg.translation.x = translation[0]
+        msg.translation.y = translation[1]
+        await self._publish_sequence('nucleo/in/propulsion/pose/transform', msg)
+        await future
 
     async def emergencyStop(self):
         msg, future = self._create_command_msg('CmdEmpty')
@@ -183,8 +192,10 @@ class PropulsionCommands:
         msg, future = self._create_command_msg('ExecuteReposition', True)
         msg.distance = distance
         msg.speed = speed
+        self._reposition_event = None
         await self._publish_sequence('nucleo/in/propulsion/cmd/reposition', msg)
         await future
+        return self._reposition_event
         
     async def measureNormal(self, angle, distance):
         msg, future = self._create_command_msg('CmdMeasureNormal')
@@ -289,6 +300,11 @@ class PropulsionCommands:
         self._robot._state_proto.robot_pose.CopyFrom(msg.pose)
         self.state = msg.state
 
+    async def _on_controller_event(self, msg):
+        #reposition
+        if msg.type == 1:
+            self._reposition_event = msg
+    
     async def _on_cmd_event(self, msg):
         if msg.status == 4:
             print('propulsion cmd ack', msg.sequence_number)

@@ -1,6 +1,6 @@
 import struct
 import logging
-import nucleo_topics
+import goldo_main.nucleo.topics._registry as _reg
 import struct
 
 import google.protobuf as _pb
@@ -16,7 +16,7 @@ __all__ = ['NucleoCodec', 'ProtobufCodec', 'RPLidarCodec']
 
 class NucleoCodec:
     def serialize(self, topic, msg):
-        msg_type, encoder = nucleo_topics._in.get(topic, (None, None))
+        msg_type, encoder = _reg._in.get(topic, (None, None))
         if encoder is None:
              print('error', topic, msg_type)
              return None
@@ -26,7 +26,7 @@ class NucleoCodec:
         msg_header, msg_body = payload[:2]
 
         comm_id, reserved, msg_type, t_seconds, t_nanoseconds = _msg_type_struct.unpack(msg_header)
-        topic, decoder = nucleo_topics._out.get(msg_type, (None, None))
+        topic, decoder = _reg._out.get(msg_type, (None, None))
         if topic is not None:
             try:
                 msg = decoder(msg_body)
