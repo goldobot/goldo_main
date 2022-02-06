@@ -30,6 +30,17 @@ message LiftConfig {
   int32 block_trig = 6 [(goldo.pb2_options.cpp_type) = UINT16];
 }
 
+message ServoState {
+  uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
+  uint32 measured_position = 3 [(goldo.pb2_options.cpp_type) = UINT16];
+  int32 measured_load = 5 [(goldo.pb2_options.cpp_type) = INT16];
+}
+
+message ServoStates {
+  uint32 timestamp = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  repeated ServoState servos = 4;
+}
+
 message ServoPosition {
   int32 servo_id = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   uint32 position = 2 [(goldo.pb2_options.cpp_type) = UINT16];
@@ -76,11 +87,7 @@ message CmdMoveMultiple {
 }
 
 
-message CmdSetTorques {
-  // for multiple servos move, each servo speed is computed to ensure they all finish 
-  // the move at the same time. the move duration is determined by the slowest servo
-  // each servo speed is (servo.max_speed * speed / 1023)
-  // setting speed to 1023 ensures the fastest move
+message CmdSetMaxTorques {
   int32 sequence_number = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   repeated ServoTorque torques = 2;
 }

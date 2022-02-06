@@ -12,6 +12,8 @@ class ServosCommands:
     def __init__(self, robot):
         self._robot = robot
         self._servos_ids = {}
+        self._servos_names = []
+        self._states_proto = self._robot._state_proto.servos
         self._loop = asyncio.get_event_loop()
         self._futures = {}
         self._futures_moving = {}
@@ -20,13 +22,16 @@ class ServosCommands:
 
         self._robot._broker.registerCallback('nucleo/out/servo/ack', self._onMsgAck)
         self._robot._broker.registerCallback('nucleo/out/servo/status/moving', self._onMsgMoving)
+        self._robot._broker.registerCallback('nucleo/out/servo/status/states', self._onServoStates)
 
 
     def loadConfig(self):
         self._servos_ids = {}
+        self._servos_names = []
         servos_proto = self._robot._config_proto.nucleo.servos
         for i, servo_proto in enumerate(servos_proto):
             self._servos_ids[servo_proto.name] = i
+            self._servos_names.append(servo_proto.name)
 
     async def disableAll(self):
         msg, future = self._create_command_msg('CmdDisableAll')
@@ -40,6 +45,15 @@ class ServosCommands:
         enables = [ServoEnable(servo_id=self._servos_ids[name], enable=enable) for name in name_or_servos]
         msg, future = self._create_command_msg('CmdSetEnable', enables=enables)
         await self._robot._broker.publishTopic('nucleo/in/servo/enable/set', msg)
+        await future
+        
+    async def setMaxTorque(self, name_or_servos, torque):
+        if isinstance(name_or_servos, (str, bytes)):
+            name_or_servos = [name_or_servos]
+        ServoTorque = _sym_db.GetSymbol('goldo.nucleo.servos.ServoTorque')
+        torques = [ServoTorque(servo_id=self._servos_ids[name], torque=math.floor(torque * 255)) for name in name_or_servos]
+        msg, future = self._create_command_msg('CmdSetMaxTorques', torques=torques)
+        await self._robot._broker.publishTopic('nucleo/in/servo/set_max_torques', msg)
         await future
 
     async def move(self, name, position, speed=100):
@@ -83,6 +97,10 @@ class ServosCommands:
         for e in self._futures_moving.values():
             if not(msg.value & e[1]):
                 e[0].set_result(None)
+                
+    async def _onServoStates(self, msg):
+        for i, s in enumerate(msg.servos):
+            self._states_proto[self._servos_names[i]].CopyFrom(s)
 
     def _get_sequence_number(self):
         seq = self._sequence_number

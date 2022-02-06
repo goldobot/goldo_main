@@ -6,6 +6,7 @@ import "goldo/rplidar.proto";
 import "goldo/table.proto";
 import "goldo/strategy.proto";
 import "goldo/common/geometry.proto";
+import "goldo/nucleo/servos.proto";
 
 import "goldo/pb2_options.proto";
 
@@ -63,4 +64,5 @@ message RobotState {
   repeated goldo.rplidar.RobotDetection rplidar_detections = 10;
   RPLidarState rplidar = 11;
   MatchState match_state = 12;
+  map<string, goldo.nucleo.servos.ServoState> servos = 13;
 }
