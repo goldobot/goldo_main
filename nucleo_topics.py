@@ -32,6 +32,27 @@ def ping(msg):
 @nucleo_out('os/heap_stats', 3)
 def watchdog_state(payload):
     return _pb2.deserialize('goldo.nucleo.FreeRTOSHeapStats', payload[:8])
+    
+@nucleo_out('os/tasks_stats', 6)
+def os_tasks_stats(payload):
+    items = []
+    for i in range(len(payload)//24):
+        name, runtime_counter, stack_wm, task_number = struct.unpack('<16sIHH', payload[i*24:(i+1)*24])
+        items.append(_sym_db.GetSymbol('goldo.nucleo.FreeRTOSTaskStats')(
+            task_name=name.strip(b'\x00').decode('utf8'),
+            runtime_counter=runtime_counter,
+            task_number=task_number
+            ))
+    return _sym_db.GetSymbol('goldo.nucleo.FreeRTOSTasksStats')(tasks=items)
+    
+@nucleo_out('os/dbg_trace', 7)
+def os_dbg_trace(payload):
+    return _sym_db.GetSymbol('google.protobuf.BytesValue')(value=payload)
+    items = []
+    for i in range(len(payload)//8):
+        a, b, c, d = struct.unpack('<I3Bx', payload[i*8:(i+1)*8])
+        print(a,b,c,d)
+    return _sym_db.GetSymbol('goldo.nucleo.FreeRTOSTasksStats')(tasks=items)
 
 @nucleo_out('os/reset', 4)
 def os_reset(payload):
