@@ -58,21 +58,22 @@ class StrategyEngine(object):
         
 
     async def try_astar(self):
-        return
+        #return
         self._astar.resetCosts()
-        self._astar.fillRect(35,0,125, 55)
+        #self._astar.fillRect(35,0,125, 55)
         if self._robot.side == Side.Blue or True:
             #port
-            self._astar.fillRect(200-55,90,200, 150)
+            #self._astar.fillRect(200-55,90,200, 150)
             #adversary start area
-            self._astar.fillRect(35,300-55,125, 300)
-            self._astar.fillRect(0,300-55,35, 300)
-            self._astar.fillRect(125,300-55,165, 300)
+            #self._astar.fillRect(35,300-55,125, 300)
+            #self._astar.fillRect(0,300-55,35, 300)
+            #self._astar.fillRect(125,300-55,165, 300)
+            pass
             
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
 
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
-        #print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
+        print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
         
     @property
     def actions(self):

@@ -277,7 +277,12 @@ class RobotMain:
         broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatus)
         broker.registerCallback('nucleo/out/match/timer', self.onMatchTimer)           
         broker.registerCallback('robot/sequence/*/execute', self.onSequenceExecute)
-        
+        broker.registerCallback('robot/test_astar', self.onTestAstar)
+
     async def onSetSide(self, msg):
         self.side = msg.value
-        
+
+    async def onTestAstar(self, msg):
+        LOGGER.info('RobotMain: onTestAstar()')
+        print("RobotMain: onTestAstar()")
+        await self._strategy_engine.try_astar()
