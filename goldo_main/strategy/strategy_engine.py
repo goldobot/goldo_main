@@ -70,11 +70,17 @@ class StrategyEngine(object):
             #self._astar.fillRect(125,300-55,165, 300)
             pass
             
+        self._astar.setDisk((1.7,-0.3), 30)
+
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
 
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
         print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
         
+    async def display_astar(self):
+        msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
+        await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
+
     @property
     def actions(self):
         return self._actions_by_name

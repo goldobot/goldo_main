@@ -21,10 +21,12 @@ cdef class AStarWrapper:
         self.c_astar[0].setMatrix(200,300)
         
     def setSquare(self, p, r):
-        cdef int x0 = p[0] * 100 - r
-        cdef int y0 = p[1] * 100 + 149 - r
-        cdef int x1 = p[0] * 100 + r
-        cdef int y1 = p[1] * 100 + 149 + r
+        cdef float xf = 100.0*p[0]
+        cdef float yf = 100.0*p[1]
+        cdef int x0 = xf - r
+        cdef int y0 = yf + 149 - r
+        cdef int x1 = xf + r
+        cdef int y1 = yf + 149 + r
         if x0 < 0:
             x0 = 0
         if x1 < 0:
@@ -41,10 +43,44 @@ cdef class AStarWrapper:
             y0 = 299
         if y1 > 299:
             y1 = 299
-        for i in range(x0, y0):
-            for j in range(y0, y1):
-                self.c_astar[0].setWall(i, j)
+        for x in range(x0, x1):
+            for y in range(y0, y1):
+                self.setWall(x, y)
         
+    def setDisk(self, p, r):
+        cdef float xf = 100.0*p[0]
+        cdef float yf = 100.0*p[1]
+        cdef int x0 = xf - r
+        cdef int y0 = yf + 149 - r
+        cdef int x1 = xf + r
+        cdef int y1 = yf + 149 + r
+        cdef int wtf = 0
+        cdef int xC = x0 + r
+        cdef int yC = y0 + r
+        if x0 < 0:
+            x0 = 0
+        if x1 < 0:
+            x1 = 0
+        if x0 > 199:
+            x0 = 199
+        if x1 > 199:
+            x1 = 199
+        if y0 < 0:
+            y0 = 0
+        if y1 < 0:
+            y1 = 0
+        if y0 > 299:
+            y0 = 299
+        if y1 > 299:
+            y1 = 299
+        for x in range(x0, x1):
+            for y in range(y0, y1):
+                dx = x-xC
+                dy = y-yC
+                if ((dx*dx+dy*dy)<r*r):
+                    self.setWall(x, y)
+
+
     def fillRect(self, int x1, int y1, int x2, int y2):
         cdef int x, y
         if x1 < 0:
@@ -78,11 +114,11 @@ cdef class AStarWrapper:
         
     cdef setWall(self, unsigned x, unsigned y):
         self.c_astar[0].setWall(x, y)
-        self.c_arr[y + x * 300] = 0
+        self.c_arr[y + x * 300] = 128
         
     cdef setWay(self, unsigned x, unsigned y):
         self.c_astar[0].setWay(x, y, 1)
-        self.c_arr[y + x * 300] = -1
+        self.c_arr[y + x * 300] = 255
         
         
     def resetCosts(self):

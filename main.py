@@ -8,6 +8,8 @@ import datetime
 from pathlib import Path
 
 import sys
+import os
+import signal
 
 def rm_tree(path: Path):
     for child in path.iterdir():
@@ -17,7 +19,12 @@ def rm_tree(path: Path):
             rm_tree(child)
     path.rmdir()
 
-    
+
+def goldo_signal_handler(my_broker,sig,frame):
+    print (" DEBUG GOLDO : sys.exit(0)")
+    my_broker._process.terminate()
+    sys.exit(0)
+
 async def config_put(config_name, msg):
     config_path = Path(f'config/{config_name}')
     config_path.mkdir(parents=True, exist_ok=True)
@@ -51,6 +58,8 @@ async def main():
     robot = RobotMain(broker)
     if 'simulation' in sys.argv:
         robot._simulation_mode = True
+    if 'interactive' in sys.argv:
+        signal.signal(signal.SIGINT, lambda sig,frame: goldo_signal_handler(broker,sig,frame))
     broker.registerCallback('config/*/put', config_put)
     broker.registerCallback('config/*/delete', config_delete)
     broker.registerCallback('config/*/set_default', config_set_default)
@@ -61,9 +70,8 @@ async def main():
     broker.registerCallback('nucleo/out/match/timer', lambda msg: broker.publishTopic('gui/in/match_timer', msg))         
     broker.registerForward('nucleo/out/os/heartbeat', 'gui/in/heartbeat')
     #broker.startRecording()
-    
     await broker.run()
-        
+
 if __name__ == '__main__':
     
     now=datetime.datetime.now()

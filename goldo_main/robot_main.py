@@ -106,6 +106,7 @@ class RobotMain:
         self._sequences_globals['sensors'] = self._state_proto.sensors
         self._sequences_globals['servos'] = ServosCommands(self)
         self._sequences_globals['lidar'] = LidarCommands(self)
+        self._sequences_globals['rplidar_detections'] = self._state_proto.rplidar_detections
         self._sequences_globals['exceptions'] = RobotExceptions
         self.registerCallbacks()
         self.loadConfig(config_path)
@@ -281,6 +282,7 @@ class RobotMain:
 
     async def onSetSide(self, msg):
         self.side = msg.value
+        print("onSetSide(): side = {}".format({0: 'unset', 1: 'blue', 2:'yellow'}[self.side]))
 
     async def onTestAstar(self, msg):
         LOGGER.info('RobotMain: onTestAstar()')
