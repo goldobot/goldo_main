@@ -13,7 +13,6 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from goldo.common import geometry_pb2 as goldo_dot_common_dot_geometry__pb2
 from goldo.nucleo import hal_pb2 as goldo_dot_nucleo_dot_hal__pb2
 from goldo.nucleo import odometry_pb2 as goldo_dot_nucleo_dot_odometry__pb2
 from goldo.nucleo import propulsion_pb2 as goldo_dot_nucleo_dot_propulsion__pb2
@@ -29,9 +28,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='goldo.nucleo',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x12goldo/nucleo.proto\x12\x0cgoldo.nucleo\x1a\x1bgoldo/common/geometry.proto\x1a\x16goldo/nucleo/hal.proto\x1a\x1bgoldo/nucleo/odometry.proto\x1a\x1dgoldo/nucleo/propulsion.proto\x1a\"goldo/nucleo/robot_simulator.proto\x1a\x19goldo/nucleo/servos.proto\x1a\x19goldo/nucleo/odrive.proto\x1a\x1dgoldo/nucleo/statistics.proto\x1a\x17goldo/pb2_options.proto\"b\n\x0cSensorConfig\x12,\n\x04type\x18\x01 \x01(\x0e\x32\x18.goldo.nucleo.SensorTypeB\x04\x80\xb5\x18\x03\x12\x10\n\x02id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x12\n\x04name\x18@ \x01(\tB\x04\x80\xb5\x18\x0c\"\xf5\x03\n\x0cNucleoConfig\x12(\n\x03hal\x18\x01 \x01(\x0b\x32\x1b.goldo.nucleo.hal.HalConfig\x12K\n\x0frobot_simulator\x18\x02 \x01(\x0b\x32\x32.goldo.nucleo.robot_simulator.RobotSimulatorConfig\x12\x37\n\x08odometry\x18\x03 \x01(\x0b\x32%.goldo.nucleo.odometry.OdometryConfig\x12G\n\npropulsion\x18\x04 \x01(\x0b\x32\x33.goldo.nucleo.propulsion.PropulsionControllerConfig\x12\x46\n\x0fpropulsion_task\x18\x05 \x01(\x0b\x32-.goldo.nucleo.propulsion.PropulsionTaskConfig\x12\x30\n\x06servos\x18\x06 \x03(\x0b\x32 .goldo.nucleo.servos.ServoConfig\x12+\n\x07sensors\x18\x07 \x03(\x0b\x32\x1a.goldo.nucleo.SensorConfig\x12\x15\n\renabled_tasks\x18\x08 \x03(\t\x12.\n\x05lifts\x18\t \x03(\x0b\x32\x1f.goldo.nucleo.servos.LiftConfig\"%\n\x10NucleoTasksState\x12\x11\n\tcomm_uart\x18\x01 \x01(\x08\"\xea\x01\n\x15NucleoTasksStatistics\x12\x42\n\tuart_comm\x18\x01 \x01(\x0b\x32/.goldo.nucleo.statistics.UARTCommTaskStatistics\x12\x46\n\x0bodrive_comm\x18\x02 \x01(\x0b\x32\x31.goldo.nucleo.statistics.ODriveCommTaskStatistics\x12\x45\n\npropulsion\x18\x03 \x01(\x0b\x32\x31.goldo.nucleo.statistics.PropulsionTaskStatistics\"T\n\x11\x46reeRTOSTaskStats\x12\x11\n\ttask_name\x18\x01 \x01(\t\x12\x17\n\x0fruntime_counter\x18\x02 \x01(\r\x12\x13\n\x0btask_number\x18\x03 \x01(\r\"D\n\x12\x46reeRTOSTasksStats\x12.\n\x05tasks\x18\x02 \x03(\x0b\x32\x1f.goldo.nucleo.FreeRTOSTaskStats\"\x82\x02\n\x0bNucleoState\x12\x11\n\tconnected\x18\x01 \x01(\x08\x12\x12\n\nconfigured\x18\x02 \x01(\x08\x12\x11\n\theartbeat\x18\x03 \x01(\r\x12=\n\x10tasks_statistics\x18\x04 \x01(\x0b\x32#.goldo.nucleo.NucleoTasksStatistics\x12\x31\n\x06odrive\x18\x05 \x01(\x0b\x32!.goldo.nucleo.odrive.ODriveStatus\x12G\n\x18odrive_client_statistics\x18\x06 \x01(\x0b\x32%.goldo.nucleo.odrive.ClientStatistics\"\xcc\x01\n\x12ScopeChannelConfig\x12\x16\n\x08variable\x18\x01 \x01(\rB\x04\x80\xb5\x18\x05\x12\x16\n\x08\x65ncoding\x18\x02 \x01(\rB\x04\x80\xb5\x18\x05\x12\x11\n\tmin_value\x18\x03 \x01(\x02\x12\x11\n\tmax_value\x18\x04 \x01(\x02\"`\n\x08\x45ncoding\x12\x08\n\x04RAW8\x10\x00\x12\t\n\x05RAW16\x10\x01\x12\t\n\x05RAW32\x10\x02\x12\x0b\n\x07SCALED8\x10\x04\x12\x0c\n\x08SCALED16\x10\x05\x12\x0c\n\x08SCALED32\x10\x06\x12\x0b\n\x07\x46LOAT32\x10\x08\"a\n\x0bScopeConfig\x12\x14\n\x06period\x18\x01 \x01(\rB\x04\x80\xb5\x18\x05\x12<\n\x08\x63hannels\x18\x02 \x03(\x0b\x32 .goldo.nucleo.ScopeChannelConfigB\x08\x98\xb5\x18\x05\x88\xb5\x18\x08\"2\n\tScopeData\x12\x17\n\ttimestamp\x18\x01 \x01(\rB\x04\x80\xb5\x18\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"*\n\x12ScopeChannelValues\x12\x14\n\x0c\x66loat_values\x18\x01 \x03(\x02\"U\n\x0bScopeValues\x12\x12\n\ntimestamps\x18\x01 \x03(\x02\x12\x32\n\x08\x63hannels\x18\x02 \x03(\x0b\x32 .goldo.nucleo.ScopeChannelValues*/\n\nSensorType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06NUCLEO\x10\x01\x12\x08\n\x04\x46PGA\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\x12goldo/nucleo.proto\x12\x0cgoldo.nucleo\x1a\x16goldo/nucleo/hal.proto\x1a\x1bgoldo/nucleo/odometry.proto\x1a\x1dgoldo/nucleo/propulsion.proto\x1a\"goldo/nucleo/robot_simulator.proto\x1a\x19goldo/nucleo/servos.proto\x1a\x19goldo/nucleo/odrive.proto\x1a\x1dgoldo/nucleo/statistics.proto\x1a\x17goldo/pb2_options.proto\"b\n\x0cSensorConfig\x12,\n\x04type\x18\x01 \x01(\x0e\x32\x18.goldo.nucleo.SensorTypeB\x04\x80\xb5\x18\x03\x12\x10\n\x02id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x12\n\x04name\x18@ \x01(\tB\x04\x80\xb5\x18\x0c\"\xf5\x03\n\x0cNucleoConfig\x12(\n\x03hal\x18\x01 \x01(\x0b\x32\x1b.goldo.nucleo.hal.HalConfig\x12K\n\x0frobot_simulator\x18\x02 \x01(\x0b\x32\x32.goldo.nucleo.robot_simulator.RobotSimulatorConfig\x12\x37\n\x08odometry\x18\x03 \x01(\x0b\x32%.goldo.nucleo.odometry.OdometryConfig\x12G\n\npropulsion\x18\x04 \x01(\x0b\x32\x33.goldo.nucleo.propulsion.PropulsionControllerConfig\x12\x46\n\x0fpropulsion_task\x18\x05 \x01(\x0b\x32-.goldo.nucleo.propulsion.PropulsionTaskConfig\x12\x30\n\x06servos\x18\x06 \x03(\x0b\x32 .goldo.nucleo.servos.ServoConfig\x12+\n\x07sensors\x18\x07 \x03(\x0b\x32\x1a.goldo.nucleo.SensorConfig\x12\x15\n\renabled_tasks\x18\x08 \x03(\t\x12.\n\x05lifts\x18\t \x03(\x0b\x32\x1f.goldo.nucleo.servos.LiftConfig\"%\n\x10NucleoTasksState\x12\x11\n\tcomm_uart\x18\x01 \x01(\x08\"\xea\x01\n\x15NucleoTasksStatistics\x12\x42\n\tuart_comm\x18\x01 \x01(\x0b\x32/.goldo.nucleo.statistics.UARTCommTaskStatistics\x12\x46\n\x0bodrive_comm\x18\x02 \x01(\x0b\x32\x31.goldo.nucleo.statistics.ODriveCommTaskStatistics\x12\x45\n\npropulsion\x18\x03 \x01(\x0b\x32\x31.goldo.nucleo.statistics.PropulsionTaskStatistics\"T\n\x11\x46reeRTOSTaskStats\x12\x11\n\ttask_name\x18\x01 \x01(\t\x12\x17\n\x0fruntime_counter\x18\x02 \x01(\r\x12\x13\n\x0btask_number\x18\x03 \x01(\r\"D\n\x12\x46reeRTOSTasksStats\x12.\n\x05tasks\x18\x02 \x03(\x0b\x32\x1f.goldo.nucleo.FreeRTOSTaskStats\"\x82\x02\n\x0bNucleoState\x12\x11\n\tconnected\x18\x01 \x01(\x08\x12\x12\n\nconfigured\x18\x02 \x01(\x08\x12\x11\n\theartbeat\x18\x03 \x01(\r\x12=\n\x10tasks_statistics\x18\x04 \x01(\x0b\x32#.goldo.nucleo.NucleoTasksStatistics\x12\x31\n\x06odrive\x18\x05 \x01(\x0b\x32!.goldo.nucleo.odrive.ODriveStatus\x12G\n\x18odrive_client_statistics\x18\x06 \x01(\x0b\x32%.goldo.nucleo.odrive.ClientStatistics\"\xcc\x01\n\x12ScopeChannelConfig\x12\x16\n\x08variable\x18\x01 \x01(\rB\x04\x80\xb5\x18\x05\x12\x16\n\x08\x65ncoding\x18\x02 \x01(\rB\x04\x80\xb5\x18\x05\x12\x11\n\tmin_value\x18\x03 \x01(\x02\x12\x11\n\tmax_value\x18\x04 \x01(\x02\"`\n\x08\x45ncoding\x12\x08\n\x04RAW8\x10\x00\x12\t\n\x05RAW16\x10\x01\x12\t\n\x05RAW32\x10\x02\x12\x0b\n\x07SCALED8\x10\x04\x12\x0c\n\x08SCALED16\x10\x05\x12\x0c\n\x08SCALED32\x10\x06\x12\x0b\n\x07\x46LOAT32\x10\x08\"a\n\x0bScopeConfig\x12\x14\n\x06period\x18\x01 \x01(\rB\x04\x80\xb5\x18\x05\x12<\n\x08\x63hannels\x18\x02 \x03(\x0b\x32 .goldo.nucleo.ScopeChannelConfigB\x08\x98\xb5\x18\x05\x88\xb5\x18\x08\"2\n\tScopeData\x12\x17\n\ttimestamp\x18\x01 \x01(\rB\x04\x80\xb5\x18\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"*\n\x12ScopeChannelValues\x12\x14\n\x0c\x66loat_values\x18\x01 \x03(\x02\"U\n\x0bScopeValues\x12\x12\n\ntimestamps\x18\x01 \x03(\x02\x12\x32\n\x08\x63hannels\x18\x02 \x03(\x0b\x32 .goldo.nucleo.ScopeChannelValues*/\n\nSensorType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06NUCLEO\x10\x01\x12\x08\n\x04\x46PGA\x10\x02\x62\x06proto3')
   ,
-  dependencies=[goldo_dot_common_dot_geometry__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_hal__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_odometry__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_propulsion__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_robot__simulator__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_servos__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_odrive__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_statistics__pb2.DESCRIPTOR,goldo_dot_pb2__options__pb2.DESCRIPTOR,])
+  dependencies=[goldo_dot_nucleo_dot_hal__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_odometry__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_propulsion__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_robot__simulator__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_servos__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_odrive__pb2.DESCRIPTOR,goldo_dot_nucleo_dot_statistics__pb2.DESCRIPTOR,goldo_dot_pb2__options__pb2.DESCRIPTOR,])
 
 _SENSORTYPE = _descriptor.EnumDescriptor(
   name='SensorType',
@@ -54,8 +53,8 @@ _SENSORTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2081,
-  serialized_end=2128,
+  serialized_start=2052,
+  serialized_end=2099,
 )
 _sym_db.RegisterEnumDescriptor(_SENSORTYPE)
 
@@ -102,8 +101,8 @@ _SCOPECHANNELCONFIG_ENCODING = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1701,
-  serialized_end=1797,
+  serialized_start=1672,
+  serialized_end=1768,
 )
 _sym_db.RegisterEnumDescriptor(_SCOPECHANNELCONFIG_ENCODING)
 
@@ -148,8 +147,8 @@ _SENSORCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=295,
-  serialized_end=393,
+  serialized_start=266,
+  serialized_end=364,
 )
 
 
@@ -235,8 +234,8 @@ _NUCLEOCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=396,
-  serialized_end=897,
+  serialized_start=367,
+  serialized_end=868,
 )
 
 
@@ -266,8 +265,8 @@ _NUCLEOTASKSSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=899,
-  serialized_end=936,
+  serialized_start=870,
+  serialized_end=907,
 )
 
 
@@ -311,8 +310,8 @@ _NUCLEOTASKSSTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=939,
-  serialized_end=1173,
+  serialized_start=910,
+  serialized_end=1144,
 )
 
 
@@ -356,8 +355,8 @@ _FREERTOSTASKSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1175,
-  serialized_end=1259,
+  serialized_start=1146,
+  serialized_end=1230,
 )
 
 
@@ -387,8 +386,8 @@ _FREERTOSTASKSSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1261,
-  serialized_end=1329,
+  serialized_start=1232,
+  serialized_end=1300,
 )
 
 
@@ -453,8 +452,8 @@ _NUCLEOSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1332,
-  serialized_end=1590,
+  serialized_start=1303,
+  serialized_end=1561,
 )
 
 
@@ -506,8 +505,8 @@ _SCOPECHANNELCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1593,
-  serialized_end=1797,
+  serialized_start=1564,
+  serialized_end=1768,
 )
 
 
@@ -544,8 +543,8 @@ _SCOPECONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1799,
-  serialized_end=1896,
+  serialized_start=1770,
+  serialized_end=1867,
 )
 
 
@@ -582,8 +581,8 @@ _SCOPEDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1898,
-  serialized_end=1948,
+  serialized_start=1869,
+  serialized_end=1919,
 )
 
 
@@ -613,8 +612,8 @@ _SCOPECHANNELVALUES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1950,
-  serialized_end=1992,
+  serialized_start=1921,
+  serialized_end=1963,
 )
 
 
@@ -651,8 +650,8 @@ _SCOPEVALUES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1994,
-  serialized_end=2079,
+  serialized_start=1965,
+  serialized_end=2050,
 )
 
 _SENSORCONFIG.fields_by_name['type'].enum_type = _SENSORTYPE

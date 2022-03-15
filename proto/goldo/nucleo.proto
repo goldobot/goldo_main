@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package goldo.nucleo;
 
-import "goldo/common/geometry.proto";
 import "goldo/nucleo/hal.proto";
 import "goldo/nucleo/odometry.proto";
 import "goldo/nucleo/propulsion.proto";
@@ -13,13 +12,13 @@ import "goldo/nucleo/statistics.proto";
 
 import "goldo/pb2_options.proto";
 
-      
+
 enum SensorType {
   UNKNOWN= 0;
   NUCLEO = 1;
-  FPGA = 2;  
+  FPGA = 2;
 }
-  
+
 message SensorConfig {
   SensorType type = 1 [(goldo.pb2_options.cpp_type) = UINT8];
   int32 id = 2 [(goldo.pb2_options.cpp_type) = UINT8];
@@ -39,7 +38,7 @@ message NucleoConfig {
 }
 
 message NucleoTasksState {
-  bool comm_uart = 1;  
+  bool comm_uart = 1;
 }
 
 message NucleoTasksStatistics {
@@ -56,7 +55,7 @@ message FreeRTOSTaskStats {
 
 message FreeRTOSTasksStats {
   repeated FreeRTOSTaskStats tasks = 2;
-}  
+}
 
 message NucleoState {
   bool connected = 1;
@@ -65,7 +64,7 @@ message NucleoState {
   NucleoTasksStatistics tasks_statistics = 4;
   goldo.nucleo.odrive.ODriveStatus odrive = 5;
   goldo.nucleo.odrive.ClientStatistics odrive_client_statistics = 6;
-  
+
 }
 
 message ScopeChannelConfig {
@@ -78,7 +77,7 @@ message ScopeChannelConfig {
     SCALED8 = 4;
     SCALED16 = 5;
     SCALED32 = 6;
-    FLOAT32 = 8;    
+    FLOAT32 = 8;
   };
   uint32 variable = 1 [(goldo.pb2_options.cpp_type) = UINT16];
   uint32 encoding = 2 [(goldo.pb2_options.cpp_type) = UINT16];

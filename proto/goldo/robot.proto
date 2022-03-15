@@ -22,7 +22,7 @@ message SequencesFile {
 }
 
 message RobotConfig {
-  goldo.nucleo.NucleoConfig nucleo = 1;  
+  goldo.nucleo.NucleoConfig nucleo = 1;
   RobotGeometry robot_geometry = 2;
   repeated string sequences_names = 40;
   repeated SequencesFile sequences_files = 41;
@@ -49,12 +49,12 @@ message RPLidarState {
   repeated goldo.rplidar.RobotDetection detections = 10;
   goldo.rplidar.Zones zones = 11;
 }
-  
+
 
 message RobotState {
   goldo.nucleo.NucleoState nucleo = 1;
   map<string, bool> sensors = 2;
-  goldo.table.TableState table = 3;  
+  goldo.table.TableState table = 3;
   bool emergency_stop = 4;
   uint32 score = 5;
   uint32 match_timer = 6;

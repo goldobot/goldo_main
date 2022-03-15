@@ -1,8 +1,6 @@
 syntax = "proto3";
 package goldo.nucleo.odometry;
 
-import "goldo/common/geometry.proto";
-
 import "goldo/pb2_options.proto";
 
 message OdometryConfig {

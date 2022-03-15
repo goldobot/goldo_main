@@ -57,6 +57,8 @@ message ODriveCommTaskStatistics {
 
 message PropulsionTaskStatistics {
   uint32 max_cycles = 1 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 min_interval = 5 [(goldo.pb2_options.cpp_type) = UINT32];
+  uint32 max_interval = 6 [(goldo.pb2_options.cpp_type) = UINT32];
   MessageQueueStatistics queue = 2;
   MessageQueueStatistics urgent_queue = 3;
   MessageQueueStatistics odrive_queue = 4;

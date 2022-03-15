@@ -24,3 +24,17 @@ message Pose {
   float acceleration = 5;
   float angular_acceleration = 6;
 }
+
+message Circle {
+  Point center = 1;
+  float radius = 2;
+}
+
+message Box {
+  Point pmin = 1;
+  Point pmax= 2;
+}
+
+message Polygon {
+  repeated Point vertices = 1;
+}

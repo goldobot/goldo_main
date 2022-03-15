@@ -40,11 +40,10 @@ message ServoConfig {
 }
 
 message ServosConfig {
-  repeated ServoConfig servos = 1;  
+  repeated ServoConfig servos = 1;
 }
 
 import "goldo/rplidar.proto";
-import "google/protobuf/wrappers.proto";
 
 message RPLidarConfig {
   float theta_offset = 1;
