@@ -27,8 +27,8 @@ class Action(object):
         self.name = name
         self.enabled = False
         self._proto = proto
-        self.priority = proto.priority
-        self.start_pose = (self._proto.start_pose.x, self._proto.start_pose.y, self._proto.start_pose.yaw * math.pi/180)
+        self.priority = proto.default_priority
+        self.start_pose = (self._proto.start_pose.position.x, self._proto.start_pose.position.y, self._proto.start_pose.yaw * math.pi/180)
         # sequence to start once arrived at action location
         #self.sequence = proto.sequence
         # sequence launched when starting to travel towards action location
