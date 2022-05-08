@@ -139,17 +139,11 @@ cdef class AStarWrapper:
                 self.setWall(i,y)
                 self.setWall(199 - i,y)
                 
-        #recifs
-        for i in range(30):
+        # rochers
+        for i in range(25):
             for j in range(15):
-                self.setWall(199 - i, 150 - 60 - j)
-                self.setWall(199 - i, 150 - 60 + j)
-                self.setWall(199 - i, 150 + 60 - j)
-                self.setWall(199 - i, 150 + 60 + j)
-        for i in range(45):
-            for j in range(15):
-                self.setWall(199 - i, 150 - j)
-                self.setWall(199 - i, 150 + j)
+                self.setWall(i, 150 - j)
+                self.setWall(i, 150 + j)
         
     def computePath(self, p0, p1):
         cdef unsigned x0 = p0[0] * 100

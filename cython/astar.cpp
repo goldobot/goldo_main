@@ -3549,7 +3549,7 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_12resetCosts(struct __pyx_obj_5a
  *                 self.setWall(i,y)
  *                 self.setWall(199 - i,y)             # <<<<<<<<<<<<<<
  * 
- *         #recifs
+ *         # rochers
  */
       __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), __pyx_v_y); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
@@ -3559,109 +3559,43 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_12resetCosts(struct __pyx_obj_5a
 
   /* "astar.pyx":143
  * 
- *         #recifs
- *         for i in range(30):             # <<<<<<<<<<<<<<
+ *         # rochers
+ *         for i in range(25):             # <<<<<<<<<<<<<<
  *             for j in range(15):
- *                 self.setWall(199 - i, 150 - 60 - j)
+ *                 self.setWall(i, 150 - j)
  */
-  for (__pyx_t_1 = 0; __pyx_t_1 < 30; __pyx_t_1+=1) {
+  for (__pyx_t_1 = 0; __pyx_t_1 < 25; __pyx_t_1+=1) {
     __pyx_v_i = __pyx_t_1;
 
     /* "astar.pyx":144
- *         #recifs
- *         for i in range(30):
+ *         # rochers
+ *         for i in range(25):
  *             for j in range(15):             # <<<<<<<<<<<<<<
- *                 self.setWall(199 - i, 150 - 60 - j)
- *                 self.setWall(199 - i, 150 - 60 + j)
+ *                 self.setWall(i, 150 - j)
+ *                 self.setWall(i, 150 + j)
  */
     for (__pyx_t_2 = 0; __pyx_t_2 < 15; __pyx_t_2+=1) {
       __pyx_v_j = __pyx_t_2;
 
       /* "astar.pyx":145
- *         for i in range(30):
+ *         for i in range(25):
  *             for j in range(15):
- *                 self.setWall(199 - i, 150 - 60 - j)             # <<<<<<<<<<<<<<
- *                 self.setWall(199 - i, 150 - 60 + j)
- *                 self.setWall(199 - i, 150 + 60 - j)
+ *                 self.setWall(i, 150 - j)             # <<<<<<<<<<<<<<
+ *                 self.setWall(i, 150 + j)
+ * 
  */
-      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), (90 - __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 145, __pyx_L1_error)
+      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, __pyx_v_i, (0x96 - __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 145, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
       /* "astar.pyx":146
  *             for j in range(15):
- *                 self.setWall(199 - i, 150 - 60 - j)
- *                 self.setWall(199 - i, 150 - 60 + j)             # <<<<<<<<<<<<<<
- *                 self.setWall(199 - i, 150 + 60 - j)
- *                 self.setWall(199 - i, 150 + 60 + j)
- */
-      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), (90 + __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-      /* "astar.pyx":147
- *                 self.setWall(199 - i, 150 - 60 - j)
- *                 self.setWall(199 - i, 150 - 60 + j)
- *                 self.setWall(199 - i, 150 + 60 - j)             # <<<<<<<<<<<<<<
- *                 self.setWall(199 - i, 150 + 60 + j)
- *         for i in range(45):
- */
-      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), (0xD2 - __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 147, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-      /* "astar.pyx":148
- *                 self.setWall(199 - i, 150 - 60 + j)
- *                 self.setWall(199 - i, 150 + 60 - j)
- *                 self.setWall(199 - i, 150 + 60 + j)             # <<<<<<<<<<<<<<
- *         for i in range(45):
- *             for j in range(15):
- */
-      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), (0xD2 + __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-
-  /* "astar.pyx":149
- *                 self.setWall(199 - i, 150 + 60 - j)
- *                 self.setWall(199 - i, 150 + 60 + j)
- *         for i in range(45):             # <<<<<<<<<<<<<<
- *             for j in range(15):
- *                 self.setWall(199 - i, 150 - j)
- */
-  for (__pyx_t_1 = 0; __pyx_t_1 < 45; __pyx_t_1+=1) {
-    __pyx_v_i = __pyx_t_1;
-
-    /* "astar.pyx":150
- *                 self.setWall(199 - i, 150 + 60 + j)
- *         for i in range(45):
- *             for j in range(15):             # <<<<<<<<<<<<<<
- *                 self.setWall(199 - i, 150 - j)
- *                 self.setWall(199 - i, 150 + j)
- */
-    for (__pyx_t_2 = 0; __pyx_t_2 < 15; __pyx_t_2+=1) {
-      __pyx_v_j = __pyx_t_2;
-
-      /* "astar.pyx":151
- *         for i in range(45):
- *             for j in range(15):
- *                 self.setWall(199 - i, 150 - j)             # <<<<<<<<<<<<<<
- *                 self.setWall(199 - i, 150 + j)
- * 
- */
-      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), (0x96 - __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-      /* "astar.pyx":152
- *             for j in range(15):
- *                 self.setWall(199 - i, 150 - j)
- *                 self.setWall(199 - i, 150 + j)             # <<<<<<<<<<<<<<
+ *                 self.setWall(i, 150 - j)
+ *                 self.setWall(i, 150 + j)             # <<<<<<<<<<<<<<
  * 
  *     def computePath(self, p0, p1):
  */
-      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, (0xC7 - __pyx_v_i), (0x96 + __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
+      __pyx_t_3 = ((struct __pyx_vtabstruct_5astar_AStarWrapper *)__pyx_v_self->__pyx_vtab)->setWall(__pyx_v_self, __pyx_v_i, (0x96 + __pyx_v_j)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     }
@@ -3688,8 +3622,8 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_12resetCosts(struct __pyx_obj_5a
   return __pyx_r;
 }
 
-/* "astar.pyx":154
- *                 self.setWall(199 - i, 150 + j)
+/* "astar.pyx":148
+ *                 self.setWall(i, 150 + j)
  * 
  *     def computePath(self, p0, p1):             # <<<<<<<<<<<<<<
  *         cdef unsigned x0 = p0[0] * 100
@@ -3730,11 +3664,11 @@ static PyObject *__pyx_pw_5astar_12AStarWrapper_15computePath(PyObject *__pyx_v_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_p1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("computePath", 1, 2, 2, 1); __PYX_ERR(0, 154, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("computePath", 1, 2, 2, 1); __PYX_ERR(0, 148, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "computePath") < 0)) __PYX_ERR(0, 154, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "computePath") < 0)) __PYX_ERR(0, 148, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3747,7 +3681,7 @@ static PyObject *__pyx_pw_5astar_12AStarWrapper_15computePath(PyObject *__pyx_v_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("computePath", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 154, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("computePath", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 148, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("astar.AStarWrapper.computePath", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3785,77 +3719,77 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("computePath", 0);
 
-  /* "astar.pyx":155
+  /* "astar.pyx":149
  * 
  *     def computePath(self, p0, p1):
  *         cdef unsigned x0 = p0[0] * 100             # <<<<<<<<<<<<<<
  *         cdef unsigned y0 = p0[1] * 100 + 149
  *         cdef unsigned x1 = p1[0] * 100
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_p0, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_p0, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Multiply(__pyx_t_1, __pyx_int_100); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Multiply(__pyx_t_1, __pyx_int_100); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_x0 = __pyx_t_3;
 
-  /* "astar.pyx":156
+  /* "astar.pyx":150
  *     def computePath(self, p0, p1):
  *         cdef unsigned x0 = p0[0] * 100
  *         cdef unsigned y0 = p0[1] * 100 + 149             # <<<<<<<<<<<<<<
  *         cdef unsigned x1 = p1[0] * 100
  *         cdef unsigned y1 = p1[1] * 100 + 149
  */
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_p0, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_p0, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_2, __pyx_int_100); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_2, __pyx_int_100); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_149, 0x95, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_149, 0x95, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_y0 = __pyx_t_3;
 
-  /* "astar.pyx":157
+  /* "astar.pyx":151
  *         cdef unsigned x0 = p0[0] * 100
  *         cdef unsigned y0 = p0[1] * 100 + 149
  *         cdef unsigned x1 = p1[0] * 100             # <<<<<<<<<<<<<<
  *         cdef unsigned y1 = p1[1] * 100 + 149
  * 
  */
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_p1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_p1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_2, __pyx_int_100); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_2, __pyx_int_100); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_x1 = __pyx_t_3;
 
-  /* "astar.pyx":158
+  /* "astar.pyx":152
  *         cdef unsigned y0 = p0[1] * 100 + 149
  *         cdef unsigned x1 = p1[0] * 100
  *         cdef unsigned y1 = p1[1] * 100 + 149             # <<<<<<<<<<<<<<
  * 
  *         self.c_astar[0].setStart(x0,y0)
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_p1, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_p1, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Multiply(__pyx_t_1, __pyx_int_100); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Multiply(__pyx_t_1, __pyx_int_100); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_AddObjC(__pyx_t_2, __pyx_int_149, 0x95, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_AddObjC(__pyx_t_2, __pyx_int_149, 0x95, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_y1 = __pyx_t_3;
 
-  /* "astar.pyx":160
+  /* "astar.pyx":154
  *         cdef unsigned y1 = p1[1] * 100 + 149
  * 
  *         self.c_astar[0].setStart(x0,y0)             # <<<<<<<<<<<<<<
@@ -3866,10 +3800,10 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
     (__pyx_v_self->c_astar[0]).setStart(__pyx_v_x0, __pyx_v_y0);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 160, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
 
-  /* "astar.pyx":161
+  /* "astar.pyx":155
  * 
  *         self.c_astar[0].setStart(x0,y0)
  *         self.c_astar[0].setEnd(x1,y1)             # <<<<<<<<<<<<<<
@@ -3880,10 +3814,10 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
     (__pyx_v_self->c_astar[0]).setEnd(__pyx_v_x1, __pyx_v_y1);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 161, __pyx_L1_error)
+    __PYX_ERR(0, 155, __pyx_L1_error)
   }
 
-  /* "astar.pyx":165
+  /* "astar.pyx":159
  *         cdef list[pair[unsigned,unsigned]] path
  *         cdef bool is_new_path
  *         cdef AStarPathType path_type = AStarPathType.smooth             # <<<<<<<<<<<<<<
@@ -3892,7 +3826,7 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
  */
   __pyx_v_path_type = smooth;
 
-  /* "astar.pyx":168
+  /* "astar.pyx":162
  * 
  * 
  *         path = self.c_astar[0].getPathOnlyIfNeed(True, &is_new_path, path_type)             # <<<<<<<<<<<<<<
@@ -3903,23 +3837,23 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
     __pyx_t_4 = (__pyx_v_self->c_astar[0]).getPathOnlyIfNeed(1, (&__pyx_v_is_new_path), __pyx_v_path_type);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(0, 168, __pyx_L1_error)
+    __PYX_ERR(0, 162, __pyx_L1_error)
   }
   __pyx_v_path = __pyx_t_4;
 
-  /* "astar.pyx":169
+  /* "astar.pyx":163
  * 
  *         path = self.c_astar[0].getPathOnlyIfNeed(True, &is_new_path, path_type)
  *         ret = []             # <<<<<<<<<<<<<<
  *         for p in path:
  *             ret.append((p.first * 0.01, (<int>(p.second) - 149) * 0.01))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ret = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "astar.pyx":170
+  /* "astar.pyx":164
  *         path = self.c_astar[0].getPathOnlyIfNeed(True, &is_new_path, path_type)
  *         ret = []
  *         for p in path:             # <<<<<<<<<<<<<<
@@ -3933,18 +3867,18 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
     ++__pyx_t_5;
     __pyx_v_p = __pyx_t_6;
 
-    /* "astar.pyx":171
+    /* "astar.pyx":165
  *         ret = []
  *         for p in path:
  *             ret.append((p.first * 0.01, (<int>(p.second) - 149) * 0.01))             # <<<<<<<<<<<<<<
  *         return ret
  * 
  */
-    __pyx_t_1 = PyFloat_FromDouble((__pyx_v_p.first * 0.01)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 171, __pyx_L1_error)
+    __pyx_t_1 = PyFloat_FromDouble((__pyx_v_p.first * 0.01)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyFloat_FromDouble(((((int)__pyx_v_p.second) - 0x95) * 0.01)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+    __pyx_t_2 = PyFloat_FromDouble(((((int)__pyx_v_p.second) - 0x95) * 0.01)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 171, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_1);
@@ -3952,10 +3886,10 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
     PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_t_2);
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
-    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_ret, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 171, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_ret, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-    /* "astar.pyx":170
+    /* "astar.pyx":164
  *         path = self.c_astar[0].getPathOnlyIfNeed(True, &is_new_path, path_type)
  *         ret = []
  *         for p in path:             # <<<<<<<<<<<<<<
@@ -3964,7 +3898,7 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
  */
   }
 
-  /* "astar.pyx":172
+  /* "astar.pyx":166
  *         for p in path:
  *             ret.append((p.first * 0.01, (<int>(p.second) - 149) * 0.01))
  *         return ret             # <<<<<<<<<<<<<<
@@ -3976,8 +3910,8 @@ static PyObject *__pyx_pf_5astar_12AStarWrapper_14computePath(struct __pyx_obj_5
   __pyx_r = __pyx_v_ret;
   goto __pyx_L0;
 
-  /* "astar.pyx":154
- *                 self.setWall(199 - i, 150 + j)
+  /* "astar.pyx":148
+ *                 self.setWall(i, 150 + j)
  * 
  *     def computePath(self, p0, p1):             # <<<<<<<<<<<<<<
  *         cdef unsigned x0 = p0[0] * 100
