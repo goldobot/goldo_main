@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 
+
 class NucleoStateUpdater(object):
     def __init__(self, robot):
         self._robot = robot
@@ -12,9 +13,9 @@ class NucleoStateUpdater(object):
         self._broker.registerCallback('nucleo/out/os/task_statistics/uart_comm', self.onUartCommStatsMsg)
         self._broker.registerCallback('nucleo/out/robot/config/load_status', self.onConfigStatusMsg)
         self._broker.registerCallback('nucleo/out/os/task_statistics/uart_comm', self.onUartCommStatsMsg)
-        self._broker.registerCallback('nucleo/out/os/task_statistics/odrive_comm', self.onODriveCommStatsMsg)        
+        self._broker.registerCallback('nucleo/out/os/task_statistics/odrive_comm', self.onODriveCommStatsMsg)
         self._broker.registerCallback('nucleo/out/os/task_statistics/propulsion', self.onPropulsionStatsMsg)
-        self._broker.registerCallback('nucleo/out/propulsion/odrive/statistics', self.onPropulsionODriveStatsMsg)        
+        self._broker.registerCallback('nucleo/out/propulsion/odrive/statistics', self.onPropulsionODriveStatsMsg)
 
         self._last_uart_comm_stats_ts = 0
         self._last_odrive_comm_stats_ts = 0
@@ -28,8 +29,8 @@ class NucleoStateUpdater(object):
         while True:
             await asyncio.sleep(1)
             if not self._heartbeat_received:
-                self._nucleo_proto.connected = False                
-            self._heartbeat_received = False            
+                self._nucleo_proto.connected = False
+            self._heartbeat_received = False
 
     async def onNucleoReset(self):
         self._nucleo_proto.Clear()
@@ -42,7 +43,7 @@ class NucleoStateUpdater(object):
         self._nucleo_proto.connected = True
         self._heartbeat_received = True
         await self._broker.publishTopic('nucleo/in/os/ping', None)
-        #print(self._last_odrive_comm_stats_ts)
+        # print(self._last_odrive_comm_stats_ts)
 
     async def onResetMessage(self, msg):
         await self.onNucleoReset()
@@ -58,12 +59,12 @@ class NucleoStateUpdater(object):
     async def onODriveCommStatsMsg(self, msg):
         self._last_odrive_comm_stats_ts = self._nucleo_proto.heartbeat
         self._nucleo_proto.tasks_statistics.odrive_comm.CopyFrom(msg)
-        
+
     async def onPropulsionODriveStatsMsg(self, msg):
         self._last_odrive_client_stats_ts = self._nucleo_proto.heartbeat
         self._nucleo_proto.odrive.client_statistics.CopyFrom(msg)
         self._nucleo_proto.odrive.synchronized = msg.synchronized
-        
+
     async def onPropulsionStatsMsg(self, msg):
         self._last_propulsionstats_ts = self._nucleo_proto.heartbeat
         self._nucleo_proto.tasks_statistics.propulsion.CopyFrom(msg)

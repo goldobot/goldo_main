@@ -1,5 +1,6 @@
 import pb2 as _pb2
 import google.protobuf as _pb
+
 _sym_db = _pb.symbol_database.Default()
 import asyncio
 import struct
@@ -7,6 +8,7 @@ import math
 import functools
 
 import runpy
+
 
 class ServosCommands:
     def __init__(self, robot):
@@ -23,7 +25,6 @@ class ServosCommands:
         self._robot._broker.registerCallback('nucleo/out/servo/ack', self._onMsgAck)
         self._robot._broker.registerCallback('nucleo/out/servo/status/moving', self._onMsgMoving)
         self._robot._broker.registerCallback('nucleo/out/servo/status/states', self._onServoStates)
-
 
     def loadConfig(self):
         self._servos_ids = {}
@@ -46,12 +47,13 @@ class ServosCommands:
         msg, future = self._create_command_msg('CmdSetEnable', enables=enables)
         await self._robot._broker.publishTopic('nucleo/in/servo/enable/set', msg)
         await future
-        
+
     async def setMaxTorque(self, name_or_servos, torque):
         if isinstance(name_or_servos, (str, bytes)):
             name_or_servos = [name_or_servos]
         ServoTorque = _sym_db.GetSymbol('goldo.nucleo.servos.ServoTorque')
-        torques = [ServoTorque(servo_id=self._servos_ids[name], torque=math.floor(torque * 255)) for name in name_or_servos]
+        torques = [ServoTorque(servo_id=self._servos_ids[name], torque=math.floor(torque * 255)) for name in
+                   name_or_servos]
         msg, future = self._create_command_msg('CmdSetMaxTorques', torques=torques)
         await self._robot._broker.publishTopic('nucleo/in/servo/set_max_torques', msg)
         await future
@@ -59,7 +61,7 @@ class ServosCommands:
     async def move(self, name, position, speed=100):
         await self.moveMultiple({name: position}, speed * 0.01)
 
-    async def moveMultiple(self, servos, speed = 1):
+    async def moveMultiple(self, servos, speed=1):
         speed = int(speed * 0x3ff)
         elts = []
         servos_mask = 0
@@ -69,13 +71,13 @@ class ServosCommands:
             id_ = self._servos_ids[k]
             elts.append(_sym_db.GetSymbol('goldo.nucleo.servos.ServoPosition')(servo_id=id_, position=v))
             servos_mask |= (1 << id_)
-        msg, future = self._create_command_msg('CmdMoveMultiple', speed=speed, positions=elts)        
+        msg, future = self._create_command_msg('CmdMoveMultiple', speed=speed, positions=elts)
 
         await self._robot._broker.publishTopic('nucleo/in/servo/move_multiple', msg)
         await future
         # after the move is started, wait for the servos to stop moving        
         future = self._loop.create_future()
-        self._futures_moving[id(future)] = [future, servos_mask]        
+        self._futures_moving[id(future)] = [future, servos_mask]
         future.add_done_callback(self._remove_future_moving)
 
     async def liftDoHoming(self, id_):
@@ -95,9 +97,9 @@ class ServosCommands:
 
     async def _onMsgMoving(self, msg):
         for e in self._futures_moving.values():
-            if not(msg.value & e[1]):
+            if not (msg.value & e[1]):
                 e[0].set_result(None)
-                
+
     async def _onServoStates(self, msg):
         for i, s in enumerate(msg.servos):
             self._states_proto[self._servos_names[i]].CopyFrom(s)
@@ -109,7 +111,7 @@ class ServosCommands:
 
     def _remove_future(self, id_, future):
         self._futures.pop(id_, None)
-        
+
     def _remove_future_moving(self, future):
         self._futures_moving.pop(id(future), None)
 

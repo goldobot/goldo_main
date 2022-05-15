@@ -4,6 +4,7 @@ import goldo_main.nucleo.topics._registry as _reg
 import struct
 
 import google.protobuf as _pb
+
 _sym_db = _pb.symbol_database.Default()
 
 _msg_type_struct = struct.Struct('<BBHIi')
@@ -14,13 +15,14 @@ import pb2 as _pb2
 
 __all__ = ['NucleoCodec', 'ProtobufCodec', 'RPLidarCodec']
 
+
 class NucleoCodec:
     def serialize(self, topic, msg):
         msg_type, encoder = _reg._in.get(topic, (None, None))
         if encoder is None:
-             print('error', topic, msg_type)
-             return None
-        return [_msg_type_struct.pack(0,0,msg_type,0,0), encoder(msg)]
+            print('error', topic, msg_type)
+            return None
+        return [_msg_type_struct.pack(0, 0, msg_type, 0, 0), encoder(msg)]
 
     def deserialize(self, payload):
         msg_header, msg_body = payload[:2]
@@ -59,6 +61,7 @@ class ProtobufCodec:
         else:
             return None, None
 
+
 class RPLidarCodec:
     def serialize(self, topic, msg):
         if topic == 'rplidar/in/start':
@@ -68,7 +71,7 @@ class RPLidarCodec:
         if topic == 'rplidar/in/config/theta_offset':
             return [struct.pack('<b', 3), struct.pack('<f', msg.value)]
         if topic == 'rplidar/in/config/distance_tresholds':
-            return [struct.pack('<b', 5), struct.pack('<fff', msg.near,msg.mid,msg.far)]
+            return [struct.pack('<b', 5), struct.pack('<fff', msg.near, msg.mid, msg.far)]
         if topic == 'rplidar/in/robot_pose':
             return [struct.pack('<b', 4), struct.pack('<fff', msg.position.x, msg.position.y, msg.yaw)]
         if topic == 'rplidar/in/config/autotest_enable':
@@ -81,25 +84,24 @@ class RPLidarCodec:
         msg_type = struct.unpack('<B', payload[0])[0]
         if msg_type == 1:
             msg = _sym_db.GetSymbol('goldo.common.geometry.PointCloud')(
-                num_points=len(payload[2])//8,
+                num_points=len(payload[2]) // 8,
                 data=payload[2])
             return 'rplidar/out/scan', msg
         if msg_type == 2:
             vals = _lidar_detection_message_struct.unpack(payload[1])
             msg = _sym_db.GetSymbol('goldo.rplidar.RobotDetection')(
-                timestamp_ms = vals[0],
-                id = vals[1],
-                x = vals[2] * 0.25e-3,
-                y = vals[3] * 0.25e-3,
-                vx = vals[4] * 1e-3,
-                vy = vals[5] * 1e-3,
-                ax = vals[6] * 1e-3,
-                ay = vals[7] * 1e-3,
-                detect_quality = vals[8]
-                )
+                timestamp_ms=vals[0],
+                id=vals[1],
+                x=vals[2] * 0.25e-3,
+                y=vals[3] * 0.25e-3,
+                vx=vals[4] * 1e-3,
+                vy=vals[5] * 1e-3,
+                ax=vals[6] * 1e-3,
+                ay=vals[7] * 1e-3,
+                detect_quality=vals[8]
+            )
             return 'rplidar/out/robot_detection', msg
         if msg_type == 42:
             msg = _pb2.deserialize('goldo.rplidar.Zones', payload[1])
             return 'rplidar/out/detections', msg
         return None, None
-

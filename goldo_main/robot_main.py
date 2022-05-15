@@ -5,19 +5,20 @@ _sym_db = _pb.symbol_database.Default()
 import asyncio
 import math
 from pathlib import Path
-from .robot_commands import RobotCommands
+
+from .commands import RobotCommands
 from .commands import PropulsionCommands
 from .commands import ServosCommands
 from .commands import LidarCommands
 from .commands import ODriveCommands
-from .commands.camera import CameraCommands
-from .commands.scope_commands import ScopeCommands
+from .commands import CameraCommands
+from .commands import ScopeCommands
 
-from .commands.propulsion_commands import PropulsionError
+from .commands import PropulsionError
 
-from .sensors_state import SensorsState
+from .services import SensorsState
 from .nucleo.state_updater import NucleoStateUpdater
-from .rplidar_updater import RPLidarUpdater
+from .services import RPLidarUpdater
 from .enums import *
 from .strategy import StrategyEngine
 from . import sequences_importer
@@ -31,6 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 MATCH_DURATION = 100
 
+
 class RobotExceptions(object):
     PropulsionError = PropulsionError
 
@@ -40,7 +42,7 @@ class RobotMain:
         self._sequences[func.__name__] = func
         return func
 
-    def loadConfig(self, config_path : Path):
+    def loadConfig(self, config_path: Path):
         self._sequences = {}
         config = _pb2.get_symbol('goldo.robot.RobotConfig')()
         config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
@@ -49,10 +51,9 @@ class RobotMain:
         self._config_proto = config
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
-        self._strategy_engine.loadConfig()
         self.propulsion.loadConfig()
 
-        #import all sequences
+        # import all sequences
         sequences_importer.meta_finder.unload_all()
         sequences_path = config_path / 'sequences'
         sequences_importer.meta_finder.sequences_path = sequences_path
@@ -125,38 +126,44 @@ class RobotMain:
 
     async def configNucleo(self, msg=None):
         """Upload the nucleo board configuration."""
-        #if self._current_task is not None:
-            #self._current_task.cancel()
+        # if self._current_task is not None:
+        # self._current_task.cancel()
         from .nucleo import compile_config
 
         buff, crc = compile_config(self._config_proto)
 
-        await self._broker.publishTopic('nucleo/in/robot/config/load_begin', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadBegin')(size=len(buff)))
-        #Upload codes by packets
+        await self._broker.publishTopic('nucleo/in/robot/config/load_begin',
+                                        _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadBegin')(size=len(buff)))
+        # Upload codes by packets
         while len(buff) > 0:
-            await self._broker.publishTopic('nucleo/in/robot/config/load_chunk', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadChunk')(data=buff[0:32]))
+            await self._broker.publishTopic('nucleo/in/robot/config/load_chunk',
+                                            _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadChunk')(data=buff[0:32]))
             buff = buff[32:]
-        #Finish programming
-        await self._broker.publishTopic('nucleo/in/robot/config/load_end', _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=crc))
+        # Finish programming
+        await self._broker.publishTopic('nucleo/in/robot/config/load_end',
+                                        _sym_db.GetSymbol('goldo.nucleo.robot.ConfigLoadEnd')(crc=crc))
 
         await asyncio.sleep(1)
 
-        msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(value = self._config_proto.rplidar.theta_offset * math.pi / 180)
+        msg = _sym_db.GetSymbol('google.protobuf.FloatValue')(
+            value=self._config_proto.rplidar.theta_offset * math.pi / 180)
         await self._broker.publishTopic('rplidar/in/config/theta_offset', msg)
         await self._broker.publishTopic('rplidar/in/config/distance_tresholds', self._config_proto.rplidar.tresholds)
 
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
-        await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable', _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode) )
+        await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable',
+                                        _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode))
 
     def onNucleoReset(self):
         self._match_state = MatchState.Idle
         self._state_proto.match_state = self._match_state
-        #if self._current_task is not None:
-            #self._current_task.cancel()
+        # if self._current_task is not None:
+        # self._current_task.cancel()
 
     async def logMessage(self, message, *args):
         print(message.format(*args))
-        await self._broker.publishTopic('main/log/message', _sym_db.GetSymbol('google.protobuf.StringValue')(value=message.format(*args)))
+        await self._broker.publishTopic('main/log/message',
+                                        _sym_db.GetSymbol('google.protobuf.StringValue')(value=message.format(*args)))
 
     async def onConfigStatus(self, msg):
         await self._broker.publishTopic('gui/in/nucleo_config_status', msg)
@@ -168,8 +175,8 @@ class RobotMain:
         if self._current_task is not None:
             self._current_task.cancel()
 
-            #return
-        LOGGER.info("prematch started, side = {}".format({0: 'unset', 1: 'purple', 2:'yellow'}[self.side]))
+            # return
+        LOGGER.info("prematch started, side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
         self._match_state = MatchState.PreMatch
         self._state_proto.match_state = self._match_state
 
@@ -213,16 +220,6 @@ class RobotMain:
         LOGGER.info('match end')
         return
 
-
-    async def onCameraDetections(self, msg):
-        for d in msg.detections:
-            if d.tag_id == 17:
-                # south up
-                if d.uy > 0:
-                    self._last_girouette = 's'
-                else:
-                    self._last_girouette = 'n'
-
     async def startMatch(self):
         if self._current_task is not None:
             return
@@ -231,7 +228,8 @@ class RobotMain:
         await self._broker.publishTopic('nucleo/in/match/timer/start')
         self.match_timer = 100
         self._state_proto.match_timer = self.match_timer
-        await self._broker.publishTopic('gui/in/match_state', _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
+        await self._broker.publishTopic('gui/in/match_state',
+                                        _sym_db.GetSymbol('google.protobuf.Int32Value')(value=self._match_state))
         LOGGER.info('match started')
 
         self._current_task = asyncio.create_task(self._matchSequence())
@@ -269,7 +267,7 @@ class RobotMain:
 
     async def onSetSide(self, msg):
         self.side = msg.value
-        LOGGER.info("onSetSide(): side = {}".format({0: 'unset', 1: 'purple', 2:'yellow'}[self.side]))
+        LOGGER.info("onSetSide(): side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
 
     async def onTestAstar(self, msg):
         LOGGER.info('RobotMain: onTestAstar()')

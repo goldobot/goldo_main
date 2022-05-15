@@ -1,5 +1,6 @@
 import pb2 as _pb2
 import google.protobuf as _pb
+
 _sym_db = _pb.symbol_database.Default()
 import asyncio
 import struct
@@ -8,6 +9,7 @@ import functools
 
 import runpy
 
+
 class CameraCommands:
     def __init__(self, robot):
         self._robot = robot
@@ -15,20 +17,18 @@ class CameraCommands:
         self._futures = {}
         self._sequence_number = 0
         self._future_girouette = None
-        
+
         self._robot._broker.registerCallback('camera/out/detections', self._onMsgDetections)
 
-
-    async def captureGirouette(self):        
+    async def captureGirouette(self):
         future = self._loop.create_future()
         self._futures[id(future)] = future
         future.add_done_callback(self._remove_future)
         self._future_girouette = future
-        
-        await self._robot._broker.publishTopic('camera/in/capture/girouette', None)
-        return await future        
 
-        
+        await self._robot._broker.publishTopic('camera/in/capture/girouette', None)
+        return await future
+
     async def _onMsgDetections(self, msg):
         if self._future_girouette is not None:
             res = 'unknown'
@@ -40,6 +40,6 @@ class CameraCommands:
                         res = 'north'
             self._future_girouette.set_result(res)
             self._future_girouette = None
-                
+
     def _remove_future(self, future):
         self._futures.pop(id(future))

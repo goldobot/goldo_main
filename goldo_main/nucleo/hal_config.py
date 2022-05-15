@@ -2,13 +2,13 @@ import struct
 from google.protobuf.json_format import MessageToDict
 
 gpio_port_nums = {
-   'PA': 0,
-   'PB': 1,
-   'PC': 2,
-   'PD': 3,
-   'PE': 4,
-   'PF': 5
-   }
+    'PA': 0,
+    'PB': 1,
+    'PC': 2,
+    'PD': 3,
+    'PE': 4,
+    'PF': 5
+}
 
 periph_names = [
     'GPIO',
@@ -35,7 +35,7 @@ periph_names = [
     'USART3',
     'UART4',
     'UART5'
-    ]
+]
 
 periph_num = {}
 i = 1
@@ -44,24 +44,27 @@ for pn in periph_names:
     periph_num[pn] = i
     i += 1
 
+
 class DeviceType:
-   Gpio = 1
-   Timer = 2
-   Pwm = 3
-   Encoder = 4
-   Uart = 5
-   I2c = 6
-   Spi = 7
+    Gpio = 1
+    Timer = 2
+    Pwm = 3
+    Encoder = 4
+    Uart = 5
+    I2c = 6
+    Spi = 7
+
 
 def align_buffer(buff):
     k = len(buff) % 8
     if k == 0:
         return buff
     else:
-        return buff + b'\0' * (8-k)
+        return buff + b'\0' * (8 - k)
+
 
 class PinConfig:
-    def __init__(self, pin_name = None):
+    def __init__(self, pin_name=None):
         if pin_name not in [None, '']:
             self.port = gpio_port_nums[pin_name[0:2]]
             self.pin = int(pin_name[2:])
@@ -72,12 +75,14 @@ class PinConfig:
     def compile(self):
         return struct.pack('<BB', self.port, self.pin)
 
+
 class DeviceConfig:
     def __init__(self, config_dict):
         self.device_id = periph_num[config_dict.get('device', 'GPIO')]
 
+
 class GpioConfig(DeviceConfig):
-    def __init__(self, config_dict = None):
+    def __init__(self, config_dict=None):
         self.id = config_dict['id']
         self.pin = PinConfig(config_dict['pin'])
         self.dir = {'IN': 0, 'OUT_PP': 1, 'OUT_OD': 2}[config_dict['mode']]
@@ -89,6 +94,7 @@ class GpioConfig(DeviceConfig):
         buff += struct.pack('<BB', self.id, self.dir) + self.pin.compile()
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
+
 
 class TimerConfig(DeviceConfig):
     def __init__(self, config_dict):
@@ -102,6 +108,7 @@ class TimerConfig(DeviceConfig):
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
 
+
 class PwmConfig(DeviceConfig):
     def __init__(self, config_dict):
         super().__init__(config_dict)
@@ -113,9 +120,11 @@ class PwmConfig(DeviceConfig):
 
     def compile(self):
         buff = struct.pack('<BB', DeviceType.Pwm, self.device_id)
-        buff += struct.pack('<BB', self.id, self.channel) + self.pin.compile() + self.n_pin.compile() + self.dir_pin.compile()
+        buff += struct.pack('<BB', self.id,
+                            self.channel) + self.pin.compile() + self.n_pin.compile() + self.dir_pin.compile()
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
+
 
 class EncoderConfig(DeviceConfig):
     def __init__(self, config_dict):
@@ -143,18 +152,19 @@ class EncoderConfig(DeviceConfig):
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
 
+
 class IODeviceConfig(DeviceConfig):
     def __init__(self, config_dict):
         super().__init__(config_dict)
         self.id = config_dict['id']
         self.rx_buffer_size = config_dict.get('rx_buffer_size', 0)
-        self.tx_buffer_size = config_dict.get('tx_buffer_size', 0)        
+        self.tx_buffer_size = config_dict.get('tx_buffer_size', 0)
         self.rx_blocking = config_dict.get('rx_blocking', False)
         self.tx_blocking = config_dict.get('tx_blocking', False)
         self.rx_dma = config_dict.get('rx_dma', False)
         self.tx_dma = config_dict.get('tx_dma', False)
-        
-    @property   
+
+    @property
     def io_flags(self):
         flags = 0
         if self.rx_blocking:
@@ -166,7 +176,8 @@ class IODeviceConfig(DeviceConfig):
         if self.tx_dma:
             flags |= 0x08
         return flags
-        
+
+
 class UsartConfig(IODeviceConfig):
     def __init__(self, config_dict):
         super().__init__(config_dict)
@@ -183,6 +194,7 @@ class UsartConfig(IODeviceConfig):
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
 
+
 class I2cConfig(IODeviceConfig):
     def __init__(self, config_dict):
         super().__init__(config_dict)
@@ -197,6 +209,7 @@ class I2cConfig(IODeviceConfig):
         buff += struct.pack('<I', self.timing)
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
+
 
 class SpiConfig(IODeviceConfig):
     def __init__(self, config_dict):
@@ -218,6 +231,7 @@ class SpiConfig(IODeviceConfig):
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
 
+
 class CanConfig(DeviceConfig):
     def __init__(self, config_dict):
         super().__init__(config_dict)
@@ -230,9 +244,10 @@ class CanConfig(DeviceConfig):
         buff = struct.pack('<H', len(buff) + 2) + buff
         return buff
 
+
 class HALConfig:
     def __init__(self, config_proto):
-        config_dict = MessageToDict(config_proto, including_default_value_fields =True, preserving_proto_field_name=True)
+        config_dict = MessageToDict(config_proto, including_default_value_fields=True, preserving_proto_field_name=True)
         self.gpio = [GpioConfig(v) for v in config_dict.get('gpio', [])]
         self.timer = [TimerConfig(v) for v in config_dict.get('timer', [])]
         self.pwm = [PwmConfig(v) for v in config_dict.get('pwm', [])]
@@ -240,7 +255,7 @@ class HALConfig:
         self.usart = [UsartConfig(v) for v in config_dict.get('uart', [])]
         self.i2c = [I2cConfig(v) for v in config_dict.get('i2c', [])]
         self.spi = [SpiConfig(v) for v in config_dict.get('spi', [])]
-        #self.can = [CanConfig(v) for v in config_dict.get('can', [])]
+        # self.can = [CanConfig(v) for v in config_dict.get('can', [])]
 
     def compile(self):
         config_buffers = []
@@ -270,19 +285,19 @@ class HALConfig:
             config_buffers.append(buffer)
             config_buffer_offsets.append(offset)
             offset += len(buffer)
-            
+
         for p in self.usart:
             buffer = align_buffer(p.compile())
             config_buffers.append(buffer)
             config_buffer_offsets.append(offset)
             offset += len(buffer)
-            
+
         for p in self.i2c:
             buffer = align_buffer(p.compile())
             config_buffers.append(buffer)
             config_buffer_offsets.append(offset)
             offset += len(buffer)
-            
+
         for p in self.spi:
             buffer = align_buffer(p.compile())
             config_buffers.append(buffer)
@@ -295,9 +310,8 @@ class HALConfig:
             start_offset += 8 - (start_offset % 8)
         buff = struct.pack('<H', len(config_buffers))
         for cbo in config_buffer_offsets:
-            buff += struct.pack('<H',start_offset + cbo)
+            buff += struct.pack('<H', start_offset + cbo)
         buff += b'\0' * (start_offset - len(buff))
         for cb in config_buffers:
             buff += cb
         return buff
-

@@ -1,6 +1,3 @@
-
-
-
 # Full config format:
 # Offsets table
 # hal config offset
@@ -18,7 +15,8 @@ def align_buffer(buff):
     if k == 0:
         return buff
     else:
-        return buff + b'\0' * (8-k)
-        
+        return buff + b'\0' * (8 - k)
+
+
 def compile_nucleo_config(config):
     return buff, crc

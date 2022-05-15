@@ -2,6 +2,7 @@ from .hal_config import HALConfig
 import pb2
 import struct
 
+
 def compute_crc(buffer):
     crc = 0
     for b in buffer:
@@ -10,12 +11,14 @@ def compute_crc(buffer):
         crc = ((crc << 8) ^ (x << 12) ^ (x << 5) ^ x) & 0xffff;
     return crc
 
+
 def align_buffer(buff):
     k = len(buff) % 8
     if k == 0:
         return buff
     else:
-        return buff + b'\0' * (8-k)
+        return buff + b'\0' * (8 - k)
+
 
 class BufferBuilder(object):
     def __init__(self):
@@ -34,11 +37,13 @@ class BufferBuilder(object):
         if header_padding > 0:
             header_padding = 8 - header_padding
         base_offset = header_size + header_padding
-        header = struct.pack('H', len(self.sections)) + b''.join([struct.pack('HH', s[0], s[1] + base_offset) for s in self.sections])
+        header = struct.pack('H', len(self.sections)) + b''.join(
+            [struct.pack('HH', s[0], s[1] + base_offset) for s in self.sections])
         header = header + b'\0' * header_padding
         print(len(header))
         binary = header + self.buff
         return binary, compute_crc(binary)
+
 
 class ConfigSection:
     Hal = 0
@@ -51,38 +56,44 @@ class ConfigSection:
     PropulsionTask = 7
     TasksEnable = 8
     Lifts = 9
-    
+
+
 task_ids = {
     'propulsion': 0,
     'odrive_comm': 1,
     'servos': 2,
     'dynamixels_comm': 3,
     'fpga': 4
-    }
-    
+}
+
+
 def _make_tasks_enable_flags(proto):
     flags = 0
     for task in proto.nucleo.enabled_tasks:
         flags |= 1 << task_ids[task]
     return flags
-    
+
+
 def _compile_sensors(proto):
     buff = struct.pack('<B', len(proto))
     for s in proto:
         buff = buff + struct.pack('<BB', s.type, s.id)
     return buff
-    
+
+
 def _compile_servos(proto):
     buff = struct.pack('<H', len(proto))
     for s in proto:
         buff = buff + pb2.serialize(s)
     return buff
-    
+
+
 def _compile_lifts(proto):
     buff = struct.pack('<I', len(proto))
     for s in proto:
         buff = buff + pb2.serialize(s)
     return buff
+
 
 def compile_config(proto):
     builder = BufferBuilder()
@@ -99,4 +110,3 @@ def compile_config(proto):
     builder.push_section(ConfigSection.TasksEnable, struct.pack('I', _make_tasks_enable_flags(proto)))
 
     return builder.compile()
-

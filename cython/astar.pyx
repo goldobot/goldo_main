@@ -1,14 +1,16 @@
 # distutils: language = c++
 # cython: language_level=3
 
+from libc.math cimport floor, ceil
+
 from libcpp.list cimport list
 from libcpp.pair cimport pair
 from libcpp cimport bool
+
 from cpython.bytes cimport PyBytes_FromStringAndSize
+from cpython cimport array
 
-
-
-from AStar cimport AStar, AStarPathType
+from AStar cimport AStar, NodeType, AStarPathType
 
 cdef (float, float) Point
 
@@ -18,132 +20,31 @@ cdef class AStarWrapper:
     
     def __cinit__(self):
         self.c_astar = new AStar()
-        self.c_astar[0].setMatrix(200,300)
+        self.c_astar[0].setMatrix(200,300)        
         
-    def setSquare(self, p, r):
+    def fillDisk(self, p, r, c):
         cdef float xf = 100.0*p[0]
-        cdef float yf = 100.0*p[1]
-        cdef int x0 = xf - r
-        cdef int y0 = yf + 149 - r
-        cdef int x1 = xf + r
-        cdef int y1 = yf + 149 + r
-        if x0 < 0:
-            x0 = 0
-        if x1 < 0:
-            x1 = 0
-        if x0 > 199:
-            x0 = 199
-        if x1 > 199:
-            x1 = 199
-        if y0 < 0:
-            y0 = 0
-        if y1 < 0:
-            y1 = 0
-        if y0 > 299:
-            y0 = 299
-        if y1 > 299:
-            y1 = 299
-        for x in range(x0, x1):
-            for y in range(y0, y1):
-                self.setWall(x, y)
+        cdef float yf = 100.0*p[1] + 149
+        cdef NodeType node_type = NodeType.WALLNODE if c==0 else NodeType.WAYNODE
+        self.c_astar[0].fillDisk(xf, yf,r*100.0,node_type,c)
+
+    def fillRect(self, p1, p2, c):    
+        cdef NodeType node_type = NodeType.WALLNODE if c==0 else NodeType.WAYNODE        
+        cdef int ix1 = int(floor(100.0*p1[0]))
+        cdef int iy1 = int(floor(100.0*p1[1] + 149))
+        cdef int ix2 = int(ceil(100.0*p2[0]))
+        cdef int iy2 = int(ceil(100.0*p2[1] + 149))
+        self.c_astar[0].fillRect(ix1,iy1,ix2,iy2,node_type,c)
         
-    def setDisk(self, p, r):
-        cdef float xf = 100.0*p[0]
-        cdef float yf = 100.0*p[1]
-        cdef int x0 = xf - r
-        cdef int y0 = yf + 149 - r
-        cdef int x1 = xf + r
-        cdef int y1 = yf + 149 + r
-        cdef int wtf = 0
-        cdef int xC = x0 + r
-        cdef int yC = y0 + r
-        if x0 < 0:
-            x0 = 0
-        if x1 < 0:
-            x1 = 0
-        if x0 > 199:
-            x0 = 199
-        if x1 > 199:
-            x1 = 199
-        if y0 < 0:
-            y0 = 0
-        if y1 < 0:
-            y1 = 0
-        if y0 > 299:
-            y0 = 299
-        if y1 > 299:
-            y1 = 299
-        for x in range(x0, x1):
-            for y in range(y0, y1):
-                dx = x-xC
-                dy = y-yC
-                if ((dx*dx+dy*dy)<r*r):
-                    self.setWall(x, y)
-
-
-    def fillRect(self, int x1, int y1, int x2, int y2):
-        cdef int x, y
-        if x1 < 0:
-            x1 = 0
-        if x2 > 199:
-            x2 = 199
-        if y1 < 0:
-            y1 = 0
-        if y2 > 299:
-            y2 = 299
-        for x in range(x1, x2):
-            for y in range(y1, y2):
-                self.setWall(x, y)
-                
-    def clearRect(self, int x1, int y1, int x2, int y2):
-        cdef int x, y
-        if x1 < 0:
-            x1 = 0
-        if x2 > 199:
-            x2 = 199
-        if y1 < 0:
-            y1 = 0
-        if y2 > 299:
-            y2 = 299
-        for x in range(x1, x2):
-            for y in range(y1, y2):
-                self.setWay(x, y)
+    def fillPoly(self, pts, c):
+        cdef NodeType node_type = NodeType.WALLNODE if c==0 else NodeType.WAYNODE        
+        cdef array.array x = array.array('f', [100.0*p[0] for p in pts])
+        cdef array.array y = array.array('f', [100.0*p[1] + 149 for p in pts])        
+        self.c_astar[0].fillPoly(x.data.as_floats,y.data.as_floats,len(pts),node_type,c)
         
     def getArr(self):
-        return PyBytes_FromStringAndSize(self.c_arr, 200 * 300)
-        
-    cdef setWall(self, unsigned x, unsigned y):
-        self.c_astar[0].setWall(x, y)
-        self.c_arr[y + x * 300] = 128
-        
-    cdef setWay(self, unsigned x, unsigned y):
-        self.c_astar[0].setWay(x, y, 1)
-        self.c_arr[y + x * 300] = 255
-        
-        
-    def resetCosts(self):
-        cdef int x, y
-        cdef int i, j
-        
-        for x in range(200):
-            for y in range(300):
-                self.setWay(x, y)
-                
-        for x in range(200):
-            for j in range(15):
-                self.setWall(x,j)
-                self.setWall(x,299 - j)
-                
-        for y in range(300):
-            for i in range(15):
-                self.setWall(i,y)
-                self.setWall(199 - i,y)
-                
-        # rochers
-        for i in range(25):
-            for j in range(15):
-                self.setWall(i, 150 - j)
-                self.setWall(i, 150 + j)
+        self.c_astar[0].getDebugArr(self.c_arr, 200 * 300)
+        return PyBytes_FromStringAndSize(self.c_arr, 200 * 300)        
         
     def computePath(self, p0, p1):
         cdef unsigned x0 = p0[0] * 100

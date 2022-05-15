@@ -1,5 +1,8 @@
 #include "astar.hpp"
 
+#include <vector>
+#include <algorithm>
+
 SearchNode::SearchNode()
 {
     type = WAYNODE;
@@ -427,6 +430,7 @@ void AStar::search(bool saveChanges)
         x = matrix[node.first][node.second].originX;
         y = matrix[node.first][node.second].originY;
     }
+    
 
 
     // Last check when smoothing the path
@@ -439,6 +443,7 @@ void AStar::search(bool saveChanges)
             //The start node is not in line sight, so save the last node as last smooth node
             m_smoothPath.push_front(lastNode);
         }
+        m_smoothPath.push_front(start);
     }
 
     // Add intermediate point to avoid risk of collision
@@ -509,6 +514,159 @@ void AStar::setWay(UINT x, UINT y, UINT expandCost)
     matrix[x][y].expandCost = expandCost;
 }
 
+void AStar::clipPoint(int& x, int& y) const
+{
+    if(x < 0) 
+      x = 0;
+    if(!(x < width)) 
+      x = width - 1;
+    if(y < 0) 
+      y = 0;
+    if(y >= height) 
+      y = height - 1;  
+}
+
+void AStar::setNode(UINT x, UINT y, NodeType type, UINT expandCost) 
+{
+    if		(matrix == NULL)			return;
+    else if	(x > width || y > height)	return;
+
+    matrix[x][y].type = type;
+    matrix[x][y].expandCost = expandCost;    
+};
+
+void AStar::fillDisk(float x, float y, float r, NodeType type, UINT expandCost)
+{  
+    if(r < 0)
+        return;
+    int x0 = static_cast<int>(std::floor(x - r));
+    int y0 = static_cast<int>(std::floor(y - r));
+    int x1 = static_cast<int>(std::ceil(x + r) + 1);
+    int y1 = static_cast<int>(std::ceil(y + r) + 1);
+    
+    clipPoint(x0,y0);
+    clipPoint(x1,y1);  
+    
+    for(unsigned ix=x0; ix < x1; ix++) 
+    {
+        for(unsigned iy=y0; iy < y1; iy++) 
+        {
+            float dx = ix - x;
+            float dy = iy - y;
+            if((dx * dx + dy * dy) < r * r)
+                setNode(ix, iy, type, expandCost);            
+        }
+    }
+}
+
+void AStar::fillRect(int x1, int y1, int x2, int y2, NodeType type, UINT expandCost)
+{
+    clipPoint(x1,y1);
+    clipPoint(x2,y2);
+    
+    for(unsigned ix=x1; ix <= x2; ix++) 
+    {
+        for(unsigned iy=y1; iy <= y2; iy++) 
+        {
+            setNode(ix, iy, type, expandCost);            
+        }
+    }
+}
+
+bool scanlineIntersection(float x1, float y1, float x2, float y2, float x, float& y_int)
+{
+    if(y1 == y2)
+    {
+        if(x > x1 && x > x2)
+            return false;
+        if(x < x1 && x < x2)
+            return false;
+        y_int = y1;
+        return true;
+    }
+          
+    if(fabsf(x2 - x1) >= std::numeric_limits<float>::epsilon())
+    {
+        float y = (x-x1)*(y2-y1)/(x2-x1);
+        if(y > y1 && y > y2)
+            return false;
+        if(y < y1 && y < y2)
+            return false;
+        y_int = y;
+        return true;
+    } else 
+    {
+      return false;
+    }; 
+}
+
+#include <iostream>
+
+void AStar::fillPoly(float* pts_x,float* pts_y, UINT num_pts, NodeType type, UINT expandCost)
+{
+    if(num_pts == 0)
+        return;
+    float x_min = pts_x[0];
+    float x_max = pts_x[0];
+    
+    for(unsigned i=0; i < num_pts; i++)
+    {
+        if(pts_x[i] > x_max)
+            x_max = pts_x[i];
+        if(pts_x[i] < x_min)
+            x_min = pts_x[i];
+    }
+    int x1 = static_cast<int>(std::floor(x_min));
+    int x2 = static_cast<int>(std::ceil(x_max) + 1);
+    
+    int x_dummy = 0;
+    int y_dummy = 0;
+    
+    clipPoint(x1,y_dummy);
+    clipPoint(x2,y_dummy);
+    
+    for(int x=x1; x<x2; x++)
+    {
+        float y_min= 100;
+        float y_max = -100;
+        std::cout << "scanline " << x << "\n";
+        for(unsigned i=0; i<num_pts; i++)
+        {
+            float y = 0;
+            unsigned j = i+1;
+            if(j == num_pts)
+                j = 0;
+            std::cout << "segment " << pts_x[i] << " " << pts_y[i] << " " << pts_x[j] << " " << pts_y[j] << "\n";
+            
+            if(scanlineIntersection(pts_x[i], pts_y[i], pts_x[j], pts_y[j], x, y))
+            {                
+                if(y < y_min)
+                    y_min = y;
+                if(y > y_max)
+                  y_max = y; 
+                std::cout << y << "\n";
+            };            
+        };
+       std::cout << y_min << " " << y_max << "\n";
+       if(y_min > y_max)
+          continue;
+        
+      int y1 =  static_cast<int>(std::floor(y_min));     
+      int y2 =  static_cast<int>(std::ceil(y_max));
+      
+      clipPoint(x_dummy,y1);
+      clipPoint(x_dummy,y2);
+    
+      for(int y=y1;y<=y2;y++)
+      {
+        setNode(x, y, type, expandCost);        
+      };
+    };
+    
+    
+}    
+  
+
 void AStar::setHeuristics(AStarHeuristics heuristic)
 {
     if (heuristic >= none && heuristic <= newH)
@@ -554,6 +712,20 @@ pair<UINT, UINT> AStar::getStart() const
 pair<UINT, UINT> AStar::getEnd() const
 {
     return end;
+}
+
+bool AStar::getDebugArr(char* arr, UINT size) const
+{
+    if(size < width * height)
+        return false;
+    for(unsigned ix = 0; ix < width; ix++)
+    {
+        for(unsigned iy = 0; iy < height; iy++)
+        {            
+            arr[iy + ix * height] = matrix[ix][iy].type == WALLNODE ? 0 : 255;
+        }
+    }
+    return true;  
 }
 
 

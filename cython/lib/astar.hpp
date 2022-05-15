@@ -42,7 +42,8 @@ class AStar
 
     void AddMargin();
     bool NeedAddMargin(int x0, int y0, int x1, int y1, int *newX, int *newY);
-    bool HasNeighbour(int x, int y, int *avoidNeighbourX, int *avoidNeighbourY);
+    bool HasNeighbour(int x, int y, int *avoidNeighbourX, int *avoidNeighbourY);   
+    
 
 public:
 
@@ -56,6 +57,16 @@ public:
     void setWall(UINT x, UINT y);
     void setWay(UINT x, UINT y, UINT expandCost = 1);
     void setHeuristics(AStarHeuristics heuristic);
+    
+    void clipPoint(int& x, int& y) const;
+    
+    void setNode(UINT x, UINT y, NodeType type, UINT expandCost= 1);
+    
+    void fillDisk(float x, float y, float r, NodeType type, UINT expandCost= 1);
+    void fillRect(int x1, int y1, int x2, int y2, NodeType type, UINT expandCost= 1);
+    void fillPoly(float* pts_x,float* pts_y, UINT num_pts, NodeType type, UINT expandCost= 1);
+    
+    
 
     void search(bool saveChanges = false);
 
@@ -63,6 +74,7 @@ public:
     pair<UINT, UINT> getStart() const;
     pair<UINT, UINT> getEnd() const;
     list<list<NodeState> > getChanges() const;
+    bool getDebugArr(char* arr, UINT size) const;
 
     double estimateCost(UINT x1, UINT y1, UINT x2, UINT y2);
 

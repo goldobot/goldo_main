@@ -36,13 +36,16 @@ def watchdog_state(payload):
 @nucleo_out('os/tasks_stats', 6)
 def os_tasks_stats(payload):
     items = []
-    for i in range(len(payload)//24):
-        name, runtime_counter, stack_wm, task_number = struct.unpack('<16sIHH', payload[i*24:(i+1)*24])
-        items.append(_sym_db.GetSymbol('goldo.nucleo.FreeRTOSTaskStats')(
-            task_name=name.strip(b'\x00').decode('utf8'),
-            runtime_counter=runtime_counter,
-            task_number=task_number
-            ))
+    try:
+        for i in range(len(payload)//24):
+            name, runtime_counter, stack_wm, task_number = struct.unpack('<16sIHH', payload[i*24:(i+1)*24])
+            items.append(_sym_db.GetSymbol('goldo.nucleo.FreeRTOSTaskStats')(
+                task_name=name.strip(b'\x00').decode('utf8'),
+                runtime_counter=runtime_counter,
+                task_number=task_number
+                ))
+    except:
+        pass
     return _sym_db.GetSymbol('goldo.nucleo.FreeRTOSTasksStats')(tasks=items)
     
 @nucleo_out('os/dbg_trace', 7)
