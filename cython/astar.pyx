@@ -21,7 +21,7 @@ cdef class AStarWrapper:
     def __cinit__(self):
         self.c_astar = new AStar()
         self.c_astar[0].setMatrix(200,300)        
-        
+
     def fillDisk(self, p, r, c):
         cdef float xf = 100.0*p[0]
         cdef float yf = 100.0*p[1] + 149
@@ -46,6 +46,16 @@ cdef class AStarWrapper:
         self.c_astar[0].getDebugArr(self.c_arr, 200 * 300)
         return PyBytes_FromStringAndSize(self.c_arr, 200 * 300)        
         
+    cdef setWall(self, unsigned x, unsigned y):
+        self.c_astar[0].setWall(x, y)
+        
+    cdef setWay(self, unsigned x, unsigned y):
+        self.c_astar[0].setWay(x, y, 1)
+        
+    def resetCosts(self):
+        # background
+        self.fillRect((0, -1.5), (2.0, 1.5), 1)
+
     def computePath(self, p0, p1):
         cdef unsigned x0 = p0[0] * 100
         cdef unsigned y0 = p0[1] * 100 + 149
@@ -65,5 +75,4 @@ cdef class AStarWrapper:
         for p in path:
             ret.append((p.first * 0.01, (<int>(p.second) - 149) * 0.01))
         return ret
-        
-    
+

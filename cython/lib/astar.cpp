@@ -518,11 +518,11 @@ void AStar::clipPoint(int& x, int& y) const
 {
     if(x < 0) 
       x = 0;
-    if(!(x < width)) 
+    if(!((unsigned int)x < width)) 
       x = width - 1;
     if(y < 0) 
       y = 0;
-    if(y >= height) 
+    if((unsigned int)y >= height) 
       y = height - 1;  
 }
 
@@ -547,9 +547,9 @@ void AStar::fillDisk(float x, float y, float r, NodeType type, UINT expandCost)
     clipPoint(x0,y0);
     clipPoint(x1,y1);  
     
-    for(unsigned ix=x0; ix < x1; ix++) 
+    for(unsigned ix=x0; ix < (unsigned int)x1; ix++) 
     {
-        for(unsigned iy=y0; iy < y1; iy++) 
+        for(unsigned iy=y0; iy < (unsigned int)y1; iy++) 
         {
             float dx = ix - x;
             float dy = iy - y;
@@ -564,9 +564,9 @@ void AStar::fillRect(int x1, int y1, int x2, int y2, NodeType type, UINT expandC
     clipPoint(x1,y1);
     clipPoint(x2,y2);
     
-    for(unsigned ix=x1; ix <= x2; ix++) 
+    for(unsigned ix=x1; ix <= (unsigned int)x2; ix++) 
     {
-        for(unsigned iy=y1; iy <= y2; iy++) 
+        for(unsigned iy=y1; iy <= (unsigned int)y2; iy++) 
         {
             setNode(ix, iy, type, expandCost);            
         }
@@ -721,8 +721,11 @@ bool AStar::getDebugArr(char* arr, UINT size) const
     for(unsigned ix = 0; ix < width; ix++)
     {
         for(unsigned iy = 0; iy < height; iy++)
-        {            
-            arr[iy + ix * height] = matrix[ix][iy].type == WALLNODE ? 0 : 255;
+        {
+            UINT expandCost = matrix[ix][iy].expandCost;
+            expandCost = expandCost>25?25:expandCost;
+            UINT debugGray = 255-expandCost*10;
+            arr[iy + ix * height] = matrix[ix][iy].type == WALLNODE ? 0 : debugGray;
         }
     }
     return true;  
