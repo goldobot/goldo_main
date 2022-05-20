@@ -4,7 +4,9 @@ import google.protobuf as _pb
 _sym_db = _pb.symbol_database.Default()
 import asyncio
 import math
+import os
 from pathlib import Path
+
 
 from .commands import RobotCommands
 from .commands import PropulsionCommands
@@ -45,6 +47,11 @@ class RobotMain:
     def loadConfig(self, config_path: Path):
         self._sequences = {}
         config = _pb2.get_symbol('goldo.robot.RobotConfig')()
+        if not os.path.exists(config_path / 'robot_config.bin'):
+            warn_msg = "WARNING configuration file '{}' missing".format(config_path / 'robot_config.bin')
+            print (warn_msg)
+            LOGGER.debug(warn_msg)
+            return
         config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
 
         LOGGER.debug('RobotMain.loadConfig from %s', config_path)
