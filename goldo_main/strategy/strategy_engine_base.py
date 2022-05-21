@@ -18,6 +18,8 @@ class MovementState(IntEnum):
     Moving = 1
     # ready
     Ready = 2
+    # has had an error
+    Error = 3
 
 
 class SequenceState(IntEnum):
@@ -28,11 +30,12 @@ class SequenceState(IntEnum):
     # ready
     PrepareFinished = 2
     # in prepare_cancel_sequence
-    Cancel = 3   
+    Cancel = 3
     # sequence
     Sequence = 4
+    # sequence abort
     Abort = 5
-    # Finalize
+    # finalize
     Finalize = 6
 
 
@@ -64,16 +67,18 @@ class Path:
     @property
     def valid(self):
         return len(self.points) >= 2
-        
+
+
 @dataclass
 class ObstaclePolygon:
     name: str
     enabled: bool = False
     points: Sequence[Tuple[float, float]] = field(default_factory=lambda: [])
-    
 
 
 class StrategyEngineBase:
+    current_action: Optional[Action] = None
+    previous_action: Optional[Action] = None
     _actions: Sequence[Action] = []
     _actions_by_name: Mapping[str, Action] = {}
     _current_sequence: Optional[asyncio.Task] = None
@@ -81,6 +86,10 @@ class StrategyEngineBase:
     _movement_state: MovementState = MovementState.Idle
     _timer_callbacks: Sequence[Tuple[float, Callable[[None], Awaitable[None]]]] = []
     _tasks: Mapping[int, asyncio.Task] = {}
+    _closing: bool = False
+    _aborting: bool = True
+
+    move_counter: int = 0
 
     @property
     def actions(self):
@@ -91,16 +100,15 @@ class StrategyEngineBase:
         self._actions_by_name[action.name] = action
         self._actions.append(action)
         return action
-    
+
     @property
     def obstacles(self):
         return self._obstacles
-        
+
     def create_obstacle_polygon(self, name, **kwargs) -> ObstaclePolygon:
         obstacle = ObstaclePolygon(name, **kwargs)
         self._obstacles[name] = obstacle
         return obstacle
-        
 
     def reset(self):
         self._actions_by_name = {}
@@ -108,6 +116,9 @@ class StrategyEngineBase:
         self._current_sequence = None
         self._sequence_state = SequenceState.Idle
         self._movement_state = MovementState.Idle
+
+        # todo debug
+        self.move_counter = 0
 
     async def run(self):
         # test
@@ -120,11 +131,9 @@ class StrategyEngineBase:
             LOGGER.exception('error in start_match sequence')
 
         print('finish start match')
-        LOGGER.debug('selected FOO: ')
-        action, path = self._select_next_action()
-        if action is not None:
-            LOGGER.debug('selected action: %s', action.name)
-        self._start_go_action(action, path)
+        self._schedule_next_action()
+
+        # todo: await on future
 
         while self._running:
             await asyncio.sleep(1)
@@ -162,53 +171,120 @@ class StrategyEngineBase:
                     return action, path
         return None, None
 
-    def _compute_path(self, action: Action) -> Path:
-        return Path()
-
-    def _on_prepare_done(self, task):
-        try:
-            if task is not None:
-                task.result()
-        except:
-            LOGGER.exception(f'{self.current_action.name}: exception in prepare')
+    def _schedule_next_action(self):
+        if self._closing:
             return
-        LOGGER.debug(f'{self.current_action.name}: prepare done')
-        if self._movement_state == MovementState.Ready:
-            # movement already finished, start action immediatelly
-            self._start_current_action()
-        else:
-            self._sequence_state = SequenceState.PrepareFinished
+        self.previous_action = self.current_action
+        action, path = self._select_next_action()
+        self.current_action = action
+        if action != self.previous_action:
+            self._start_cancel()
 
-    def on_abort_finished(self, task):
-        pass
-
-    def _on_finalize_done(self, task):
-        try:
-            if task is not None:
-                task.result()
-        except:
-            LOGGER.exception(f'{self.previous_action.name}: exception in finalize')
-            return
-        LOGGER.debug(f'{self.previous_action.name}: finalize done')
-        action = self.current_action
         if action is None:
-            self._sequence_state = SequenceState.Idle
+            loop = asyncio.get_event_loop()
+            loop.call_later(0.1, self._schedule_next_action)
+        else:
+            LOGGER.debug('selected action: %s', action.name)
+            self._start_move(path)
+            self._start_prepare()
+
+    def _start_prepare(self):
+        if self._closing:
             return
-        if action.sequence_prepare is not None:
-            self._start_sequence(action.sequence_prepare)
+        if self._sequence_state != SequenceState.Idle:
+            return
+        self.previous_action = self.current_action
+        # execute prepare sequence if it is defined, else jump PrepareFinished state
+        if self.current_action.sequence_prepare is not None:
+            self._start_sequence(self.current_action.sequence_prepare)
             self._current_sequence.add_done_callback(self._on_prepare_done)
             self._sequence_state = SequenceState.Prepare
         else:
-            self._current_sequence = None
-            self._on_prepare_done(None)
+            self._on_prepare_done()
+
+    def _start_cancel(self):
+        if self._sequence_state != SequenceState.PrepareFinished:
+            return
+        # execute cancel sequence if it is defined, else jump Idle state
+        if self.previous_action.sequence_cancel is not None:
+            self._start_sequence(self.previous_action.sequence_cancel)
+            self._current_sequence.add_done_callback(self._on_cancel_done)
+            self._sequence_state = SequenceState.Cancel
+        else:
+            self.previous_action = None
+            self._sequence_state = SequenceState.Idle
+            if self.current_action is not None:
+                self._start_prepare()
+
+    def _start_move(self, path: Path):
+        self._current_move = asyncio.create_task(self._execute_move(path))
+        self._current_move.add_done_callback(self._on_move_done)
+        self._movement_state = MovementState.Moving
+
+    def _compute_path(self, action: Action) -> Path:
+        return Path()
+
+    def _on_prepare_done(self, task: asyncio.Task = None) -> None:
+        if self._closing:
+            return
+        try:
+            if task is not None:
+                task.result()
+        except Exception:
+            LOGGER.exception(f'{self.current_action.name}: exception in prepare')
+            # todo: cancel move, launch recovery sequence, schedule next action
+            return
+
+        LOGGER.debug(f'{self.current_action.name}: prepare done')
+        self._sequence_state = SequenceState.PrepareFinished
+
+        # current action changed du to rescheduling, must cancel action that finished preparing
+        if self.current_action != self.previous_action:
+            self._start_cancel()
+            return
+
+        if self._movement_state == MovementState.Ready:
+            # movement already finished, start action immediately
+            self._start_current_action()
+
+    def _on_cancel_finished(self, task):
+        self.previous_action = None
+        if self.current_action is not None:
+            self._start_prepare()
+
+    def _on_finalize_done(self, task: asyncio.Task = None):
+        try:
+            if task is not None:
+                task.result()
+        except Exception:
+            LOGGER.exception(f'{self.previous_action.name}: exception in finalize')
+            return
+        LOGGER.debug(f'{self.previous_action.name}: finalize done')
+
+        self.previous_action = None
+        self._sequence_state = SequenceState.Idle
+
+        if self.current_action is not None:
+            self._start_prepare()
+
+    def _on_move_error(self):
+        path = self._compute_path(self.current_action)
+        if path is not None:
+            # reschedule move with current action
+            self._current_move = asyncio.create_task(self._execute_move(path))
+            self._current_move.add_done_callback(self._on_move_done)
+            # todo: maybe retry counter
+            return
+
+        self._schedule_next_action()
 
     def _on_move_done(self, task):
         try:
             if task is not None:
                 task.result()
-        except:
-            LOGGER.exception(f'{self.previous_action.name}: exception in move')
-            return
+        except Exception:
+            LOGGER.exception(f'{self.current_action.name}: exception in move')
+            self._on_move_error()
 
         LOGGER.debug(f'{self.current_action.name}: move done')
         self._movement_state = MovementState.Ready

@@ -55,6 +55,10 @@ class StrategyEngine(StrategyEngineBase):
         return self._robot._sequences[sequence]
 
     def _compute_path(self, action: Action) -> Path:
+        if self.move_counter == 1:
+            self.move_counter += 1
+            self.current_action.enabled = False
+            return None
         pose_proto = self._robot._state_proto.robot_pose
         # reset astar costs
         # background
@@ -79,6 +83,10 @@ class StrategyEngine(StrategyEngineBase):
 
     async def _execute_move(self, path):
         print('move')
+        await asyncio.sleep(1)
+        self.move_counter += 1
+        #if self.move_counter == 1:
+        #    foo = FOO
         propulsion = self._robot.propulsion
         await propulsion.pointTo(path.points[1])
         await propulsion.trajectorySpline(path.points)
