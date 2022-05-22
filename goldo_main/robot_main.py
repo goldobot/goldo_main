@@ -38,6 +38,14 @@ MATCH_DURATION = 100
 class RobotExceptions(object):
     PropulsionError = PropulsionError
 
+_commands = {
+    'camera': CameraCommands
+
+
+
+
+}
+
 
 class RobotMain:
     def sequence(self, func):
@@ -58,7 +66,7 @@ class RobotMain:
         self._config_proto = config
         self._sensors_updater.loadConfig()
         self._sequences_globals['servos'].loadConfig()
-
+        self._sequences_globals['robot'].loadConfig()
         # import all sequences
         sequences_importer.meta_finder.unload_all()
         sequences_path = config_path / 'sequences'
@@ -271,7 +279,7 @@ class RobotMain:
 
     async def onSetSide(self, msg):
         self.side = msg.value
-        LOGGER.info("onSetSide(): side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
+        LOGGER.debug("onSetSide(): side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
 
     async def onTestAstar(self, msg):
         LOGGER.info('RobotMain: onTestAstar()')

@@ -12,6 +12,13 @@ import runpy
 class RobotCommands:
     def __init__(self, robot):
         self._robot = robot
+        
+    def loadConfig(self):
+        self._gpio_ids = {}
+        for gpio_proto in self._robot._config_proto.nucleo.hal.gpio:
+            name = gpio_proto.name
+            self._gpio_ids[name] = gpio_proto.id
+        print(self._gpio_ids)
 
     def _publish(self, topic, msg=None):
         return self._robot._broker.publishTopic(topic, msg)
@@ -36,3 +43,19 @@ class RobotCommands:
     @property
     def sensors(self):
         return self._robot._state_proto.sensors
+        
+    @property
+    def tryOhm(self):
+        k = (self.sensors['tryohm_bit_0'], self.sensors['tryohm_bit_1'])
+        m = {
+            (True, True): None,
+            (True, False): 'yellow',
+            (False, True): 'red',
+            (False, False): 'purple'
+            }
+        return m.get(k)
+        
+    async def gpioSet(self, name, value):
+        gpio_id = self._gpio_ids[name]
+        await self._publish('nucleo/in/gpio/set',
+                            _sym_db.GetSymbol('goldo.nucleo.gpio.CmdGpioSet')(sequence_number=0, gpio_id=gpio_id, value=value))

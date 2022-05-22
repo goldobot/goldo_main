@@ -58,8 +58,8 @@ class ServosCommands:
         await self._robot._broker.publishTopic('nucleo/in/servo/set_max_torques', msg)
         await future
 
-    async def move(self, name, position, speed=100):
-        await self.moveMultiple({name: position}, speed * 0.01)
+    async def move(self, name, position, speed=1):
+        await self.moveMultiple({name: position}, speed)
 
     async def moveMultiple(self, servos, speed=1):
         speed = int(speed * 0x3ff)
@@ -79,6 +79,7 @@ class ServosCommands:
         future = self._loop.create_future()
         self._futures_moving[id(future)] = [future, servos_mask]
         future.add_done_callback(self._remove_future_moving)
+        await future
 
     async def liftDoHoming(self, id_):
         seq = self._get_sequence_number()
@@ -90,6 +91,10 @@ class ServosCommands:
         msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftSetEnable')(sequence_number=seq, lift_id=id_, enable=enable)
         await self._robot._broker.publishTopic('nucleo/in/lift/set_enable', msg)
 
+    @property
+    def states(self):
+        return self._states_proto
+        
     async def _onMsgAck(self, msg):
         future = self._futures_by_seq.pop(msg.value, None)
         if future is not None:
