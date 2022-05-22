@@ -77,17 +77,14 @@ class StrategyEngine(StrategyEngineBase):
             if isinstance(v, ObstacleRectangle):
                 self._astar.fillRect(v.p1, v.p2, 0)
 
-        # test
-        #self._astar.fillRect((1.0, -0.9), (1.6, -0.4), 0)
+        for d in self._robot._state_proto.rplidar_detections:
+            print(d)
+            self._astar.fillDisk((d.x, d.y), 0.3, 0)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))
 
     def _compute_path(self, action: Action) -> Path:
-        if self.move_counter == 1:
-            self.move_counter += 1
-            self._target_action.enabled = False
-            return None
         pose_proto = self._robot._state_proto.robot_pose
 
         # other robots
@@ -99,15 +96,15 @@ class StrategyEngine(StrategyEngineBase):
         return Path(points=astar_path, begin_yaw=pose_proto.yaw, end_yaw=action.begin_pose[2] * math.pi / 180)
 
     async def _execute_move(self, path):
-        print('move')
-        await asyncio.sleep(1)
-        self.move_counter += 1
-        # if self.move_counter == 1:
-        #    foo = FOO
+        LOGGER.info('execute move to action: %s', self._target_action.name)
         propulsion = self._robot.propulsion
-        await propulsion.pointTo(path.points[1])
-        await propulsion.trajectorySpline(path.points)
-        await propulsion.faceDirection(path.end_yaw * 180 / math.pi)
+        try:
+            await propulsion.pointTo(path.points[1])
+            await propulsion.trajectorySpline(path.points)
+            await propulsion.faceDirection(path.end_yaw * 180 / math.pi)
+        except:
+            await propulsion.clearError()
+            raise
 
     def _onMatchTimer(self, value):
         l = []

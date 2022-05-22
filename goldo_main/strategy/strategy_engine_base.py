@@ -99,9 +99,6 @@ class StrategyEngineBase:
     _closing: bool = False
     _aborting: bool = True
 
-
-    move_counter: int = 0
-
     @property
     def actions(self):
         return self._actions_by_name
@@ -134,10 +131,6 @@ class StrategyEngineBase:
         self._sequence_state = SequenceState.Idle
         self._movement_state = MovementState.Idle
 
-
-        # todo debug
-        self.move_counter = 0
-
     async def run(self):
         # test
         self._running = True
@@ -163,6 +156,7 @@ class StrategyEngineBase:
 
     def _start_current_action(self):
         """Start executing current action"""
+        LOGGER.debug('start action sequence: %s', self._target_action.name)
         action = self._target_action
         self.current_action = action
         self._start_sequence(action.sequence)
@@ -204,17 +198,21 @@ class StrategyEngineBase:
 
     def _start_prepare(self):
         if self._closing:
+            LOGGER.info('StrategyEngineBase._start_prepare closing')
             return
         if self._sequence_state != SequenceState.Idle:
+            LOGGER.warning('StrategyEngineBase._start_prepare sequence state not Idle: %s', self._sequence_state)
             return
         self._previous_action = self._target_action
         # execute prepare sequence if it is defined, else jump PrepareFinished state
         if self._target_action.sequence_prepare is not None:
+            LOGGER.debug('strategy_engine_base._start_prepare: start prepare sequence for %s', self._target_action.name)
             self.current_action = self._target_action
             self._start_sequence(self._target_action.sequence_prepare)
             self._current_sequence.add_done_callback(self._on_prepare_done)
             self._sequence_state = SequenceState.Prepare
         else:
+            LOGGER.debug('prepare already done')
             self._on_prepare_done()
 
     def _start_cancel(self):
@@ -233,6 +231,7 @@ class StrategyEngineBase:
                 self._start_prepare()
 
     def _start_move(self, path: Path):
+        LOGGER.debug('strategy_engine_base._start_move')
         self._current_move = asyncio.create_task(self._execute_move(path))
         self._current_move.add_done_callback(self._on_move_done)
         self._movement_state = MovementState.Moving
@@ -323,6 +322,7 @@ class StrategyEngineBase:
         self._previous_action = self._target_action
 
         if self._previous_action.sequence_finalize is not None:
+            LOGGER.debug(f'{self._target_action.name}: finalize start')
             # finalize previous sequence
             self._start_sequence(self._previous_action.sequence_finalize)
             self._current_sequence.add_done_callback(self._on_finalize_done)
