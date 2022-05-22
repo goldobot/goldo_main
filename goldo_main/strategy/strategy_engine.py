@@ -7,7 +7,8 @@ import pb2 as _pb2
 from goldo_main.enums import *
 import google.protobuf as _pb
 
-from .strategy_engine_base import StrategyEngineBase, Action, Path, ObstaclePolygon
+from .strategy_engine_base import StrategyEngineBase, Action, Path
+from .strategy_engine_base import ObstacleRectangle, ObstaclePolygon
 
 _sym_db = _pb.symbol_database.Default()
 
@@ -64,8 +65,16 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.fillRect((0, -1.5), (2.0, -1.4), 0)
         self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
 
+        for k, v in self.obstacles.items():
+            if not v.enabled:
+                continue
+            if isinstance(v, ObstaclePolygon):
+                self._astar.fillPoly(v.points, 0)
+            if isinstance(v, ObstacleRectangle):
+                self._astar.fillRect(v.p1, v.p2, 0)
+
         # test
-        self._astar.fillRect((1.0, -0.9), (1.6, -0.4), 0)
+        #self._astar.fillRect((1.0, -0.9), (1.6, -0.4), 0)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))

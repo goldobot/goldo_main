@@ -76,9 +76,18 @@ class ObstaclePolygon:
     points: Sequence[Tuple[float, float]] = field(default_factory=lambda: [])
 
 
+@dataclass
+class ObstacleRectangle:
+    name: str
+    enabled: bool = False
+    p1: [Tuple[float, float]] = (0, 0)
+    p2: [Tuple[float, float]] = (0, 0)
+
+
 class StrategyEngineBase:
     current_action: Optional[Action] = None
     previous_action: Optional[Action] = None
+    _obstacles: Mapping[str, object] = {}
     _actions: Sequence[Action] = []
     _actions_by_name: Mapping[str, Action] = {}
     _current_sequence: Optional[asyncio.Task] = None
@@ -88,6 +97,7 @@ class StrategyEngineBase:
     _tasks: Mapping[int, asyncio.Task] = {}
     _closing: bool = False
     _aborting: bool = True
+
 
     move_counter: int = 0
 
@@ -110,12 +120,19 @@ class StrategyEngineBase:
         self._obstacles[name] = obstacle
         return obstacle
 
+    def create_obstacle_rectangle(self, name, **kwargs) -> ObstaclePolygon:
+        obstacle = ObstacleRectangle(name, **kwargs)
+        self._obstacles[name] = obstacle
+        return obstacle
+
     def reset(self):
         self._actions_by_name = {}
         self._actions = []
+        self._obstacles = {}
         self._current_sequence = None
         self._sequence_state = SequenceState.Idle
         self._movement_state = MovementState.Idle
+
 
         # todo debug
         self.move_counter = 0
