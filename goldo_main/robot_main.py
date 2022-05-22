@@ -190,6 +190,7 @@ class RobotMain:
     async def onPreMatch(self, msg):
         if self._current_task is not None:
             self._current_task.cancel()
+        await self._broker.publishTopic('match/timer/stop')
 
             # return
         LOGGER.info("prematch started, side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))

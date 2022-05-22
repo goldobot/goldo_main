@@ -90,6 +90,10 @@ def match_timer(payload):
 @nucleo_in('match/timer/start', 11)
 def match_timer_start(msg):
     return b''
+    
+@nucleo_in('match/timer/stop', 13)
+def match_timer_start(msg):
+    return b''
 
 @nucleo_out('match/end', 12)
 def match_end(payload):
