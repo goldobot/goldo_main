@@ -144,8 +144,7 @@ class RobotMain:
 
     async def configNucleo(self, msg=None):
         """Upload the nucleo board configuration."""
-        # if self._current_task is not None:
-        # self._current_task.cancel()
+        self.onNucleoReset()
         from .nucleo import compile_config
 
         buff, crc = compile_config(self._config_proto)
@@ -174,8 +173,8 @@ class RobotMain:
         LOGGER.error("nucleo reset")
         self._match_state = MatchState.Idle
         self._state_proto.match_state = self._match_state
-        # if self._current_task is not None:
-        # self._current_task.cancel()
+        if self._current_task is not None:
+            self._current_task.cancel()
 
     async def logMessage(self, message, *args):
         print(message.format(*args))

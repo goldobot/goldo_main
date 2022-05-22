@@ -114,7 +114,7 @@ class PropulsionCommands:
         return self._broker.publishTopic(topic, msg)
 
     async def _publish_sequence(self, topic, msg):
-        print('propulsion cmd msg', msg.sequence_number)
+        LOGGER.info('propulsion cmd msg %s', msg.sequence_number)
         future_ack = self._loop.create_future()
         self._futures_ack[msg.sequence_number] = future_ack
         future_ack.add_done_callback(functools.partial(self._remove_future_ack, msg.sequence_number))
@@ -124,7 +124,7 @@ class PropulsionCommands:
         try:
             await asyncio.wait_for(future_ack, 1)
         except asyncio.TimeoutError:
-            print('propulsion timeout')
+            LOGGER.error('propulsion timeout on command %s', msg)
 
     @property
     def pose(self):
@@ -345,6 +345,8 @@ class PropulsionCommands:
             future = self._futures_ack.get(msg.sequence_number)
             if future is not None:
                 future.set_result(None)
+            else:
+                print("future not found")
 
         future = self._futures.get(msg.sequence_number)
 

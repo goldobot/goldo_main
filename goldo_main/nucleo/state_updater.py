@@ -1,5 +1,8 @@
 import asyncio
 from datetime import datetime
+import  logging
+
+LOGGER = logging.getLogger(__name__)
 
 
 class NucleoStateUpdater(object):
@@ -37,7 +40,8 @@ class NucleoStateUpdater(object):
         self._robot.onNucleoReset()
 
     async def onHeartbeatMsg(self, msg):
-        if msg.timestamp < self._nucleo_proto.heartbeat:
+        if msg.timestamp + 2000 < self._nucleo_proto.heartbeat:
+            LOGGER.warning('NucleoStateUpdater heartbeat error detected: %s, %s', msg.timestamp, self._nucleo_proto.heartbeat)
             await self.onNucleoReset()
         self._nucleo_proto.heartbeat = msg.timestamp
         self._nucleo_proto.connected = True
