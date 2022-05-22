@@ -36,7 +36,6 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.setDisk((1.7, -0.3), 30)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
-
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
         print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
 
@@ -54,12 +53,7 @@ class StrategyEngine(StrategyEngineBase):
     def _get_sequence(self, sequence):
         return self._robot._sequences[sequence]
 
-    def _compute_path(self, action: Action) -> Path:
-        if self.move_counter == 1:
-            self.move_counter += 1
-            self.current_action.enabled = False
-            return None
-        pose_proto = self._robot._state_proto.robot_pose
+    def _update_path_planner(self):
         # reset astar costs
         # background
         self._astar.fillRect((0, -1.5), (2.0, 1.5), 1)
@@ -69,9 +63,19 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.fillRect((1.9, -1.5), (2.0, 1.5), 0)
         self._astar.fillRect((0, -1.5), (2.0, -1.4), 0)
         self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
-        
-        #test
+
+        # test
         self._astar.fillRect((1.0, -0.9), (1.6, -0.4), 0)
+
+        msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
+        self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))
+
+    def _compute_path(self, action: Action) -> Path:
+        if self.move_counter == 1:
+            self.move_counter += 1
+            self.current_action.enabled = False
+            return None
+        pose_proto = self._robot._state_proto.robot_pose
 
         # other robots
         astar_path = self._astar.computePath((pose_proto.position.x, pose_proto.position.y),
@@ -85,12 +89,12 @@ class StrategyEngine(StrategyEngineBase):
         print('move')
         await asyncio.sleep(1)
         self.move_counter += 1
-        #if self.move_counter == 1:
+        # if self.move_counter == 1:
         #    foo = FOO
         propulsion = self._robot.propulsion
         await propulsion.pointTo(path.points[1])
         await propulsion.trajectorySpline(path.points)
-        await propulsion.faceDirection(path.end_yaw * 180/math.pi)
+        await propulsion.faceDirection(path.end_yaw * 180 / math.pi)
 
     def _onMatchTimer(self, value):
         l = []

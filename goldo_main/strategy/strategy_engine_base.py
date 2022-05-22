@@ -159,10 +159,14 @@ class StrategyEngineBase:
         self._current_sequence.add_done_callback(self._on_sequence_done)
         self._sequence_state = SequenceState.Sequence
 
+    def _update_path_planner(self):
+        pass
+
     async def _execute_move(self):
         await asyncio.sleep(2)
 
     def _select_next_action(self) -> Tuple[Action, Path]:
+        self._update_path_planner()
         self._actions.sort(key=lambda action: -action.priority)
         for action in self._actions:
             if action.enabled:
@@ -268,6 +272,7 @@ class StrategyEngineBase:
             self._start_prepare()
 
     def _on_move_error(self):
+        self._update_path_planner()
         path = self._compute_path(self.current_action)
         if path is not None:
             # reschedule move with current action
