@@ -123,12 +123,16 @@ class RobotMain:
         while True:
             await asyncio.sleep(0.1)
             await self._broker.publishTopic('gui/in/robot_state', self._state_proto)
+            
             if self._match_state == MatchState.WaitForStartOfMatch and self._state_proto.tirette:
                 self._match_armed = True
+                
             if self._match_state == MatchState.WaitForStartOfMatch and self._match_armed and not self._state_proto.tirette:
                 LOGGER.info('start match')
                 await self.startMatch()
-            if self.propulsion.state == 2 and False:
+                
+            # adversary detection
+            if self.propulsion.state == 2:
                 if self._state_proto.robot_pose.speed > 0 and self._state_proto.rplidar.zones.front_near:
                     await self.propulsion.emergencyStop()
                 if self._state_proto.robot_pose.speed < 0 and self._state_proto.rplidar.zones.back_near:
@@ -167,6 +171,7 @@ class RobotMain:
                                         _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode))
 
     def onNucleoReset(self):
+        LOGGER.error("nucleo reset")
         self._match_state = MatchState.Idle
         self._state_proto.match_state = self._match_state
         # if self._current_task is not None:

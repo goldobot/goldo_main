@@ -28,7 +28,6 @@ def servo_set_max_torques(msg):
 
 @nucleo_in('servo/move_multiple', 41)
 def servo_move_multiple(msg):
-    print('mm')
     return struct.pack('<HH', msg.sequence_number, msg.speed) + b''.join([_pb2.serialize(pos) for pos in msg.positions])
 
 

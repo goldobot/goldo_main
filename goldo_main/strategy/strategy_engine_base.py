@@ -141,19 +141,25 @@ class StrategyEngineBase:
     async def run(self):
         # test
         self._running = True
+        self._closing = False
         try:
             await self._execute_sequence('start_match')
         except asyncio.CancelledError:
             raise
         except Exception:
             LOGGER.exception('error in start_match sequence')
+        try:
+            print('finish start match')
+            self._schedule_next_action()
 
-        print('finish start match')
-        self._schedule_next_action()
-
-        # todo: await on future
-        while self._running:
-            await asyncio.sleep(1)
+            # todo: await on future
+            while self._running:
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            LOGGER.debug('strategy engine run cancelled')
+            self._closing = True
+            for k, v in self._tasks:
+                v.cancel()
 
     def _start_current_action(self):
         """Start executing current action"""
@@ -327,6 +333,9 @@ class StrategyEngineBase:
         self._schedule_next_action()
 
     def _create_task(self, awaitable):
+        if self._closing == True:
+            LOGGER.error('try to create task while closing')
+            return
         task = asyncio.create_task(awaitable)
         self._tasks[id(task)] = task
         task.add_done_callback(self._on_task_done)
