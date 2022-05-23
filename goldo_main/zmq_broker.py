@@ -25,6 +25,10 @@ import pb2 as _pb2
 
 from .broker.broker_process import run_broker_process, ZmqBrokerCmd
 
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 
 class ZmqBroker():
     def __init__(self):
@@ -36,6 +40,8 @@ class ZmqBroker():
 
         loop = asyncio.get_event_loop()
         loop.add_reader(self._conn.fileno(), self._message_available.set)
+
+        self._tasks = {}
 
         self._callbacks = []
 
@@ -68,9 +74,30 @@ class ZmqBroker():
     async def onTopicReceived(self, topic, msg, callbacks_list):
         if msg is None:
             msg = _sym_db.GetSymbol('google.protobuf.Empty')()
-        await asyncio.wait(tuple(self._callbacks[callback_id](*groups, msg) for callback_id, groups in callbacks_list))
+
+        for callback_id, groups in callbacks_list:
+            self._create_task(self._callbacks[callback_id](*groups, msg))
+
+        # await asyncio.wait(tuple(self._callbacks[callback_id](*groups, msg) for callback_id, groups in callbacks_list))
 
     async def publishTopic(self, topic, msg=None):
         if msg is None:
             msg = _sym_db.GetSymbol('google.protobuf.Empty')()
         self._conn.send((ZmqBrokerCmd.PUBLISH_TOPIC, topic, msg))
+
+    def _cancel_tasks(self):
+        for t in self._tasks.values():
+            t.cancel()
+
+    def _create_task(self, aw):
+        task = asyncio.create_task(aw)
+        self._tasks[id(task)] = task
+        task.add_done_callback(self._on_task_done)
+        return task
+
+    def _on_task_done(self, task):
+        del self._tasks[id(task)]
+        try:
+            task.result()
+        except Exception:
+            LOGGER.exception('error in broker callback')
