@@ -34,7 +34,17 @@ def servo_move_multiple(msg):
 @nucleo_in('lift/do_homing', 48)
 def lift_do_homing(msg):
     return _pb2.serialize(msg)
-
+    
+@nucleo_out('lift/homing_done', 230)
+def lift_homing_done(payload):
+    lift_id = struct.unpack('<B', payload)[0]
+    msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=lift_id)
+    print('lift homing done, id', lift_id)
+    return msg
+    
+@nucleo_in('lift/cmd_raw', 46)
+def lift_do_cmd_raw(msg):
+    return _pb2.serialize(msg)
 
 @nucleo_out('servo/status/states', 43)
 def servo_status_states(payload):

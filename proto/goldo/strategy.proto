@@ -26,3 +26,8 @@ message StrategyConfig {
   map<string,ActionConfig> actions = 1;
   repeated Area areas = 2;
 }
+
+message StrategyState {
+
+
+}

@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='goldo.nucleo.servos',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x19goldo/nucleo/servos.proto\x12\x13goldo.nucleo.servos\x1a\x17goldo/pb2_options.proto\"\xe3\x01\n\x0bServoConfig\x12\x32\n\x04type\x18\x01 \x01(\x0e\x32\x1e.goldo.nucleo.servos.ServoTypeB\x04\x80\xb5\x18\x03\x12\x10\n\x02id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x16\n\x08\x63w_limit\x18\x03 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x17\n\tccw_limit\x18\x04 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x17\n\tmax_speed\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x18\n\nmax_torque\x18\x06 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x16\n\x08reserved\x18\x64 \x01(\x05\x42\x04\x80\xb5\x18\x0c\x12\x12\n\x04name\x18@ \x01(\tB\x04\x80\xb5\x18\x0c\"\x8a\x01\n\nLiftConfig\x12\x10\n\x02kp\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x07\x12\x10\n\x02ki\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x07\x12\x10\n\x02kd\x18\x03 \x01(\x05\x42\x04\x80\xb5\x18\x07\x12\x13\n\x05range\x18\x04 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x17\n\tpwm_clamp\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x18\n\nblock_trig\x18\x06 \x01(\x05\x42\x04\x80\xb5\x18\x05\"b\n\nServoState\x12\x16\n\x08position\x18\x02 \x01(\rB\x04\x80\xb5\x18\x05\x12\x1f\n\x11measured_position\x18\x03 \x01(\rB\x04\x80\xb5\x18\x05\x12\x1b\n\rmeasured_load\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x04\"W\n\x0bServoStates\x12\x17\n\ttimestamp\x18\x01 \x01(\rB\x04\x80\xb5\x18\x07\x12/\n\x06servos\x18\x04 \x03(\x0b\x32\x1f.goldo.nucleo.servos.ServoState\"?\n\rServoPosition\x12\x16\n\x08servo_id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x16\n\x08position\x18\x02 \x01(\rB\x04\x80\xb5\x18\x05\";\n\x0bServoTorque\x12\x16\n\x08servo_id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x14\n\x06torque\x18\x02 \x01(\rB\x04\x80\xb5\x18\x03\";\n\x0bServoEnable\x12\x16\n\x08servo_id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x14\n\x06\x65nable\x18\x02 \x01(\x08\x42\x04\x80\xb5\x18\x03\".\n\rCmdDisableAll\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\"`\n\x0c\x43mdSetEnable\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x31\n\x07\x65nables\x18\x02 \x03(\x0b\x32 .goldo.nucleo.servos.ServoEnable\"G\n\x0f\x43mdLiftDoHoming\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x15\n\x07lift_id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\"^\n\x10\x43mdLiftSetEnable\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x15\n\x07lift_id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x14\n\x06\x65nable\x18\x03 \x01(\x08\x42\x04\x80\xb5\x18\x03\"|\n\x0f\x43mdMoveMultiple\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x13\n\x05speed\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x35\n\tpositions\x18\x03 \x03(\x0b\x32\".goldo.nucleo.servos.ServoPosition\"d\n\x10\x43mdSetMaxTorques\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x31\n\x07torques\x18\x02 \x03(\x0b\x32 .goldo.nucleo.servos.ServoTorque*^\n\tServoType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0c\n\x08STANDARD\x10\x01\x12\x12\n\x0e\x44YNAMIXEL_AX12\x10\x02\x12\x12\n\x0e\x44YNAMIXEL_MX28\x10\x03\x12\x0e\n\nGOLDO_LIFT\x10\x04\x62\x06proto3')
+  serialized_pb=_b('\n\x19goldo/nucleo/servos.proto\x12\x13goldo.nucleo.servos\x1a\x17goldo/pb2_options.proto\"\xe3\x01\n\x0bServoConfig\x12\x32\n\x04type\x18\x01 \x01(\x0e\x32\x1e.goldo.nucleo.servos.ServoTypeB\x04\x80\xb5\x18\x03\x12\x10\n\x02id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x16\n\x08\x63w_limit\x18\x03 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x17\n\tccw_limit\x18\x04 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x17\n\tmax_speed\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x18\n\nmax_torque\x18\x06 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x16\n\x08reserved\x18\x64 \x01(\x05\x42\x04\x80\xb5\x18\x0c\x12\x12\n\x04name\x18@ \x01(\tB\x04\x80\xb5\x18\x0c\"\x8a\x01\n\nLiftConfig\x12\x10\n\x02kp\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x07\x12\x10\n\x02ki\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x07\x12\x10\n\x02kd\x18\x03 \x01(\x05\x42\x04\x80\xb5\x18\x07\x12\x13\n\x05range\x18\x04 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x17\n\tpwm_clamp\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x18\n\nblock_trig\x18\x06 \x01(\x05\x42\x04\x80\xb5\x18\x05\"b\n\nServoState\x12\x16\n\x08position\x18\x02 \x01(\rB\x04\x80\xb5\x18\x05\x12\x1f\n\x11measured_position\x18\x03 \x01(\rB\x04\x80\xb5\x18\x05\x12\x1b\n\rmeasured_load\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x04\"W\n\x0bServoStates\x12\x17\n\ttimestamp\x18\x01 \x01(\rB\x04\x80\xb5\x18\x07\x12/\n\x06servos\x18\x04 \x03(\x0b\x32\x1f.goldo.nucleo.servos.ServoState\"?\n\rServoPosition\x12\x16\n\x08servo_id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x16\n\x08position\x18\x02 \x01(\rB\x04\x80\xb5\x18\x05\";\n\x0bServoTorque\x12\x16\n\x08servo_id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x14\n\x06torque\x18\x02 \x01(\rB\x04\x80\xb5\x18\x03\";\n\x0bServoEnable\x12\x16\n\x08servo_id\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x14\n\x06\x65nable\x18\x02 \x01(\x08\x42\x04\x80\xb5\x18\x03\".\n\rCmdDisableAll\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\"`\n\x0c\x43mdSetEnable\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x31\n\x07\x65nables\x18\x02 \x03(\x0b\x32 .goldo.nucleo.servos.ServoEnable\"G\n\x0f\x43mdLiftDoHoming\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x15\n\x07lift_id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\"\xd2\x01\n\x0b\x43mdLiftsRaw\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x1a\n\x0clift1_target\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x06\x12\x1a\n\x0clift1_bltrig\x18\x03 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x19\n\x0blift1_speed\x18\x04 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x1a\n\x0clift2_target\x18\x05 \x01(\x05\x42\x04\x80\xb5\x18\x06\x12\x1a\n\x0clift2_bltrig\x18\x06 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x19\n\x0blift2_speed\x18\x07 \x01(\x05\x42\x04\x80\xb5\x18\x05\"^\n\x10\x43mdLiftSetEnable\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x15\n\x07lift_id\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x03\x12\x14\n\x06\x65nable\x18\x03 \x01(\x08\x42\x04\x80\xb5\x18\x03\"|\n\x0f\x43mdMoveMultiple\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x13\n\x05speed\x18\x02 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x35\n\tpositions\x18\x03 \x03(\x0b\x32\".goldo.nucleo.servos.ServoPosition\"d\n\x10\x43mdSetMaxTorques\x12\x1d\n\x0fsequence_number\x18\x01 \x01(\x05\x42\x04\x80\xb5\x18\x05\x12\x31\n\x07torques\x18\x02 \x03(\x0b\x32 .goldo.nucleo.servos.ServoTorque*^\n\tServoType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0c\n\x08STANDARD\x10\x01\x12\x12\n\x0e\x44YNAMIXEL_AX12\x10\x02\x12\x12\n\x0e\x44YNAMIXEL_MX28\x10\x03\x12\x0e\n\nGOLDO_LIFT\x10\x04\x62\x06proto3')
   ,
   dependencies=[goldo_dot_pb2__options__pb2.DESCRIPTOR,])
 
@@ -54,8 +54,8 @@ _SERVOTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1365,
-  serialized_end=1459,
+  serialized_start=1578,
+  serialized_end=1672,
 )
 _sym_db.RegisterEnumDescriptor(_SERVOTYPE)
 
@@ -518,6 +518,79 @@ _CMDLIFTDOHOMING = _descriptor.Descriptor(
 )
 
 
+_CMDLIFTSRAW = _descriptor.Descriptor(
+  name='CmdLiftsRaw',
+  full_name='goldo.nucleo.servos.CmdLiftsRaw',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='sequence_number', full_name='goldo.nucleo.servos.CmdLiftsRaw.sequence_number', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\005'), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lift1_target', full_name='goldo.nucleo.servos.CmdLiftsRaw.lift1_target', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\006'), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lift1_bltrig', full_name='goldo.nucleo.servos.CmdLiftsRaw.lift1_bltrig', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\005'), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lift1_speed', full_name='goldo.nucleo.servos.CmdLiftsRaw.lift1_speed', index=3,
+      number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\005'), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lift2_target', full_name='goldo.nucleo.servos.CmdLiftsRaw.lift2_target', index=4,
+      number=5, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\006'), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lift2_bltrig', full_name='goldo.nucleo.servos.CmdLiftsRaw.lift2_bltrig', index=5,
+      number=6, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\005'), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lift2_speed', full_name='goldo.nucleo.servos.CmdLiftsRaw.lift2_speed', index=6,
+      number=7, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\200\265\030\005'), file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1042,
+  serialized_end=1252,
+)
+
+
 _CMDLIFTSETENABLE = _descriptor.Descriptor(
   name='CmdLiftSetEnable',
   full_name='goldo.nucleo.servos.CmdLiftSetEnable',
@@ -558,8 +631,8 @@ _CMDLIFTSETENABLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1041,
-  serialized_end=1135,
+  serialized_start=1254,
+  serialized_end=1348,
 )
 
 
@@ -603,8 +676,8 @@ _CMDMOVEMULTIPLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1137,
-  serialized_end=1261,
+  serialized_start=1350,
+  serialized_end=1474,
 )
 
 
@@ -641,8 +714,8 @@ _CMDSETMAXTORQUES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1263,
-  serialized_end=1363,
+  serialized_start=1476,
+  serialized_end=1576,
 )
 
 _SERVOCONFIG.fields_by_name['type'].enum_type = _SERVOTYPE
@@ -660,6 +733,7 @@ DESCRIPTOR.message_types_by_name['ServoEnable'] = _SERVOENABLE
 DESCRIPTOR.message_types_by_name['CmdDisableAll'] = _CMDDISABLEALL
 DESCRIPTOR.message_types_by_name['CmdSetEnable'] = _CMDSETENABLE
 DESCRIPTOR.message_types_by_name['CmdLiftDoHoming'] = _CMDLIFTDOHOMING
+DESCRIPTOR.message_types_by_name['CmdLiftsRaw'] = _CMDLIFTSRAW
 DESCRIPTOR.message_types_by_name['CmdLiftSetEnable'] = _CMDLIFTSETENABLE
 DESCRIPTOR.message_types_by_name['CmdMoveMultiple'] = _CMDMOVEMULTIPLE
 DESCRIPTOR.message_types_by_name['CmdSetMaxTorques'] = _CMDSETMAXTORQUES
@@ -736,6 +810,13 @@ CmdLiftDoHoming = _reflection.GeneratedProtocolMessageType('CmdLiftDoHoming', (_
   ))
 _sym_db.RegisterMessage(CmdLiftDoHoming)
 
+CmdLiftsRaw = _reflection.GeneratedProtocolMessageType('CmdLiftsRaw', (_message.Message,), dict(
+  DESCRIPTOR = _CMDLIFTSRAW,
+  __module__ = 'goldo.nucleo.servos_pb2'
+  # @@protoc_insertion_point(class_scope:goldo.nucleo.servos.CmdLiftsRaw)
+  ))
+_sym_db.RegisterMessage(CmdLiftsRaw)
+
 CmdLiftSetEnable = _reflection.GeneratedProtocolMessageType('CmdLiftSetEnable', (_message.Message,), dict(
   DESCRIPTOR = _CMDLIFTSETENABLE,
   __module__ = 'goldo.nucleo.servos_pb2'
@@ -786,6 +867,13 @@ _CMDDISABLEALL.fields_by_name['sequence_number']._options = None
 _CMDSETENABLE.fields_by_name['sequence_number']._options = None
 _CMDLIFTDOHOMING.fields_by_name['sequence_number']._options = None
 _CMDLIFTDOHOMING.fields_by_name['lift_id']._options = None
+_CMDLIFTSRAW.fields_by_name['sequence_number']._options = None
+_CMDLIFTSRAW.fields_by_name['lift1_target']._options = None
+_CMDLIFTSRAW.fields_by_name['lift1_bltrig']._options = None
+_CMDLIFTSRAW.fields_by_name['lift1_speed']._options = None
+_CMDLIFTSRAW.fields_by_name['lift2_target']._options = None
+_CMDLIFTSRAW.fields_by_name['lift2_bltrig']._options = None
+_CMDLIFTSRAW.fields_by_name['lift2_speed']._options = None
 _CMDLIFTSETENABLE.fields_by_name['sequence_number']._options = None
 _CMDLIFTSETENABLE.fields_by_name['lift_id']._options = None
 _CMDLIFTSETENABLE.fields_by_name['enable']._options = None

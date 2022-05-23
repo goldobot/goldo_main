@@ -21,11 +21,19 @@ message SequencesFile {
   string body = 2;
 }
 
+message SequencesOption {
+  string name = 1;
+  oneof default_value {
+    bool default_bool = 2;
+  };
+};
+
 message RobotConfig {
   goldo.nucleo.NucleoConfig nucleo = 1;
   RobotGeometry robot_geometry = 2;
   repeated string sequences_names = 40;
   repeated SequencesFile sequences_files = 41;
+  repeated SequencesOption sequences_options = 42;
   goldo.rplidar.RPLidarConfig rplidar = 50;
   goldo.strategy.StrategyConfig strategy = 60;
 }
@@ -49,7 +57,6 @@ message RPLidarState {
   repeated goldo.rplidar.RobotDetection detections = 10;
   goldo.rplidar.Zones zones = 11;
 }
-
 
 message RobotState {
   goldo.nucleo.NucleoState nucleo = 1;

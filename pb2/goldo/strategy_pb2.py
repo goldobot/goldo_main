@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='goldo.strategy',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x14goldo/strategy.proto\x12\x0egoldo.strategy\x1a\x1bgoldo/common/geometry.proto\"\xae\x01\n\x04\x41rea\x12\x0c\n\x04name\x18\x01 \x01(\t\x12)\n\x03\x62ox\x18\x02 \x01(\x0b\x32\x1a.goldo.common.geometry.BoxH\x00\x12/\n\x06\x63ircle\x18\x03 \x01(\x0b\x32\x1d.goldo.common.geometry.CircleH\x00\x12\x30\n\x06polygo\x18\x04 \x01(\x0b\x32\x1e.goldo.common.geometry.PolygonH\x00\x42\n\n\x08geometry\"\xec\x01\n\x0c\x41\x63tionConfig\x12\x35\n\nstart_pose\x18\x01 \x01(\x0b\x32!.goldo.common.geometry.StaticPose\x12\x17\n\x0fsequence_action\x18\x02 \x01(\t\x12\x18\n\x10sequence_prepare\x18\x03 \x01(\t\x12\x1e\n\x16sequence_prepare_abort\x18\x04 \x01(\t\x12\x1b\n\x13sequence_on_success\x18\x05 \x01(\t\x12\x1b\n\x13sequence_on_failure\x18\x06 \x01(\t\x12\x18\n\x10\x64\x65\x66\x61ult_priority\x18\x07 \x01(\x05\"\xc1\x01\n\x0eStrategyConfig\x12<\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32+.goldo.strategy.StrategyConfig.ActionsEntry\x12#\n\x05\x61reas\x18\x02 \x03(\x0b\x32\x14.goldo.strategy.Area\x1aL\n\x0c\x41\x63tionsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x05value\x18\x02 \x01(\x0b\x32\x1c.goldo.strategy.ActionConfig:\x02\x38\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x14goldo/strategy.proto\x12\x0egoldo.strategy\x1a\x1bgoldo/common/geometry.proto\"\xae\x01\n\x04\x41rea\x12\x0c\n\x04name\x18\x01 \x01(\t\x12)\n\x03\x62ox\x18\x02 \x01(\x0b\x32\x1a.goldo.common.geometry.BoxH\x00\x12/\n\x06\x63ircle\x18\x03 \x01(\x0b\x32\x1d.goldo.common.geometry.CircleH\x00\x12\x30\n\x06polygo\x18\x04 \x01(\x0b\x32\x1e.goldo.common.geometry.PolygonH\x00\x42\n\n\x08geometry\"\xec\x01\n\x0c\x41\x63tionConfig\x12\x35\n\nstart_pose\x18\x01 \x01(\x0b\x32!.goldo.common.geometry.StaticPose\x12\x17\n\x0fsequence_action\x18\x02 \x01(\t\x12\x18\n\x10sequence_prepare\x18\x03 \x01(\t\x12\x1e\n\x16sequence_prepare_abort\x18\x04 \x01(\t\x12\x1b\n\x13sequence_on_success\x18\x05 \x01(\t\x12\x1b\n\x13sequence_on_failure\x18\x06 \x01(\t\x12\x18\n\x10\x64\x65\x66\x61ult_priority\x18\x07 \x01(\x05\"\xc1\x01\n\x0eStrategyConfig\x12<\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32+.goldo.strategy.StrategyConfig.ActionsEntry\x12#\n\x05\x61reas\x18\x02 \x03(\x0b\x32\x14.goldo.strategy.Area\x1aL\n\x0c\x41\x63tionsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x05value\x18\x02 \x01(\x0b\x32\x1c.goldo.strategy.ActionConfig:\x02\x38\x01\"\x0f\n\rStrategyStateb\x06proto3')
   ,
   dependencies=[goldo_dot_common_dot_geometry__pb2.DESCRIPTOR,])
 
@@ -229,6 +229,30 @@ _STRATEGYCONFIG = _descriptor.Descriptor(
   serialized_end=679,
 )
 
+
+_STRATEGYSTATE = _descriptor.Descriptor(
+  name='StrategyState',
+  full_name='goldo.strategy.StrategyState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=681,
+  serialized_end=696,
+)
+
 _AREA.fields_by_name['box'].message_type = goldo_dot_common_dot_geometry__pb2._BOX
 _AREA.fields_by_name['circle'].message_type = goldo_dot_common_dot_geometry__pb2._CIRCLE
 _AREA.fields_by_name['polygo'].message_type = goldo_dot_common_dot_geometry__pb2._POLYGON
@@ -249,6 +273,7 @@ _STRATEGYCONFIG.fields_by_name['areas'].message_type = _AREA
 DESCRIPTOR.message_types_by_name['Area'] = _AREA
 DESCRIPTOR.message_types_by_name['ActionConfig'] = _ACTIONCONFIG
 DESCRIPTOR.message_types_by_name['StrategyConfig'] = _STRATEGYCONFIG
+DESCRIPTOR.message_types_by_name['StrategyState'] = _STRATEGYSTATE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Area = _reflection.GeneratedProtocolMessageType('Area', (_message.Message,), dict(
@@ -279,6 +304,13 @@ StrategyConfig = _reflection.GeneratedProtocolMessageType('StrategyConfig', (_me
   ))
 _sym_db.RegisterMessage(StrategyConfig)
 _sym_db.RegisterMessage(StrategyConfig.ActionsEntry)
+
+StrategyState = _reflection.GeneratedProtocolMessageType('StrategyState', (_message.Message,), dict(
+  DESCRIPTOR = _STRATEGYSTATE,
+  __module__ = 'goldo.strategy_pb2'
+  # @@protoc_insertion_point(class_scope:goldo.strategy.StrategyState)
+  ))
+_sym_db.RegisterMessage(StrategyState)
 
 
 _STRATEGYCONFIG_ACTIONSENTRY._options = None

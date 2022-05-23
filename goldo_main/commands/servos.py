@@ -7,9 +7,6 @@ import struct
 import math
 import functools
 
-import runpy
-
-
 class ServosCommands:
     def __init__(self, robot):
         self._robot = robot
@@ -20,11 +17,13 @@ class ServosCommands:
         self._futures = {}
         self._futures_moving = {}
         self._futures_by_seq = {}
+        self._futures_lift_homing = {}
         self._sequence_number = 0
 
         self._robot._broker.registerCallback('nucleo/out/servo/ack', self._onMsgAck)
         self._robot._broker.registerCallback('nucleo/out/servo/status/moving', self._onMsgMoving)
         self._robot._broker.registerCallback('nucleo/out/servo/status/states', self._onServoStates)
+        self._robot._broker.registerCallback('nucleo/out/lift/homing_done', self._on_msg_homing_done)
 
     def loadConfig(self):
         self._servos_ids = {}
@@ -33,6 +32,7 @@ class ServosCommands:
         for i, servo_proto in enumerate(servos_proto):
             self._servos_ids[servo_proto.name] = i
             self._servos_names.append(servo_proto.name)
+
 
     async def disableAll(self):
         msg, future = self._create_command_msg('CmdDisableAll')
@@ -82,14 +82,33 @@ class ServosCommands:
         await future
 
     async def liftDoHoming(self, id_):
-        seq = self._get_sequence_number()
-        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftDoHoming')(sequence_number=seq, lift_id=id_)
+        future2 = self._loop.create_future()
+        self._futures_lift_homing[id_] = future2
+        msg, future = self._create_command_msg('CmdLiftDoHoming')
         await self._robot._broker.publishTopic('nucleo/in/lift/do_homing', msg)
+        await future
+        await future2
+        await asyncio.sleep(0.5)
+
 
     async def liftSetEnable(self, id_, enable):
         seq = self._get_sequence_number()
         msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftSetEnable')(sequence_number=seq, lift_id=id_, enable=enable)
         await self._robot._broker.publishTopic('nucleo/in/lift/set_enable', msg)
+
+    async def liftsRaw(self,target_left=0, speed_left=0, target_right=0, speed_right=0):
+        msg, future = self._create_command_msg('CmdLiftsRaw')
+
+        msg.lift1_bltrig = 80
+        msg.lift1_speed = speed_left
+        msg.lift1_target = target_left
+
+        msg.lift2_bltrig = 80
+        msg.lift2_speed = speed_right
+        msg.lift2_target = target_right
+
+        await self._robot._broker.publishTopic('nucleo/in/lift/cmd_raw', msg)
+        await future
 
     @property
     def states(self):
@@ -104,6 +123,12 @@ class ServosCommands:
         for e in self._futures_moving.values():
             if not (msg.value & e[1]):
                 e[0].set_result(None)
+
+    async def _on_msg_homing_done(self, msg):
+        future = self._futures_moving.get(msg.value)
+        if future is not None:
+            future.set_result(None)
+            del self._futures_moving[msg.value]
 
     async def _onServoStates(self, msg):
         for i, s in enumerate(msg.servos):
