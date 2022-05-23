@@ -312,7 +312,7 @@ class PropulsionCommands:
         u3 = np.linspace(0, 1, num_samples, endpoint=True)
         out = scipy.interpolate.splev(u3, tck)
         sampled_points = [(out[0][i], out[1][i]) for i in range(num_samples)]
-        await self.trajectory(sampled_points, speed, **kwargs)
+        return await self.trajectory(sampled_points, speed, **kwargs)
 
     async def _setEventSensorsMaks(self, sensors):
         msg, future = self._create_command_msg('CmdSetEventSensorsMask')
