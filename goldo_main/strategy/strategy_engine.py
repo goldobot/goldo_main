@@ -3,8 +3,9 @@ import astar
 import asyncio
 import logging
 import math
-import pb2 as _pb2
-from goldo_main.enums import *
+# import pb2 as _pb2
+# from goldo_main.enums import *
+import google.protobuf.wrappers_pb2
 import google.protobuf as _pb
 
 from .strategy_engine_base import StrategyEngineBase, Action, Path
@@ -20,6 +21,7 @@ class StrategyEngine(StrategyEngineBase):
         super().__init__()
         self._robot = robot
         self._astar = astar.AStarWrapper()
+        self.adversary_radius = 0.5
 
     async def try_astar(self):
         # return
@@ -45,7 +47,7 @@ class StrategyEngine(StrategyEngineBase):
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
 
     def addTimerCallback(self, timer, callback):
-        self._timer_callbacks.append((timer, callback))
+        self.create_timer_callback(timer, callback)
 
     @property
     def robot_state(self):
@@ -66,7 +68,7 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
 
         # angle corners
-        self._astar.fillPoly([(1.3, -1.5), (2.0, -0.7), (2.0,-1.5)], 0)
+        self._astar.fillPoly([(1.3, -1.5), (2.0, -0.7), (2.0, -1.5)], 0)
         self._astar.fillPoly([(1.3, 1.5), (2.0, 0.7), (2.0, 1.5)], 0)
 
         for k, v in self.obstacles.items():
@@ -78,8 +80,7 @@ class StrategyEngine(StrategyEngineBase):
                 self._astar.fillRect(v.p1, v.p2, 0)
 
         for d in self._robot._state_proto.rplidar_detections:
-            print(d)
-            self._astar.fillDisk((d.x, d.y), 0.3, 0)
+            self._astar.fillDisk((d.x, d.y), self.adversary_radius, 0)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))
@@ -87,8 +88,20 @@ class StrategyEngine(StrategyEngineBase):
     def _compute_path(self, action: Action) -> Path:
         pose_proto = self._robot._state_proto.robot_pose
 
-        # other robots
-        astar_path = self._astar.computePath((pose_proto.position.x, pose_proto.position.y),
+        # clamp pose to table size
+        begin_x = pose_proto.position.x
+        begin_y = pose_proto.position.y
+
+        if begin_x < 0:
+            begin_x = 0
+        if begin_x > 2.0:
+            begin_x = 2.0
+        if begin_y < -1.5:
+            begin_y = -1.5
+        if begin_y > 1.5:
+            begin_y = 1.5
+
+        astar_path = self._astar.computePath((begin_x, begin_y),
                                              (action.begin_pose[0], action.begin_pose[1]))
         if len(astar_path) < 2:
             print('NO PATH', action)
@@ -107,11 +120,4 @@ class StrategyEngine(StrategyEngineBase):
             raise
 
     def _onMatchTimer(self, value):
-        l = []
-        for timer, callback in self._timer_callbacks:
-            if value <= timer:
-                task = asyncio.create_task(callback())
-                self._tasks[id(task)] = task
-            else:
-                l.append((timer, callback))
-        self._timer_callbacks = l
+        self._on_match_timer(value)
