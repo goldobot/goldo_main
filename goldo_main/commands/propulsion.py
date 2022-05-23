@@ -32,6 +32,7 @@ class PropulsionCommand(object):
         self._future_begin = None
         self._future_end = None
 
+
     @property
     def begin(self):
         if self._future_begin is None:
@@ -75,10 +76,16 @@ class PropulsionCommands:
         self._broker.registerCallback('nucleo/out/propulsion/telemetry', self._onTelemetryMsg)
         self._broker.registerCallback('nucleo/out/propulsion/cmd_event', self._on_cmd_event)
         self._broker.registerCallback('nucleo/out/propulsion/controller/event', self._on_controller_event)
+        self._broker.registerCallback('gui/in/robot_state', self._on_robot_state)
         self.state = 0
+
+        self.adversary_detection_enable = True
+        # special front adversary detection for arms
+        self.adversary_detection_front_distance = 0
+        self.adversary_detection_side_distance = 0
         
         self.speed = 1
-        self.yaw_rate = 1
+        self.yaw_rate = 4
 
     def loadConfig(self):
         self._sensor_ids = {}
@@ -111,15 +118,22 @@ class PropulsionCommands:
         self._futures_ack.pop(sequence_number, None)
 
     def _publish(self, topic, msg=None):
+        LOGGER.debug("Propulsion publish %s %s", topic, msg)
         return self._broker.publishTopic(topic, msg)
 
     async def _publish_sequence(self, topic, msg):
-        LOGGER.info('propulsion cmd msg %s', msg.sequence_number)
+        LOGGER.debug('propulsion cmd msg %s', msg.sequence_number)
         future_ack = self._loop.create_future()
         self._futures_ack[msg.sequence_number] = future_ack
         future_ack.add_done_callback(functools.partial(self._remove_future_ack, msg.sequence_number))
 
-        await self._broker.publishTopic(topic, msg)
+        await self._publish(topic, msg)
+
+        try:
+            await asyncio.wait_for(future_ack, 1)
+            return
+        except asyncio.TimeoutError:
+            LOGGER.error('propulsion timeout on command %s, retry', msg)
 
         try:
             await asyncio.wait_for(future_ack, 1)
@@ -243,7 +257,9 @@ class PropulsionCommands:
             i = (i + 1) % 2
             s = speed * 0.5
 
-    async def rotation(self, angle, yaw_rate):
+    async def rotation(self, angle, yaw_rate=None):
+        if yaw_rate is None:
+            yaw_rate = self.yaw_rate
         msg, future = self._create_command_msg('ExecuteRotation', True)
         msg.angle = angle * math.pi / 180
         msg.yaw_rate = yaw_rate
@@ -330,6 +346,42 @@ class PropulsionCommands:
         await self._publish_sequence('nucleo/in/propulsion/set_event_sensors_mask', msg)
         await future
 
+    async def _adversary_detection(self):
+        #basic adversary detection
+        robot_pose = self._robot._state_proto.robot_pose
+        rplidar = self._robot._state_proto.rplidar
+
+        adversary_detected = False
+
+        if robot_pose.speed > 0 and rplidar.zones.front_near:
+            adversary_detected = True
+        if robot_pose.speed < 0 and rplidar.zones.back_near:
+            adversary_detected = True
+        if robot_pose.speed > 0.5 and rplidar.zones.front_far:
+            adversary_detected = True
+        if robot_pose.speed < -0.5 and rplidar.zones.back_far:
+            adversary_detected = True
+
+        if robot_pose.speed > 0:
+            # rotation matrix and translation vector
+            p_ref = np.array([robot_pose.position.x, robot_pose.position.y])
+            yaw = robot_pose.yaw
+            rot_m = np.array([[np.cos(yaw), np.sin(yaw)], [-np.sin(yaw), np.cos(yaw)]])
+            for det in rplidar.detections:
+                p_d = np.array([det.x, det.y])
+                rel = rot_m.dot(p_d - p_ref)
+                if abs(rel[1]) <= self.adversary_detection_side_distance:
+                    if 0 < rel[0] <= self.adversary_detection_front_distance:
+                        adversary_detected = True
+        if adversary_detected:
+            LOGGER.info("PropulsionCommands: adversary detected")
+            await self.emergencyStop()
+
+    async def _on_robot_state(self, msg):
+        #adversary detection
+        if self.state == 2 and self.adversary_detection_enable:
+            await self._adversary_detection()
+
     async def _onTelemetryMsg(self, msg):
         self._robot._state_proto.robot_pose.CopyFrom(msg.pose)
         self.state = msg.state
@@ -340,6 +392,7 @@ class PropulsionCommands:
             self._reposition_event = msg
 
     async def _on_cmd_event(self, msg):
+        LOGGER.debug('propulsion _on_cmd_event %s', msg)
         if msg.status == 4:
             print('propulsion cmd ack', msg.sequence_number)
             future = self._futures_ack.get(msg.sequence_number)

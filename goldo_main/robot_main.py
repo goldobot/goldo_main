@@ -7,7 +7,6 @@ import math
 import os
 from pathlib import Path
 
-
 from .commands import RobotCommands
 from .commands import PropulsionCommands
 from .commands import ServosCommands
@@ -26,6 +25,9 @@ from .strategy import StrategyEngine
 from . import sequences_importer
 import importlib
 
+import subprocess
+import sys
+
 import logging
 
 import runpy
@@ -38,11 +40,9 @@ MATCH_DURATION = 100
 class RobotExceptions(object):
     PropulsionError = PropulsionError
 
+
 _commands = {
     'camera': CameraCommands
-
-
-
 
 }
 
@@ -52,12 +52,15 @@ class RobotMain:
         self._sequences[func.__name__] = func
         return func
 
+    def add_option(self, name, default):
+        self._options[name] = default
+
     def loadConfig(self, config_path: Path):
         self._sequences = {}
         config = _pb2.get_symbol('goldo.robot.RobotConfig')()
         if not os.path.exists(config_path / 'robot_config.bin'):
             warn_msg = "WARNING configuration file '{}' missing".format(config_path / 'robot_config.bin')
-            print (warn_msg)
+            print(warn_msg)
             LOGGER.debug(warn_msg)
             return
         config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
@@ -69,6 +72,7 @@ class RobotMain:
         self._sequences_globals['robot'].loadConfig()
         # import all sequences
         sequences_importer.meta_finder.unload_all()
+        self._options = {}
         sequences_path = config_path / 'sequences'
         sequences_importer.meta_finder.sequences_path = sequences_path
         sequences_importer.meta_finder.inject_globals = self._sequences_globals
@@ -117,30 +121,23 @@ class RobotMain:
         self.loadConfig(config_path)
         self._task_match = None
         self._current_task = None
+        self._tasks = {}
+        self._options = {}
+        self._recorder_process = None
         self._task_main_loop = asyncio.create_task(self.runMainLoop())
 
     async def runMainLoop(self):
         while True:
             await asyncio.sleep(0.1)
             await self._broker.publishTopic('gui/in/robot_state', self._state_proto)
-            
+            self._create_task(self.propulsion._on_robot_state(self._state_proto))
+
             if self._match_state == MatchState.WaitForStartOfMatch and self._state_proto.tirette:
                 self._match_armed = True
-                
+
             if self._match_state == MatchState.WaitForStartOfMatch and self._match_armed and not self._state_proto.tirette:
                 LOGGER.info('start match')
                 await self.startMatch()
-                
-            # adversary detection
-            if self.propulsion.state == 2:
-                if self._state_proto.robot_pose.speed > 0 and self._state_proto.rplidar.zones.front_near:
-                    await self.propulsion.emergencyStop()
-                if self._state_proto.robot_pose.speed < 0 and self._state_proto.rplidar.zones.back_near:
-                    await self.propulsion.emergencyStop()
-                if self._state_proto.robot_pose.speed > 0.5 and self._state_proto.rplidar.zones.front_far:
-                    await self.propulsion.emergencyStop()
-                if self._state_proto.robot_pose.speed < -0.5 and self._state_proto.rplidar.zones.back_far:
-                    await self.propulsion.emergencyStop()
 
     async def configNucleo(self, msg=None):
         """Upload the nucleo board configuration."""
@@ -164,10 +161,11 @@ class RobotMain:
         await self._rplidar_updater.loadConfig()
         self.propulsion.loadConfig()
 
-
         await self._broker.publishTopic('nucleo/in/propulsion/odrive/clear_errors')
         await self._broker.publishTopic('nucleo/in/propulsion/simulation/enable',
                                         _sym_db.GetSymbol('google.protobuf.BoolValue')(value=self._simulation_mode))
+        # make sure not callbacks from before reconfig are running
+        asyncio.get_event_loop().call_soon(self._broker._cancel_tasks)
 
     def onNucleoReset(self):
         LOGGER.error("nucleo reset")
@@ -192,7 +190,17 @@ class RobotMain:
             self._current_task.cancel()
         await self._broker.publishTopic('match/timer/stop')
 
-            # return
+        # start a recorder
+        if self._recorder_process is not None:
+            self._recorder_process.kill()
+
+        self._recorder_process = subprocess.Popen([
+            sys.executable,
+            '/home/goldorak/workspace/goldo_main/messages_recorder.py',
+            '/home/goldorak/workspace/record_prematch.bin'
+        ])
+
+        # return
         LOGGER.info("prematch started, side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
         self._match_state = MatchState.PreMatch
         self._state_proto.match_state = self._match_state
@@ -285,6 +293,19 @@ class RobotMain:
     async def onSetSide(self, msg):
         self.side = msg.value
         LOGGER.debug("onSetSide(): side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
+
+    def _create_task(self, aw):
+        task = asyncio.create_task(aw)
+        self._tasks[id(task)] = task
+        task.add_done_callback(self._on_task_done)
+        return task
+
+    def _on_task_done(self, task):
+        del self._tasks[id(task)]
+        try:
+            task.result()
+        except Exception:
+            LOGGER.exception('error in broker callback')
 
     async def onTestAstar(self, msg):
         LOGGER.info('RobotMain: onTestAstar()')
