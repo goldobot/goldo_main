@@ -564,6 +564,13 @@ void AStar::fillRect(int x1, int y1, int x2, int y2, NodeType type, UINT expandC
     clipPoint(x1,y1);
     clipPoint(x2,y2);
     
+    if(x1 > x2) {
+        std::swap(x1, x2);
+    };
+    if(y1 > y2) {
+        std::swap(y1, y2);
+    };
+    
     for(unsigned ix=x1; ix <= (unsigned int)x2; ix++) 
     {
         for(unsigned iy=y1; iy <= (unsigned int)y2; iy++) 
@@ -573,21 +580,14 @@ void AStar::fillRect(int x1, int y1, int x2, int y2, NodeType type, UINT expandC
     }
 }
 
+#include <iostream>
+
 bool scanlineIntersection(float x1, float y1, float x2, float y2, float x, float& y_int)
-{
-    if(y1 == y2)
-    {
-        if(x > x1 && x > x2)
-            return false;
-        if(x < x1 && x < x2)
-            return false;
-        y_int = y1;
-        return true;
-    }
-          
+{          
     if(fabsf(x2 - x1) >= std::numeric_limits<float>::epsilon())
     {
-        float y = (x-x1)*(y2-y1)/(x2-x1);
+        float y = y1 + (x-x1)*(y2-y1)/(x2-x1);
+
         if(y > y1 && y > y2)
             return false;
         if(y < y1 && y < y2)
@@ -600,7 +600,7 @@ bool scanlineIntersection(float x1, float y1, float x2, float y2, float x, float
     }; 
 }
 
-#include <iostream>
+
 
 void AStar::fillPoly(float* pts_x,float* pts_y, UINT num_pts, NodeType type, UINT expandCost)
 {
@@ -627,16 +627,16 @@ void AStar::fillPoly(float* pts_x,float* pts_y, UINT num_pts, NodeType type, UIN
     
     for(int x=x1; x<x2; x++)
     {
-        float y_min= 100;
-        float y_max = -100;
-        std::cout << "scanline " << x << "\n";
+        float y_min= std::numeric_limits<float>::infinity();
+        float y_max = -std::numeric_limits<float>::infinity();
+        
+  
         for(unsigned i=0; i<num_pts; i++)
         {
             float y = 0;
             unsigned j = i+1;
             if(j == num_pts)
-                j = 0;
-            std::cout << "segment " << pts_x[i] << " " << pts_y[i] << " " << pts_x[j] << " " << pts_y[j] << "\n";
+                j = 0;           
             
             if(scanlineIntersection(pts_x[i], pts_y[i], pts_x[j], pts_y[j], x, y))
             {                
@@ -644,10 +644,8 @@ void AStar::fillPoly(float* pts_x,float* pts_y, UINT num_pts, NodeType type, UIN
                     y_min = y;
                 if(y > y_max)
                   y_max = y; 
-                std::cout << y << "\n";
             };            
         };
-       std::cout << y_min << " " << y_max << "\n";
        if(y_min > y_max)
           continue;
         

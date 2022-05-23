@@ -65,6 +65,10 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.fillRect((0, -1.5), (2.0, -1.4), 0)
         self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
 
+        # angle corners
+        self._astar.fillPoly([(1.3, -1.5), (2.0, -0.7), (2.0,-1.5)], 0)
+        self._astar.fillPoly([(1.3, 1.5), (2.0, 0.7), (2.0, 1.5)], 0)
+
         for k, v in self.obstacles.items():
             if not v.enabled:
                 continue
@@ -82,7 +86,7 @@ class StrategyEngine(StrategyEngineBase):
     def _compute_path(self, action: Action) -> Path:
         if self.move_counter == 1:
             self.move_counter += 1
-            self.current_action.enabled = False
+            self._target_action.enabled = False
             return None
         pose_proto = self._robot._state_proto.robot_pose
 
