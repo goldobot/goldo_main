@@ -41,8 +41,9 @@ class NucleoStateUpdater(object):
 
     async def onHeartbeatMsg(self, msg):
         if msg.timestamp + 2000 < self._nucleo_proto.heartbeat:
-            LOGGER.warning('NucleoStateUpdater heartbeat error detected: %s, %s', msg.timestamp, self._nucleo_proto.heartbeat)
-            await self.onNucleoReset()
+            LOGGER.warning('NucleoStateUpdater heartbeat error detected: new=%s, old=%s', msg.timestamp, self._nucleo_proto.heartbeat)
+            # FIXME : TODO : GOLDO : why disable this?? (don't f**k up the curent sequence after heartbeat error?)
+            #await self.onNucleoReset()
         self._nucleo_proto.heartbeat = msg.timestamp
         self._nucleo_proto.connected = True
         self._heartbeat_received = True
@@ -50,6 +51,8 @@ class NucleoStateUpdater(object):
         # print(self._last_odrive_comm_stats_ts)
 
     async def onResetMessage(self, msg):
+        # FIXME : TODO : GOLDO : why return here??
+        # return
         await self.onNucleoReset()
 
     async def onConfigStatusMsg(self, msg):

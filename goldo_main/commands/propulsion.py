@@ -114,7 +114,7 @@ class PropulsionCommands:
         self._futures.pop(sequence_number, None)
 
     def _remove_future_ack(self, sequence_number: int, future: asyncio.Future):
-        LOGGER.debug("Remove done future %r", sequence_number)
+        LOGGER.debug("Remove done future ack %r", sequence_number)
         self._futures_ack.pop(sequence_number, None)
 
     def _publish(self, topic, msg=None):
@@ -367,12 +367,19 @@ class PropulsionCommands:
             p_ref = np.array([robot_pose.position.x, robot_pose.position.y])
             yaw = robot_pose.yaw
             rot_m = np.array([[np.cos(yaw), np.sin(yaw)], [-np.sin(yaw), np.cos(yaw)]])
-            for det in rplidar.detections:
-                p_d = np.array([det.x, det.y])
-                rel = rot_m.dot(p_d - p_ref)
-                if abs(rel[1]) <= self.adversary_detection_side_distance:
-                    if 0 < rel[0] <= self.adversary_detection_front_distance:
-                        adversary_detected = True
+
+            near_distance = 0.1
+            far_distance = self.adversary_detection_front_distance
+            if far_distance > near_distance:
+                for det in rplidar.detections:
+                    p_d = np.array([det.x, det.y])
+                    rel = rot_m.dot(p_d - p_ref)
+
+                    if near_distance < rel[0] <= far_distance:
+                        u = (rel[0] - near_distance) / (far_distance - near_distance)
+                        width = u * 0.2 * (1 - u) * 0.1
+                        if abs(rel[1]) * 2 <= width:
+                            adversary_detected = True
         if adversary_detected:
             LOGGER.info("PropulsionCommands: adversary detected")
             await self.emergencyStop()

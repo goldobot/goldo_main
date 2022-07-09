@@ -11,6 +11,8 @@ import sys
 import os
 import signal
 
+from optparse import OptionParser
+
 def rm_tree(path: Path):
     for child in path.iterdir():
         if child.is_file():
@@ -47,12 +49,18 @@ async def main():
     from goldo_main.robot_main import RobotMain
     from goldo_main.log_handler import GoldoLogHandler
     global robot
+
+    parser = OptionParser()
+    parser.add_option('--mock', default=False)
+
+    #(options, args) = parser.parse_args(sys.argv)
+
     
     broker = ZmqBroker()
     handler = GoldoLogHandler(broker)
     
     logger = logging.getLogger('goldo_main')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
     
     robot = RobotMain(broker)
@@ -73,6 +81,8 @@ async def main():
     await broker.run()
 
 if __name__ == '__main__':
+
+
     
     now=datetime.datetime.now()
     
@@ -81,16 +91,33 @@ if __name__ == '__main__':
     
     
     logger = logging.getLogger('goldo_main.robot_main')
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     
     consoleHandler = logging.StreamHandler()
     consoleHandler.setLevel(logging.DEBUG)
 
-    #logger.addHandler(consoleHandler)
+    logger.addHandler(consoleHandler)
+
+    debug_modules = [
+        'goldo_main.commands.propulsion',
+        'goldo_main.zmq_broker'
+    ]
+
+    for m in debug_modules:
+        logger = logging.getLogger(m)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(consoleHandler)
+
+    logger = logging.getLogger('goldo_main.strategy.strategy_engine_base')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(consoleHandler)
     
     logger = logging.getLogger('goldo_main.strategy.strategy_engine')
     logger.setLevel(logging.DEBUG)
+    logger.addHandler(consoleHandler)
 
+    logger = logging.getLogger('goldo_main.nucleo.state_updater')
+    logger.setLevel(logging.DEBUG)
     logger.addHandler(consoleHandler)
     
     loop = asyncio.get_event_loop()

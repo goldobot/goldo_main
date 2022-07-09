@@ -81,14 +81,20 @@ class ServosCommands:
         future.add_done_callback(self._remove_future_moving)
         await future
 
+    #async def liftDoHoming(self, id_):
+    #    future2 = self._loop.create_future()
+    #    self._futures_lift_homing[id_] = future2
+    #    msg, future = self._create_command_msg('CmdLiftDoHoming')
+    #    await self._robot._broker.publishTopic('nucleo/in/lift/do_homing', msg)
+    #    await future
+    #    await future2
+    #    await asyncio.sleep(0.5)
+
     async def liftDoHoming(self, id_):
-        future2 = self._loop.create_future()
-        self._futures_lift_homing[id_] = future2
-        msg, future = self._create_command_msg('CmdLiftDoHoming')
+        seq = self._get_sequence_number()
+        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftDoHoming')(sequence_number=seq, lift_id=id_)
         await self._robot._broker.publishTopic('nucleo/in/lift/do_homing', msg)
-        await future
-        await future2
-        await asyncio.sleep(0.5)
+
 
 
     async def liftSetEnable(self, id_, enable):

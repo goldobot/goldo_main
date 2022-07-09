@@ -83,7 +83,7 @@ class ObstacleRectangle:
     p2: [Tuple[float, float]] = (0, 0)
 
 def val_or_func(value, type_):
-    if isinstance((value, type_)):
+    if isinstance(value, type_):
         return value
     else:
         return value()

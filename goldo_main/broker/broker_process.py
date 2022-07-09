@@ -44,6 +44,7 @@ class ZmqBrokerProcess(object):
         self._socket_codecs = {}
         self._callbacks = []
         self._forwards = []
+        self._tasks = {}
         ip = 'robot01'
         self.register_socket('nucleo:pub', 'tcp://{}:3002'.format(ip), 'connect', NucleoCodec())
         self.register_socket('nucleo:sub', 'tcp://{}:3001'.format(ip), 'connect', NucleoCodec())
@@ -92,6 +93,7 @@ class ZmqBrokerProcess(object):
         while flags & zmq.POLLIN:
             payload = await socket.recv_multipart()
             topic, msg = codec[0].deserialize(payload)
+            pass
             if topic is not None:
                 await codec[1](topic, msg)
             flags = socket.getsockopt(zmq.EVENTS)
@@ -129,15 +131,15 @@ class ZmqBrokerProcess(object):
             self.publishTopic(forward_str.format(*match.groups()), msg) for match, forward_str in forwards_matches if
             match)
         if len(forwards):
-            await asyncio.wait(forwards)
+            self._create_task(asyncio.wait(forwards))
         await self.publishTopic(topic, msg)
 
     async def publishTopic(self, topic, msg):
         if topic.startswith('nucleo/in/'):
-            await self._writeSocket(self._sockets['nucleo:pub'], topic, msg)
+            self._create_task(self._writeSocket(self._sockets['nucleo:pub'], topic, msg))
         if topic.startswith('rplidar/in/'):
-            await self._writeSocket(self._sockets['rplidar:pub'], topic, msg)
-        await self._writeSocket(self._sockets['debug:pub'], topic, msg)
+            await self._create_task(self._writeSocket(self._sockets['rplidar:pub'], topic, msg))
+        await self._create_task(self._writeSocket(self._sockets['debug:pub'], topic, msg))
 
     async def _onRequestReceived(self, topic, msg=None):
         descriptor = _sym_db.pool.FindMessageTypeByName(msg.value)
@@ -167,6 +169,19 @@ class ZmqBrokerProcess(object):
             socket.bind(url)
         self._sockets[name] = socket
         self._socket_codecs[socket] = (codec, func)
+        
+    def _create_task(self, aw):
+        task = asyncio.create_task(aw)
+        self._tasks[id(task)] = task
+        task.add_done_callback(self._on_task_done)
+        return task
+
+    def _on_task_done(self, task):
+        del self._tasks[id(task)]
+        try:
+            task.result()
+        except Exception:
+            LOGGER.exception('error in broker callback')
 
 
 def run_broker_process(conn):
