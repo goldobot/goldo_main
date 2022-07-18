@@ -130,13 +130,13 @@ class PropulsionCommands:
         await self._publish(topic, msg)
 
         try:
-            await asyncio.wait_for(future_ack, 1)
+            await asyncio.wait_for(future_ack, 5)
             return
         except asyncio.TimeoutError:
             LOGGER.error('propulsion timeout on command %s, retry', msg)
 
         try:
-            await asyncio.wait_for(future_ack, 1)
+            await asyncio.wait_for(future_ack, 5)
         except asyncio.TimeoutError:
             LOGGER.error('propulsion timeout on command %s', msg)
 
