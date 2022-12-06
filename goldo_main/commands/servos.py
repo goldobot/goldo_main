@@ -37,7 +37,10 @@ class ServosCommands:
     async def disableAll(self):
         msg, future = self._create_command_msg('CmdDisableAll')
         await self._robot._broker.publishTopic('nucleo/in/servo/disable_all', msg)
-        await future
+        try:
+            await asyncio.wait_for(future, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
 
     async def setEnable(self, name_or_servos, enable):
         if isinstance(name_or_servos, (str, bytes)):
@@ -46,7 +49,10 @@ class ServosCommands:
         enables = [ServoEnable(servo_id=self._servos_ids[name], enable=enable) for name in name_or_servos]
         msg, future = self._create_command_msg('CmdSetEnable', enables=enables)
         await self._robot._broker.publishTopic('nucleo/in/servo/enable/set', msg)
-        await future
+        try:
+            await asyncio.wait_for(future, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
 
     async def setMaxTorque(self, name_or_servos, torque):
         if isinstance(name_or_servos, (str, bytes)):
@@ -56,7 +62,10 @@ class ServosCommands:
                    name_or_servos]
         msg, future = self._create_command_msg('CmdSetMaxTorques', torques=torques)
         await self._robot._broker.publishTopic('nucleo/in/servo/set_max_torques', msg)
-        await future
+        try:
+            await asyncio.wait_for(future, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
 
     async def move(self, name, position, speed=1):
         await self.moveMultiple({name: position}, speed)
@@ -74,12 +83,19 @@ class ServosCommands:
         msg, future = self._create_command_msg('CmdMoveMultiple', speed=speed, positions=elts)
 
         await self._robot._broker.publishTopic('nucleo/in/servo/move_multiple', msg)
-        await future
+        try:
+            await asyncio.wait_for(future, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
+
         # after the move is started, wait for the servos to stop moving        
-        future = self._loop.create_future()
-        self._futures_moving[id(future)] = [future, servos_mask]
-        future.add_done_callback(self._remove_future_moving)
-        await future
+        future2 = self._loop.create_future()
+        self._futures_moving[id(future2)] = [future2, servos_mask]
+        future2.add_done_callback(self._remove_future_moving)
+        try:
+            await asyncio.wait_for(future2, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
 
     #async def liftDoHoming(self, id_):
     #    future2 = self._loop.create_future()
@@ -90,12 +106,18 @@ class ServosCommands:
     #    await future2
     #    await asyncio.sleep(0.5)
 
+    # FIXME : TODO : activate future2.. (when Nucleo code is ready..)
     async def liftDoHoming(self, id_):
-        seq = self._get_sequence_number()
-        msg = _sym_db.GetSymbol('goldo.nucleo.servos.CmdLiftDoHoming')(sequence_number=seq, lift_id=id_)
+        msg, future = self._create_command_msg('CmdLiftDoHoming', lift_id=id_)
         await self._robot._broker.publishTopic('nucleo/in/lift/do_homing', msg)
-
-
+        #future2 = self._loop.create_future()
+        #self._futures_lift_homing[id(future)] = future2
+        #future2.add_done_callback(self._remove_future_homing_done)
+        try:
+            await asyncio.wait_for(future, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
+        #await future2
 
     async def liftSetEnable(self, id_, enable):
         seq = self._get_sequence_number()
@@ -114,7 +136,10 @@ class ServosCommands:
         msg.lift2_target = target_right
 
         await self._robot._broker.publishTopic('nucleo/in/lift/cmd_raw', msg)
-        await future
+        try:
+            await asyncio.wait_for(future, 5)
+        except asyncio.TimeoutError:
+            print('ERROR:timeout on SERVO command %s', msg)
 
     @property
     def states(self):
@@ -131,10 +156,9 @@ class ServosCommands:
                 e[0].set_result(None)
 
     async def _on_msg_homing_done(self, msg):
-        future = self._futures_moving.get(msg.value)
+        future = self._futures_lift_homing.get(msg.value)
         if future is not None:
             future.set_result(None)
-            del self._futures_moving[msg.value]
 
     async def _onServoStates(self, msg):
         for i, s in enumerate(msg.servos):
@@ -150,6 +174,9 @@ class ServosCommands:
 
     def _remove_future_moving(self, future):
         self._futures_moving.pop(id(future), None)
+
+    def _remove_future_homing_done(self, future):
+        self._futures_lift_homing.pop(id(future), None)
 
     def _create_future(self):
         future = self._loop.create_future()
