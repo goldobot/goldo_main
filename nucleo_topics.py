@@ -380,3 +380,12 @@ def dbg_goldo_out(payload):
     msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value = val[0])
     return msg
 
+@nucleo_in('get_nucleo_firmware_version', nucleo_message_ids.GetNucleoFirmwareVersion)
+def get_nucleo_firmware_version_in(msg):
+    return b''
+
+@nucleo_out('get_nucleo_firmware_version', nucleo_message_ids.GetNucleoFirmwareVersion)
+def get_nucleo_firmware_version_out(payload):
+    msg = _sym_db.GetSymbol('google.protobuf.StringValue')(value = payload.decode('utf-8'))
+    return msg
+
