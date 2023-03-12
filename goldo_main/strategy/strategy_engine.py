@@ -67,10 +67,6 @@ class StrategyEngine(StrategyEngineBase):
         self._astar.fillRect((0, -1.5), (2.0, -1.4), 0)
         self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
 
-        # angle corners
-        self._astar.fillPoly([(1.3, -1.5), (2.0, -0.7), (2.0, -1.5)], 0)
-        self._astar.fillPoly([(1.3, 1.5), (2.0, 0.7), (2.0, 1.5)], 0)
-
         for k, v in self.obstacles.items():
             if not v.enabled:
                 continue

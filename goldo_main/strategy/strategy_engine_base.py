@@ -189,6 +189,8 @@ class StrategyEngineBase:
         return None, None
 
     def _schedule_next_action(self):
+        self._movement_state = MovementState.Idle
+
         if self._closing:
             return
         action, path = self._select_next_action()
