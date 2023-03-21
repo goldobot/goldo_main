@@ -75,14 +75,17 @@ class StrategyEngine(StrategyEngineBase):
             if isinstance(v, ObstacleRectangle):
                 self._astar.fillRect(v.p1, v.p2, 0)
 
-        for d in self._robot._state_proto.rplidar_detections:
-            self._astar.fillDisk((d.x, d.y), self.adversary_radius, 0)
-
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))
 
     def _compute_path(self, action: Action) -> Path:
         pose_proto = self._robot._state_proto.robot_pose
+
+        for d in self._robot._state_proto.rplidar_detections:
+            self._astar.fillDisk((d.x, d.y), action.opponent_radius, 0)
+
+        msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
+        self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))
 
         # clamp pose to table size
         begin_x = pose_proto.position.x
@@ -109,7 +112,7 @@ class StrategyEngine(StrategyEngineBase):
         propulsion = self._robot.propulsion
         try:
             await propulsion.pointTo(path.points[1])
-            await propulsion.trajectorySpline(path.points)
+            await propulsion.trajectorySpline(path.points, self._target_action.speed)
             await propulsion.faceDirection(path.end_yaw * 180 / math.pi)
         except:
             await propulsion.clearError()

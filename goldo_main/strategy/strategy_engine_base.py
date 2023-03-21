@@ -46,6 +46,10 @@ class Action:
     priority: int = 0
     # robot will move to begin_pose before executing action. (x, y, yaw in degrees)
     begin_pose: Tuple[float, float, float] = (0, 0, 0)
+    # speed to go to begin pose
+    speed: Optional[int] = None
+    # Diameter of the exclusion zone around RPLidar detection
+    opponent_radius: int = 0.50
     # sequence to execute when robot has arrived at begin_pose
     sequence: Optional[str] = None
     # sequence to execute during move to begin_pose
