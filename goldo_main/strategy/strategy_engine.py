@@ -26,10 +26,8 @@ class StrategyEngine(StrategyEngineBase):
     async def try_astar(self):
         # return
         self._astar.resetCosts()
-        if self._robot.side == Side.Blue or True:
-            pass
 
-        self._astar.setDisk((1.7, -0.3), 30)
+        self._astar.setDisk((1.7, -0.3), 0.3)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
