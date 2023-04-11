@@ -21,26 +21,19 @@ class StrategyEngine(StrategyEngineBase):
         super().__init__()
         self._robot = robot
         self._astar = astar.AStarWrapper()
-        self.adversary_radius = 0.5
+        self.adversary_radius = 0.3
 
     async def try_astar(self):
         # return
         self._astar.resetCosts()
-        # self._astar.fillRect(35,0,125, 55)
         if self._robot.side == Side.Blue or True:
-            # port
-            # self._astar.fillRect(200-55,90,200, 150)
-            # adversary start area
-            # self._astar.fillRect(35,300-55,125, 300)
-            # self._astar.fillRect(0,300-55,35, 300)
-            # self._astar.fillRect(125,300-55,165, 300)
             pass
 
         self._astar.setDisk((1.7, -0.3), 30)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)
-        print(self._astar.computePath((1.8, -1.3), (1.8, 1.3)))
+        print(self._astar.computePath((1.8, -0.7), (1.8, 0.7)))
 
     async def display_astar(self):
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
@@ -59,13 +52,13 @@ class StrategyEngine(StrategyEngineBase):
     def _update_path_planner(self):
         # reset astar costs
         # background
-        self._astar.fillRect((0, -1.5), (2.0, 1.5), 1)
+        self._astar.fillRect((0, -1.0), (3.0, 1.0), 1)
 
         # borders
-        self._astar.fillRect((0, -1.5), (0.1, 1.5), 0)
-        self._astar.fillRect((1.9, -1.5), (2.0, 1.5), 0)
-        self._astar.fillRect((0, -1.5), (2.0, -1.4), 0)
-        self._astar.fillRect((0, 1.4), (2.0, 1.5), 0)
+        self._astar.fillRect((0, -1.0), (0.1, 1.0), 0)
+        self._astar.fillRect((2.9, -1.0), (3.0, 1.0), 0)
+        self._astar.fillRect((0, -1.0), (3.0, -0.9), 0)
+        self._astar.fillRect((0, 1.0), (3.0, 0.9), 0)
 
         for k, v in self.obstacles.items():
             if not v.enabled:
