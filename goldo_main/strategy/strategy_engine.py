@@ -84,12 +84,12 @@ class StrategyEngine(StrategyEngineBase):
 
         if begin_x < 0:
             begin_x = 0
-        if begin_x > 2.0:
-            begin_x = 2.0
-        if begin_y < -1.5:
-            begin_y = -1.5
-        if begin_y > 1.5:
-            begin_y = 1.5
+        if begin_x > 3.0:
+            begin_x = 3.0
+        if begin_y < -1.0:
+            begin_y = -1.0
+        if begin_y > 1.0:
+            begin_y = 1.0
 
         astar_path = self._astar.computePath((begin_x, begin_y),
                                              (action.begin_pose[0], action.begin_pose[1]))
@@ -105,9 +105,15 @@ class StrategyEngine(StrategyEngineBase):
             await propulsion.pointTo(path.points[1])
             await propulsion.trajectorySpline(path.points, self._target_action.speed)
             await propulsion.faceDirection(path.end_yaw * 180 / math.pi)
+            # FIXME : DEBUG : let the internal robot state synchronize with the Nucleo
+            await asyncio.sleep(0.1)
         except:
+            LOGGER.info("ERROR during 'execute move' to action: %s", self._target_action.name)
+            LOGGER.info("Try to clear error & continue..")
             await propulsion.clearError()
-            raise
+            # FIXME : DEBUG : for debug
+            await asyncio.sleep(1.0)
+            #raise
 
     def _onMatchTimer(self, value):
         self._on_match_timer(value)
