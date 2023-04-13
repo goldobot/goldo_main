@@ -78,18 +78,8 @@ class StrategyEngine(StrategyEngineBase):
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         self._create_task(self._robot._broker.publishTopic('strategy/debug/astar_arr', msg))
 
-        # clamp pose to table size
         begin_x = pose_proto.position.x
         begin_y = pose_proto.position.y
-
-        if begin_x < 0:
-            begin_x = 0
-        if begin_x > 3.0:
-            begin_x = 3.0
-        if begin_y < -1.0:
-            begin_y = -1.0
-        if begin_y > 1.0:
-            begin_y = 1.0
 
         astar_path = self._astar.computePath((begin_x, begin_y),
                                              (action.begin_pose[0], action.begin_pose[1]))
