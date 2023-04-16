@@ -1,13 +1,9 @@
 import pb2 as _pb2
 import google.protobuf as _pb
 
-_sym_db = _pb.symbol_database.Default()
 import asyncio
-import struct
-import math
-import functools
 
-import runpy
+_sym_db = _pb.symbol_database.Default()
 
 
 class CameraCommands:

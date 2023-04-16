@@ -1,10 +1,10 @@
 import logging
 import pb2 as _pb2
 
-LogMessage = _pb2.get_symbol('goldo.log.LogMessage')
 import asyncio
 import queue
 
+LogMessage = _pb2.get_symbol('goldo.log.LogMessage')
 
 class GoldoLogHandler(logging.Handler):
     def __init__(self, zmq_client):

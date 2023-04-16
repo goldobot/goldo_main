@@ -1,8 +1,6 @@
 import zmq
 import time
-import sys
 import struct
-import pathlib
 
 _msg_type_struct = struct.Struct('<BBHIi')
 _prop_event_struct = struct.Struct('<IHBB')

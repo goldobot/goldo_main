@@ -9,11 +9,9 @@ import google.protobuf.reflection
 from google.protobuf.descriptor import MakeDescriptor
 from google.protobuf.message_factory import MessageFactory
 from google.protobuf.descriptor_pb2 import DescriptorProto,  FieldDescriptorProto, FileDescriptorProto
-import struct
+import pb2
 
 pool = google.protobuf.descriptor_pool.Default()
-
-import pb2
 
 def topological_sort(dependencies):
     vertices = list(dependencies.keys())

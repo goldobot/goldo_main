@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-import  logging
+import logging
 
 LOGGER = logging.getLogger(__name__)
 

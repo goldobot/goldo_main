@@ -1,7 +1,6 @@
 import pb2 as _pb2
 import google.protobuf as _pb
 
-_sym_db = _pb.symbol_database.Default()
 import asyncio
 import math
 import os
@@ -32,6 +31,7 @@ import logging
 
 import runpy
 
+_sym_db = _pb.symbol_database.Default()
 LOGGER = logging.getLogger(__name__)
 
 MATCH_DURATION = 100

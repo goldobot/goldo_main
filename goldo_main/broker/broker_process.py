@@ -6,12 +6,8 @@ import struct
 import logging
 import re
 import socket
-import struct
 import setproctitle
 import enum
-
-import multiprocessing
-from multiprocessing import Process, Pipe
 
 from .zmq_codecs import *
 

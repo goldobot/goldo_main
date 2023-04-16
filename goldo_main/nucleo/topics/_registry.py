@@ -1,6 +1,5 @@
 import pb2 as _pb2
 import struct
-import math
 
 __all__ = [
     'nucleo_out',
