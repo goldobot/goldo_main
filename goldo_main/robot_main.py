@@ -85,6 +85,7 @@ class RobotMain:
         self._tasks = []
         self._simulation_mode = False
         self.side = 0
+        self.start_zone = 0
         self._adversary_detection_enable = True
         self.commands = RobotCommands(self)
         self.propulsion = PropulsionCommands(self)
@@ -282,6 +283,7 @@ class RobotMain:
         broker = self._broker
         self.scope.setBroker(broker)
         broker.registerCallback('gui/out/side', self.onSetSide)
+        broker.registerCallback('gui/out/start_zone', self.onSetStartZone)
         broker.registerCallback('gui/out/commands/config_nucleo', self.configNucleo)
         broker.registerCallback('gui/out/commands/prematch', self.onPreMatch)
         broker.registerCallback('gui/out/commands/debug_start_match', self.onDebugStartMatch)
@@ -292,7 +294,11 @@ class RobotMain:
 
     async def onSetSide(self, msg):
         self.side = msg.value
-        LOGGER.debug("onSetSide(): side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
+        LOGGER.debug("onSetSide(): side = {}".format({0: 'unset', 1: 'green', 2: 'blue'}[self.side]))
+
+    async def onSetStartZone(self, msg):
+        self.start_zone = msg.value
+        LOGGER.debug("onSetStartZone(): zone = " + str(self.start_zone))
 
     def _create_task(self, aw):
         task = asyncio.create_task(aw)

@@ -39,6 +39,10 @@ class RobotCommands:
     @property
     def side(self):
         return self._robot.side
+    
+    @property
+    def start_zone(self):
+        return self._robot.start_zone
 
     @property
     def sensors(self):
