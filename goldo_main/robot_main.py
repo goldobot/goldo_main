@@ -13,6 +13,7 @@ from .commands import LidarCommands
 from .commands import ODriveCommands
 from .commands import CameraCommands
 from .commands import ScopeCommands
+from .commands import PneumaticCommands
 
 from .commands import PropulsionError
 
@@ -116,6 +117,7 @@ class RobotMain:
         self._sequences_globals['sensors'] = self._state_proto.sensors
         self._sequences_globals['servos'] = ServosCommands(self)
         self._sequences_globals['lidar'] = LidarCommands(self)
+        self._sequences_globals['pneumatic'] = PneumaticCommands(self)
         self._sequences_globals['rplidar_detections'] = self._state_proto.rplidar_detections
         self._sequences_globals['exceptions'] = RobotExceptions
         self.registerCallbacks()
