@@ -16,6 +16,13 @@ import scipy.interpolate
 
 from typing import Mapping
 
+import RPi.GPIO as GPIO
+
+import mmap
+import os
+import time
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -86,6 +93,9 @@ class PropulsionCommands:
         
         self.speed = 1
         self.yaw_rate = 4
+
+        self.rplidar_shmem_fd = open("rplidar_shmem.txt","a+b")
+        self.rp_shmem = mmap.mmap(self.rplidar_shmem_fd.fileno(), 4096, access=mmap.ACCESS_WRITE, offset=0)
 
     def loadConfig(self):
         self._sensor_ids = {}
@@ -381,13 +391,26 @@ class PropulsionCommands:
                         if abs(rel[1]) * 2 <= width:
                             adversary_detected = True
         if adversary_detected:
-            LOGGER.info("PropulsionCommands: adversary detected")
-            await self.emergencyStop()
+            LOGGER.info("********************************************")
+            LOGGER.info("********************************************")
+            LOGGER.info("*  PropulsionCommands: adversary detected  *")
+            LOGGER.info("********************************************")
+            LOGGER.info("********************************************")
+            #await self.emergencyStop()
+            #GPIO.setmode(GPIO.BCM)
+            #GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
+            #GPIO.output(21, GPIO.HIGH)
+            #await asyncio.sleep(0.0)
+            #GPIO.output(21, GPIO.LOW)
 
     async def _on_robot_state(self, msg):
         #adversary detection
         if self.state == 2 and self.adversary_detection_enable:
             await self._adversary_detection()
+        if self.adversary_detection_enable:
+            self.rp_shmem[0] = 0x01
+        else:
+            self.rp_shmem[0] = 0x00
 
     async def _onTelemetryMsg(self, msg):
         self._robot._state_proto.robot_pose.CopyFrom(msg.pose)

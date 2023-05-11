@@ -157,6 +157,7 @@ class StrategyEngineBase:
 
         self._running = True
         self._closing = False
+        self._log_once = True
         try:
             await self._execute_sequence('start_match')
         except asyncio.CancelledError:
@@ -200,8 +201,9 @@ class StrategyEngineBase:
         action, path = self._select_next_action()
         self._target_action = action
 
-        LOGGER.info('StrategyEngineBase._schedule_next_action: action scheduled: %s',
-                    action.name if action is not None else None)
+        if (action is not None):
+            LOGGER.info('StrategyEngineBase._schedule_next_action: action scheduled: %s',
+                        action.name if action is not None else None)
 
         if self._sequence_state == SequenceState.PrepareFinished and action != self._previous_action:
             self._start_cancel()
@@ -213,7 +215,9 @@ class StrategyEngineBase:
             self._start_move(path)
         else:
             loop = asyncio.get_event_loop()
-            LOGGER.info('StrategyEngineBase._schedule_next_action: no action to schedule')
+            if self._log_once:
+                self._log_once = False
+                LOGGER.info('StrategyEngineBase._schedule_next_action: no action to schedule')
             loop.call_later(1, self._schedule_next_action)
 
     def _start_prepare(self):

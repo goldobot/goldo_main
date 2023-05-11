@@ -197,11 +197,12 @@ class RobotMain:
         if self._recorder_process is not None:
             self._recorder_process.kill()
 
-        self._recorder_process = subprocess.Popen([
-            sys.executable,
-            '/home/goldorak/workspace/goldo_main/messages_recorder.py',
-            '/home/goldorak/workspace/record_prematch.bin'
-        ])
+        # FIXME : DEBUG (recorder disbled by default)
+        #self._recorder_process = subprocess.Popen([
+        #    sys.executable,
+        #    '/home/goldorak/workspace/goldo_main/messages_recorder.py',
+        #    '/home/goldorak/workspace/record_prematch.bin'
+        #])
 
         # return
         LOGGER.info("prematch started, side = {}".format({0: 'unset', 1: 'purple', 2: 'yellow'}[self.side]))
