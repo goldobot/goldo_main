@@ -2,6 +2,8 @@ __all__ = [
     'PropulsionCommands',
     'PropulsionError']
 
+import struct
+
 import pb2 as _pb2
 import google.protobuf as _pb
 
@@ -96,6 +98,9 @@ class PropulsionCommands:
 
         self.rplidar_shmem_fd = open("rplidar_shmem.txt","a+b")
         self.rp_shmem = mmap.mmap(self.rplidar_shmem_fd.fileno(), 4096, access=mmap.ACCESS_WRITE, offset=0)
+
+        # FIXME : TODO
+        self.current_command = "u"
 
     def loadConfig(self):
         self._sensor_ids = {}
@@ -254,7 +259,6 @@ class PropulsionCommands:
         cp = (cp.position.x, cp.position.y)
         points = [cp, p]
         i = 1
-        block = False
         s = speed
         while True:
             try:
@@ -411,6 +415,11 @@ class PropulsionCommands:
             self.rp_shmem[0] = 0x01
         else:
             self.rp_shmem[0] = 0x00
+        robot_pose = self._robot._state_proto.robot_pose
+        # FIXME : TODO
+        self.current_command = "u"
+        self.rp_shmem[1:2] = bytearray(self.current_command,"utf8")
+        self.rp_shmem[4:8] = struct.pack("<f",robot_pose.speed)
 
     async def _onTelemetryMsg(self, msg):
         self._robot._state_proto.robot_pose.CopyFrom(msg.pose)

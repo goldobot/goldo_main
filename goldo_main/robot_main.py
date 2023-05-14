@@ -139,7 +139,13 @@ class RobotMain:
                 self._match_armed = True
 
             if self._match_state == MatchState.WaitForStartOfMatch and self._match_armed and not self._state_proto.tirette:
-                LOGGER.info('start match')
+                LOGGER.info('*******************')
+                LOGGER.info('*******************')
+                LOGGER.info('**               **')
+                LOGGER.info('**  START MATCH  **')
+                LOGGER.info('**               **')
+                LOGGER.info('*******************')
+                LOGGER.info('*******************')
                 await self.startMatch()
 
     async def configNucleo(self, msg=None):
