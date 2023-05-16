@@ -27,7 +27,7 @@ class StrategyEngine(StrategyEngineBase):
         # return
         self._astar.resetCosts()
 
-        self._astar.setDisk((1.7, -0.3), 0.3)
+        self._astar.fillDisk((1.7, -0.3), 0.3, 0)
 
         msg = _sym_db.GetSymbol('google.protobuf.BytesValue')(value=self._astar.getArr())
         await self._robot._broker.publishTopic('strategy/debug/astar_arr', msg)

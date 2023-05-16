@@ -224,6 +224,9 @@ class PropulsionCommands:
         await future
 
     async def translation(self, distance, speed):
+        print("********************************************")
+        print(" translation({:f}, {:f})".format(distance, speed))
+        print("********************************************")
         msg, future = self._create_command_msg('ExecuteTranslation', True)
         msg.distance = distance
         msg.speed = speed
@@ -254,7 +257,7 @@ class PropulsionCommands:
         await self._publish_sequence('nucleo/in/propulsion/cmd/move_to', msg)
         await future
 
-    async def moveToRetry(self, p, speed):
+    async def moveToRetry_old(self, p, speed):
         cp = self.pose
         cp = (cp.position.x, cp.position.y)
         points = [cp, p]
@@ -270,6 +273,60 @@ class PropulsionCommands:
                 await self.clearError()
             i = (i + 1) % 2
             s = speed * 0.5
+
+    async def moveToRetry(self, p, speed):
+        print("********************************************")
+        print("**                                        **")
+        print("** moveToRetry()                          **")
+        print("**                                        **")
+        print("********************************************")
+        cp0_x = self.pose.position.x
+        cp0_y = self.pose.position.y
+        s = speed
+        for i in range(1,10):
+            try:
+                print("********************************************")
+                print("    # {:d}".format(i))
+                print("********************************************")
+                await self.moveTo(p, s)
+                await asyncio.sleep(0.5)
+                return
+            except PropulsionError as e:
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                print("    EXCEPTION !")
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                await self.clearError()
+                await asyncio.sleep(0.1)
+            self.adversary_detection_enable = False
+            self.rp_shmem[0] = 0x00
+            await asyncio.sleep(0.5)
+            cp_x = self.pose.position.x
+            cp_y = self.pose.position.y
+            cp_yaw = self.pose.yaw
+            print ("cp0 = ({:f}, {:f})".format(cp0_x, cp0_y))
+            print ("cp = ({:f}, {:f})".format(cp_x, cp_y))
+            dx = cp_x - cp0_x
+            dy = cp_y - cp0_y
+            print ("delta = ({:f}, {:f})".format(dx, dy))
+            max_dist = np.sqrt(dx*dx+dy*dy)
+            print ("max_dist = {:f}".format(max_dist))
+            if (max_dist>0.15):
+                max_dist = 0.15
+            if ((dx*np.cos(cp_yaw)+dy*np.sin(cp_yaw))>0):
+                escape_dist = -max_dist
+            else:
+                escape_dist = max_dist
+            await self.translation(escape_dist, s)
+            self.adversary_detection_enable = True
+            self.rp_shmem[0] = 0x01
+            await asyncio.sleep(1)
+            s = speed * 0.5
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("!!                                        !!")
+        print("!! moveToRetry() failed : sleep eternally !!")
+        print("!!                                        !!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        await asyncio.sleep(3600.0)
 
     async def rotation(self, angle, yaw_rate=None):
         if yaw_rate is None:
