@@ -18,8 +18,11 @@ class PneumaticCommands:
     def __init__(self, robot):
         self._robot = robot
         self._pressure_command = 0
-        self._serial = serial.Serial(SERIAL_PORT, BAUDRATE)
-        LOGGER.info("initialized serial port for pneumatic board on " + SERIAL_PORT)
+        try:
+            self._serial = serial.Serial(SERIAL_PORT, BAUDRATE)
+            LOGGER.info("initialized serial port for pneumatic board on " + SERIAL_PORT)
+        except:
+            LOGGER.error("cannot initialize serial port " + SERIAL_PORT)
 
     def reset(self):
         LOGGER.info("Reset nucleo")

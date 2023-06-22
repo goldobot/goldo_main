@@ -11,6 +11,7 @@ class NucleoStateUpdater(object):
         self._broker = robot._broker
         self._nucleo_proto = self._robot._state_proto.nucleo
         self._heartbeat_received = False
+        self._ping_trig_cnt = 0
         self._broker.registerCallback('nucleo/out/os/heartbeat', self.onHeartbeatMsg)
         self._broker.registerCallback('nucleo/out/os/reset', self.onResetMessage)
         self._broker.registerCallback('nucleo/out/os/task_statistics/uart_comm', self.onUartCommStatsMsg)
@@ -47,7 +48,11 @@ class NucleoStateUpdater(object):
         self._nucleo_proto.heartbeat = msg.timestamp
         self._nucleo_proto.connected = True
         self._heartbeat_received = True
-        await self._broker.publishTopic('nucleo/in/os/ping', None)
+        if self._ping_trig_cnt == 9:
+            await self._broker.publishTopic('nucleo/in/os/ping', None)
+            self._ping_trig_cnt = 0
+        else:
+            self._ping_trig_cnt = self._ping_trig_cnt + 1
         # print(self._last_odrive_comm_stats_ts)
 
     async def onResetMessage(self, msg):

@@ -274,27 +274,28 @@ class PropulsionCommands:
             i = (i + 1) % 2
             s = speed * 0.5
 
-    async def moveToRetry(self, p, speed):
-        print("********************************************")
-        print("**                                        **")
-        print("** moveToRetry()                          **")
-        print("**                                        **")
-        print("********************************************")
+    async def moveToRetry(self, p, speed, retreat_dist=-0.15, retries=10, eternal_sleep=True):
+        #print("********************************************")
+        #print("**                                        **")
+        #print("** moveToRetry()                          **")
+        #print("**                                        **")
+        #print("********************************************")
         cp0_x = self.pose.position.x
         cp0_y = self.pose.position.y
         s = speed
-        for i in range(1,10):
+        retreat_dist=abs(retreat_dist)
+        for i in range(1,retries):
             try:
-                print("********************************************")
-                print("    # {:d}".format(i))
-                print("********************************************")
+                #print("********************************************")
+                #print("    # {:d}".format(i))
+                #print("********************************************")
                 await self.moveTo(p, s)
                 await asyncio.sleep(0.5)
                 return
             except PropulsionError as e:
-                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                print("    EXCEPTION !")
-                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                #print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                #print("    EXCEPTION !")
+                #print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 await self.clearError()
                 await asyncio.sleep(0.1)
             self.adversary_detection_enable = False
@@ -303,15 +304,15 @@ class PropulsionCommands:
             cp_x = self.pose.position.x
             cp_y = self.pose.position.y
             cp_yaw = self.pose.yaw
-            print ("cp0 = ({:f}, {:f})".format(cp0_x, cp0_y))
-            print ("cp = ({:f}, {:f})".format(cp_x, cp_y))
+            #print ("cp0 = ({:f}, {:f})".format(cp0_x, cp0_y))
+            #print ("cp = ({:f}, {:f})".format(cp_x, cp_y))
             dx = cp_x - cp0_x
             dy = cp_y - cp0_y
-            print ("delta = ({:f}, {:f})".format(dx, dy))
+            #print ("delta = ({:f}, {:f})".format(dx, dy))
             max_dist = np.sqrt(dx*dx+dy*dy)
-            print ("max_dist = {:f}".format(max_dist))
-            if (max_dist>0.15):
-                max_dist = 0.15
+            #print ("max_dist = {:f}".format(max_dist))
+            if (max_dist>retreat_dist):
+                max_dist = retreat_dist
             if ((dx*np.cos(cp_yaw)+dy*np.sin(cp_yaw))>0):
                 escape_dist = -max_dist
             else:
@@ -323,10 +324,12 @@ class PropulsionCommands:
             s = speed * 0.5
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print("!!                                        !!")
-        print("!! moveToRetry() failed : sleep eternally !!")
+        print("!! moveToRetry() failed                   !!")
         print("!!                                        !!")
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        await asyncio.sleep(3600.0)
+        if (eternal_sleep):
+            print("sleep eternally....")
+            await asyncio.sleep(3600.0)
 
     async def rotation(self, angle, yaw_rate=None):
         if yaw_rate is None:
