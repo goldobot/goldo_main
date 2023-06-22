@@ -515,3 +515,4 @@ class PropulsionCommands:
             if msg.status == 4 and not self._cmd.get(msg.sequence_number):
                 future.set_result(None)
                 return
+
