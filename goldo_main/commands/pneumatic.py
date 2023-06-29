@@ -28,6 +28,10 @@ class PneumaticCommands:
         LOGGER.info("Reset nucleo")
         self._serial.write(bytes([RESET]))
 
+    def reset_motors(self):
+        LOGGER.info("Reset moteurs_init DSHOT")
+        self._serial.write(b'\x02')
+
     def stop_compressor(self):
         LOGGER.info("Stop compressor")
         if self._pressure_command > 0x3F:
