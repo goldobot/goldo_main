@@ -53,7 +53,6 @@ class NucleoStateUpdater(object):
             self._ping_trig_cnt = 0
         else:
             self._ping_trig_cnt = self._ping_trig_cnt + 1
-        # print(self._last_odrive_comm_stats_ts)
 
     async def onResetMessage(self, msg):
         # FIXME : TODO : GOLDO : why return here??

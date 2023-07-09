@@ -40,7 +40,6 @@ class BufferBuilder(object):
         header = struct.pack('H', len(self.sections)) + b''.join(
             [struct.pack('HH', s[0], s[1] + base_offset) for s in self.sections])
         header = header + b'\0' * header_padding
-        print(len(header))
         binary = header + self.buff
         return binary, compute_crc(binary)
 

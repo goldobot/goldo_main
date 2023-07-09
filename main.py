@@ -90,7 +90,8 @@ if __name__ == '__main__':
     
     
     logger = logging.getLogger('goldo_main.robot_main')
-    logger.setLevel(logging.INFO)
+    #logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     
     consoleHandler = logging.StreamHandler()
     consoleHandler.setLevel(logging.DEBUG)

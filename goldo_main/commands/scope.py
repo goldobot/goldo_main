@@ -104,9 +104,7 @@ class ScopeCommands:
         data = []
         for i in range(len(self._config.channels)):
             data.append(self._channel_values[i])
-            print(i, self._channel_values[i].shape, np.array(data).shape)
         data = np.array(data).T  # transpose the array to have proper columns
-        print(data.shape)
         np.savetxt('columns_from_np_arrays.csv', data, delimiter=',')
 
     async def _updateConfig(self):

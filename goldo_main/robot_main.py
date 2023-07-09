@@ -61,7 +61,6 @@ class RobotMain:
         config = _pb2.get_symbol('goldo.robot.RobotConfig')()
         if not os.path.exists(config_path / 'robot_config.bin'):
             warn_msg = "WARNING configuration file '{}' missing".format(config_path / 'robot_config.bin')
-            print(warn_msg)
             LOGGER.debug(warn_msg)
             return
         config.ParseFromString(open(config_path / 'robot_config.bin', 'rb').read())
@@ -120,6 +119,7 @@ class RobotMain:
         self._sequences_globals['pneumatic'] = PneumaticCommands(self)
         self._sequences_globals['rplidar_detections'] = self._state_proto.rplidar_detections
         self._sequences_globals['exceptions'] = RobotExceptions
+        self._sequences_globals['logger'] = LOGGER
         self.registerCallbacks()
         self.loadConfig(config_path)
         self._task_match = None
@@ -184,7 +184,6 @@ class RobotMain:
             self._current_task.cancel()
 
     async def logMessage(self, message, *args):
-        print(message.format(*args))
         await self._broker.publishTopic('main/log/message',
                                         _sym_db.GetSymbol('google.protobuf.StringValue')(value=message.format(*args)))
 
@@ -303,11 +302,11 @@ class RobotMain:
 
     async def onSetSide(self, msg):
         self.side = msg.value
-        LOGGER.debug("onSetSide(): side = {}".format({0: 'unset', 1: 'green', 2: 'blue'}[self.side]))
+        #LOGGER.debug("onSetSide(): side = {}".format({0: 'unset', 1: 'green', 2: 'blue'}[self.side]))
 
     async def onSetStartZone(self, msg):
         self.start_zone = msg.value
-        LOGGER.debug("onSetStartZone(): zone = " + str(self.start_zone))
+        #LOGGER.debug("onSetStartZone(): zone = " + str(self.start_zone))
 
     def _create_task(self, aw):
         task = asyncio.create_task(aw)
@@ -324,5 +323,4 @@ class RobotMain:
 
     async def onTestAstar(self, msg):
         LOGGER.info('RobotMain: onTestAstar()')
-        print("RobotMain: onTestAstar()")
         await self._strategy_engine.try_astar()

@@ -16,6 +16,8 @@ import google.protobuf.descriptor_pb2
 
 _sym_db = _pb.symbol_database.Default()
 
+LOGGER = logging.getLogger(__name__)
+
 
 class ZmqBrokerCmd(enum.Enum):
     PUBLISH_TOPIC = 0
@@ -102,11 +104,11 @@ class ZmqBrokerProcess(object):
             if event == zmq.EVENT_ACCEPTED:
                 try:
                     s = socket.socket(fileno=value)
-                    print(s.getpeername())
-                    print(event, value)
+                    LOGGER.debug(s.getpeername())
+                    LOGGER.debug(event, value)
                     s.detach()
                 except:
-                    print('ERR')
+                    LOGGER.debug('ERR')
             flags = socket_.getsockopt(zmq.EVENTS)
 
     async def _writeSocket(self, socket, topic, msg):

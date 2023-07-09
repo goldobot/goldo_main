@@ -15,12 +15,13 @@ import pb2 as _pb2
 
 __all__ = ['NucleoCodec', 'ProtobufCodec', 'RPLidarCodec']
 
+LOGGER = logging.getLogger(__name__)
 
 class NucleoCodec:
     def serialize(self, topic, msg):
         msg_type, encoder = _reg._in.get(topic, (None, None))
         if encoder is None:
-            print('error', topic, msg_type)
+            LOGGER.error("NucleoCodec.serialize() error: topic='{}' msg_type={}".format(topic, msg_type))
             return None
         return [_msg_type_struct.pack(0, 0, msg_type, 0, 0), encoder(msg)]
 

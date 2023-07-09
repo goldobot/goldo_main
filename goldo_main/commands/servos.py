@@ -6,6 +6,10 @@ import asyncio
 import struct
 import math
 import functools
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 
 class ServosCommands:
     def __init__(self, robot):
@@ -40,7 +44,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
 
     async def setEnable(self, name_or_servos, enable):
         if isinstance(name_or_servos, (str, bytes)):
@@ -52,7 +56,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
 
     async def setMaxTorque(self, name_or_servos, torque):
         if isinstance(name_or_servos, (str, bytes)):
@@ -65,7 +69,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
 
     async def move(self, name, position, speed=1):
         await self.moveMultiple({name: position}, speed)
@@ -86,7 +90,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
 
         # after the move is started, wait for the servos to stop moving        
         future2 = self._loop.create_future()
@@ -95,7 +99,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future2, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
 
     #async def liftDoHoming(self, id_):
     #    future2 = self._loop.create_future()
@@ -116,7 +120,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
         #await future2
 
     async def liftSetEnable(self, id_, enable):
@@ -139,7 +143,7 @@ class ServosCommands:
         try:
             await asyncio.wait_for(future, 5)
         except asyncio.TimeoutError:
-            print('ERROR:timeout on SERVO command %s', msg)
+            LOGGER.debug('ERROR:timeout on SERVO command %s', msg)
 
     @property
     def states(self):

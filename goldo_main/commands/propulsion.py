@@ -224,9 +224,9 @@ class PropulsionCommands:
         await future
 
     async def translation(self, distance, speed):
-        print("********************************************")
-        print(" translation({:f}, {:f})".format(distance, speed))
-        print("********************************************")
+        LOGGER.debug("********************************************")
+        LOGGER.debug(" translation({:f}, {:f})".format(distance, speed))
+        LOGGER.debug("********************************************")
         msg, future = self._create_command_msg('ExecuteTranslation', True)
         msg.distance = distance
         msg.speed = speed
@@ -275,27 +275,27 @@ class PropulsionCommands:
             s = speed * 0.5
 
     async def moveToRetry(self, p, speed, retreat_dist=-0.15, retries=10, eternal_sleep=True):
-        #print("********************************************")
-        #print("**                                        **")
-        #print("** moveToRetry()                          **")
-        #print("**                                        **")
-        #print("********************************************")
+        #LOGGER.debug("********************************************")
+        #LOGGER.debug("**                                        **")
+        #LOGGER.debug("** moveToRetry()                          **")
+        #LOGGER.debug("**                                        **")
+        #LOGGER.debug("********************************************")
         cp0_x = self.pose.position.x
         cp0_y = self.pose.position.y
         s = speed
         retreat_dist=abs(retreat_dist)
         for i in range(1,retries):
             try:
-                #print("********************************************")
-                #print("    # {:d}".format(i))
-                #print("********************************************")
+                #LOGGER.debug("********************************************")
+                #LOGGER.debug("    # {:d}".format(i))
+                #LOGGER.debug("********************************************")
                 await self.moveTo(p, s)
                 await asyncio.sleep(0.5)
                 return
             except PropulsionError as e:
-                #print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                #print("    EXCEPTION !")
-                #print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                #LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                #LOGGER.debug("    EXCEPTION !")
+                #LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 await self.clearError()
                 await asyncio.sleep(0.1)
             self.adversary_detection_enable = False
@@ -304,13 +304,13 @@ class PropulsionCommands:
             cp_x = self.pose.position.x
             cp_y = self.pose.position.y
             cp_yaw = self.pose.yaw
-            #print ("cp0 = ({:f}, {:f})".format(cp0_x, cp0_y))
-            #print ("cp = ({:f}, {:f})".format(cp_x, cp_y))
+            #LOGGER.debug ("cp0 = ({:f}, {:f})".format(cp0_x, cp0_y))
+            #LOGGER.debug ("cp = ({:f}, {:f})".format(cp_x, cp_y))
             dx = cp_x - cp0_x
             dy = cp_y - cp0_y
-            #print ("delta = ({:f}, {:f})".format(dx, dy))
+            #LOGGER.debug ("delta = ({:f}, {:f})".format(dx, dy))
             max_dist = np.sqrt(dx*dx+dy*dy)
-            #print ("max_dist = {:f}".format(max_dist))
+            #LOGGER.debug ("max_dist = {:f}".format(max_dist))
             if (max_dist>retreat_dist):
                 max_dist = retreat_dist
             if ((dx*np.cos(cp_yaw)+dy*np.sin(cp_yaw))>0):
@@ -322,13 +322,13 @@ class PropulsionCommands:
             self.rp_shmem[0] = 0x01
             await asyncio.sleep(1)
             s = speed * 0.5
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print("!!                                        !!")
-        print("!! moveToRetry() failed                   !!")
-        print("!!                                        !!")
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        LOGGER.debug("!!                                        !!")
+        LOGGER.debug("!! moveToRetry() failed                   !!")
+        LOGGER.debug("!!                                        !!")
+        LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         if (eternal_sleep):
-            print("sleep eternally....")
+            LOGGER.debug("sleep eternally....")
             await asyncio.sleep(3600.0)
 
     async def rotation(self, angle, yaw_rate=None):
@@ -493,12 +493,12 @@ class PropulsionCommands:
     async def _on_cmd_event(self, msg):
         LOGGER.debug('propulsion _on_cmd_event %s', msg)
         if msg.status == 4:
-            print('propulsion cmd ack', msg.sequence_number)
+            LOGGER.debug('propulsion cmd ack', msg.sequence_number)
             future = self._futures_ack.get(msg.sequence_number)
             if future is not None:
                 future.set_result(None)
             else:
-                print("future not found")
+                LOGGER.debug("future not found")
 
         future = self._futures.get(msg.sequence_number)
 

@@ -1,4 +1,7 @@
 import google.protobuf as _pb
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 _sym_db = _pb.symbol_database.Default()
 
@@ -30,7 +33,7 @@ class PropulsionService:
 
     async def _on_cmd_event(self, msg):
         if msg.status == 4:
-            print('propulsion cmd ack', msg.sequence_number)
+            LOGGER.debug('propulsion cmd ack', msg.sequence_number)
             future = self._futures_ack.get(msg.sequence_number)
             if future is not None:
                 future.set_result(None)

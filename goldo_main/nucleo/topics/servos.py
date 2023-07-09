@@ -6,6 +6,10 @@ from goldo_main.nucleo.topics._registry import *
 
 _sym_db = _pb2._sym_db
 
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 
 @nucleo_out('servo/ack', nucleo_message_ids.ServoAck)
 def servo_ack(payload):
@@ -43,7 +47,7 @@ def lift_do_homing(msg):
 def lift_homing_done(payload):
     lift_id = struct.unpack('<B', payload)[0]
     msg = _sym_db.GetSymbol('google.protobuf.UInt32Value')(value=lift_id)
-    print('lift homing done, id', lift_id)
+    LOGGER.debug('lift homing done, id', lift_id)
     return msg
     
 @nucleo_in('lift/cmd_raw', nucleo_message_ids.LiftsCmdRaw)

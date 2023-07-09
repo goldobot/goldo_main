@@ -9,7 +9,6 @@ _sym_db = _pb2._sym_db
 @nucleo_out('propulsion/controller/event', 131)
 def controller_event(payload):
     msg = _pb2.deserialize('goldo.nucleo.propulsion.PropulsionEvent', payload[:41])
-    print(msg)
     return msg
 
 

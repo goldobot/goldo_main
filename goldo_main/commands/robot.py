@@ -18,7 +18,6 @@ class RobotCommands:
         for gpio_proto in self._robot._config_proto.nucleo.hal.gpio:
             name = gpio_proto.name
             self._gpio_ids[name] = gpio_proto.id
-        print(self._gpio_ids)
 
     def _publish(self, topic, msg=None):
         return self._robot._broker.publishTopic(topic, msg)

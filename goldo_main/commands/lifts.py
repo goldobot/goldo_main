@@ -202,9 +202,7 @@ class PropulsionCommands:
 
     async def _on_cmd_event(self, msg):
         future = self._futures.get(msg.sequence_number)
-        print(msg.sequence_number, msg.status, msg.error)
         if future is not None:
             if msg.status == 1:
                 future.set_result(None)
                 return
-            print(msg)
